@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Design notes for the WatchMeGrow camera observability view: layout decisions, departures from the original mockup, the refresh contract, and accessibility.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23159deb'/%3E%3Cpath d='M6 11h13v10H6z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M19 15l7-3.5v9L19 17' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Camera Observability Design Notes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#fbfbfc; --card:#ffffff; --ink:#111827; --ink-2:#374151; --ink-3:#6b7280;
+  --line:#e0e3e8; --line-2:#eceef1; --fill:#f4f5f7;
+  --blue:#159deb; --blue-ink:#0b6fa8; --blue-tint:#DBEEFB; --blue-deep:#0C4A6E;
+  --off:#dc2626; --deg:#f97316; --ok:#16a34a;
+  --amber-tint:#FFECB1; --amber-ink:#7c4a03;
+  --measure:34em;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101317; --card:#171b21; --ink:#f2f4f7; --ink-2:#cbd2da; --ink-3:#94a0ad;
+    --line:#2a3038; --line-2:#232830; --fill:#1d2229;
+    --blue:#4db5f0; --blue-ink:#8ed0f7; --blue-tint:#12293a; --blue-deep:#bfe3f8;
+    --amber-tint:#3a2e12; --amber-ink:#f0cd83;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101317; --card:#171b21; --ink:#f2f4f7; --ink-2:#cbd2da; --ink-3:#94a0ad;
+  --line:#2a3038; --line-2:#232830; --fill:#1d2229;
+  --blue:#4db5f0; --blue-ink:#8ed0f7; --blue-tint:#12293a; --blue-deep:#bfe3f8;
+  --amber-tint:#3a2e12; --amber-ink:#f0cd83;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink-2);
+  font-family:'DM Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:15.5px; line-height:1.62; -webkit-font-smoothing:antialiased;
+  padding:0 24px 90px;
+}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:38px}
+.num{font-variant-numeric:tabular-nums}
+
+/* header */
+header{padding:52px 0 0;display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-ink)}
+h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,40px);line-height:1.1;color:var(--ink);letter-spacing:-.01em;text-wrap:balance}
+.lede{font-size:17px;color:var(--ink-3);max-width:var(--measure)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;padding-top:6px}
+.tag{font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:4px 11px;color:var(--ink-3)}
+hr{border:none;border-top:1px solid var(--line)}
+
+/* sections */
+section{display:flex;flex-direction:column;gap:14px}
+h2{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);
+   padding-bottom:9px;border-bottom:2px solid var(--ink);display:inline-block;align-self:flex-start}
+h3{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:18px;color:var(--ink);line-height:1.25;text-wrap:balance}
+p,li{max-width:var(--measure)}
+a{color:var(--blue-ink);text-decoration-thickness:1px;text-underline-offset:2px}
+strong{color:var(--ink);font-weight:700}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--fill);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--ink)}
+ul{display:flex;flex-direction:column;gap:8px;padding-left:20px}
+li::marker{color:var(--ink-3)}
+
+/* q→a table */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line-2);vertical-align:top}
+th{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);background:var(--fill);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td strong{display:block}
+td:first-child{color:var(--ink);font-weight:600}
+
+/* decision cards */
+.cards{display:flex;flex-direction:column;gap:11px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;display:flex;flex-direction:column;gap:7px}
+.card .k{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink)}
+.card p{font-size:14.5px;max-width:none}
+.card .why{font-size:13.5px;color:var(--ink-3)}
+.card.dev{border-left:3px solid var(--blue)}
+
+/* swatches */
+.sw-row{display:flex;flex-wrap:wrap;gap:10px}
+.sw-item{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 13px 8px 10px;font-size:13px}
+.sw{width:18px;height:18px;border-radius:5px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
+.sw.ok{background-color:#16a34a;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.sw.deg{background-color:#f97316;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2px,transparent 2px 5px)}
+.sw.off{background-color:#dc2626;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.sw-item b{color:var(--ink);font-weight:700}
+.sw-item span{color:var(--ink-3);font-size:12px}
+
+/* open questions */
+.q{display:flex;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.q .n{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;color:var(--blue-ink);background:var(--blue-tint);border-radius:7px;width:26px;height:26px;display:grid;place-items:center;flex-shrink:0}
+.q p{font-size:14.5px;max-width:none}
+.q p+p{margin-top:4px;color:var(--ink-3);font-size:13.5px}
+
+footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:18px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:560px){ body{padding:0 16px 60px} header{padding-top:34px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">WatchMeGrow · Cameras</span>
+  <h1>Camera observability: what I designed and why</h1>
+  <p class="lede">Design notes for the current-status view — a live board that tells a center admin, a regional
+  manager, or an exec which cameras are down right now, and how long they have been down.</p>
+  <div class="meta">
+    <span class="tag">Visual language from <code>STYLE_GUIDE.md</code></span>
+    <span class="tag">Light theme only</span>
+    <span class="tag num">1–20 centers</span>
+    <span class="tag">Offline · Degraded · Normal</span>
+  </div>
+</header>
+
+<hr>
+
+<section>
+  <h2>The job of the page</h2>
+  <p>This is a monitoring surface, not a document: it gets scanned, not read. So every design decision below
+  serves one of the four questions the brief asked it to answer, and each question is answered by a specific
+  element rather than by "the dashboard" in general.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>The question</th><th>What answers it</th></tr></thead>
+      <tbody>
+        <tr><td>Which centers have the most cameras offline?</td>
+            <td><strong>Default sort + the count column.</strong> Centers rank by offline count, then degraded count, then outage length. Counts sit in their own column with tabular figures so the digits stack vertically and the worst center reads without parsing a sentence.</td></tr>
+        <tr><td>Which cameras have been offline the longest?</td>
+            <td><strong>The "Longest outage" tile and the per-row "Longest" line.</strong> Clicking the tile re-sorts the whole board by outage age, which is a different ranking from "most offline" and often the more urgent one.</td></tr>
+        <tr><td>Is this one camera actually down?</td>
+            <td><strong>The detail drawer</strong> — status, how long, when last checked, and a direct link to the live feed on my.wmg. The page reports a heartbeat; only the feed confirms a picture.</td></tr>
+        <tr><td>Show me only the centers I care about.</td>
+            <td><strong>Scope segment + filter bar.</strong> Scope switches between the center you're viewing and every center your role can reach; filters narrow by brand, state, parent-facing, and status.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Layout</h2>
+  <p>One row per <code>center_id</code>, as specified. The row is three columns rather than the mockup's two:</p>
+  <div class="cards">
+    <div class="card">
+      <span class="k">Identity — name, state, store number, camera count</span>
+      <p>Plus a small eye glyph when the center is parent-facing, and an icon link out to my.wmg. Kept to two
+      lines so every row has the same height.</p>
+    </div>
+    <div class="card">
+      <span class="k">Status counts — a fixed column of aligned numbers</span>
+      <p>"4 offline / 1 degraded / Longest 4h 05m", each on its own line with the number right-aligned in a
+      2-character box.</p>
+      <span class="why">Why its own column: when the counts share the identity block they wrap unpredictably and
+      the digits never line up. Given a column, ten rows of counts become a single scannable ladder — you find
+      the worst center by looking down one narrow strip, not by reading ten sentences.</span>
+    </div>
+    <div class="card">
+      <span class="k">Camera grid — one block per camera, wrapping</span>
+      <p>20px blocks, top-aligned, in physical camera order so a room's block sits in the same place every visit.
+      A compact density drops them to 14px when someone needs twenty centers on one screen.</p>
+    </div>
+  </div>
+  <p>A 3px left edge on each card carries the row's worst status, giving the list a scannable vertical margin
+  before any text is read. Ten rows fit in about 810px, so a typical page needs one screen and a nudge.</p>
+</section>
+
+<section>
+  <h2>Where I departed from the mockup</h2>
+  <p>Five deliberate changes. Each is reversible if you disagree.</p>
+  <div class="cards">
+    <div class="card dev">
+      <span class="k">1 · Light, not dark</span>
+      <p>Your call, and the right one — it's the only way the page belongs to the same product as
+      Cameras / Rooms / Classes. The dark mockup informed the content and hierarchy, nothing else. The video
+      frame in the drawer is a light neutral placeholder rather than a black box.</p>
+    </div>
+    <div class="card dev">
+      <span class="k">2 · A drawer, not a modal</span>
+      <p>Clicking a block opens a non-blocking panel on the right instead of a centered modal. Checking cameras
+      is repetitive — you rarely inspect one and stop. A modal makes you close it to see the grid again; the
+      drawer keeps the grid visible and adds <code>←</code> / <code>→</code> to walk the center's cameras in
+      place. Below 640px it becomes a bottom sheet.</p>
+    </div>
+    <div class="card dev">
+      <span class="k">3 · Status has a shape, not only a color</span>
+      <p>Red and green are the classic failure case for the ~8% of men with deuteranopia, and this board's entire
+      meaning is carried by red-versus-green. So each status also has a texture, and the row states its counts in
+      words regardless.</p>
+      <div class="sw-row" style="padding-top:4px">
+        <span class="sw-item"><span class="sw off"></span><b>Offline</b><span>cross</span></span>
+        <span class="sw-item"><span class="sw deg"></span><b>Degraded</b><span>diagonal hatch</span></span>
+        <span class="sw-item"><span class="sw ok"></span><b>Normal</b><span>flat fill</span></span>
+      </div>
+    </div>
+    <div class="card dev">
+      <span class="k">4 · Rank numbers on the rows</span>
+      <p>When the sort is "most issues" or "longest outage", each row shows its rank. It makes the ordering an
+      explicit claim the user can verify rather than an ordering they have to trust — and it makes the ranking
+      visibly change after a refresh.</p>
+    </div>
+    <div class="card dev">
+      <span class="k">5 · Summary tiles above the list</span>
+      <p>Four numbers — centers with issues, cameras offline, degraded, longest outage — that double as
+      one-click filters. Not a dashboard; the smallest possible answer to "how bad is it right now" before
+      anyone scrolls. In single-center scope they turn read-only, because filtering one center by its own status
+      does nothing.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>The refresh contract</h2>
+  <p>A page that rewrites itself every 30 seconds is hostile unless it follows rules. These are the rules I built:</p>
+  <ul>
+    <li><strong>The countdown is visible.</strong> A ring drains toward the next read, and the subtitle says how
+    old the current data is — "read 12s ago". A live view that can't say when it last succeeded isn't a live view.</li>
+    <li><strong>Pause is real, and labeled.</strong> Paused shows "showing a frozen view", not a stopped clock.</li>
+    <li><strong>It stops refreshing on its own</strong> when the tab is hidden, when a camera drawer is open, and
+    while someone is typing in the filter box. Every skipped poll is a query the read replica never serves.</li>
+    <li><strong>Ranking never changes under the cursor.</strong> If a refresh would reorder rows while the pointer
+    or the keyboard focus is inside the list, the new order is held and a pill offers "Ranking changed — reorder".
+    It applies itself the moment the user leaves. Reordering under a moving cursor is how people click the wrong
+    camera.</li>
+    <li><strong>Page position survives a refresh</strong> — page number, scroll, filters, and the focused block in
+    the camera grid.</li>
+    <li><strong>Failure is stated, not hidden.</strong> A failed read leaves the last good data on screen behind an
+    amber banner naming its age, and never shows an empty board.</li>
+    <li><strong>Screen readers get a polite summary</strong> after each read — "3 of 6 centers have camera issues,
+    9 cameras offline" — not 250 individual block changes.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Keyboard and assistive access</h2>
+  <ul>
+    <li>252 cameras would be 252 tab stops. Instead each center's grid is <strong>one</strong> tab stop with a
+    roving focus: arrows move between cameras, <code>Home</code> / <code>End</code> jump to the ends,
+    <code>Enter</code> opens the drawer, <code>Esc</code> closes it and returns focus to the block you came from.</li>
+    <li>Every block has an accessible name that includes the duration: "Camera 14, Nap room B, offline for 1h 05m".</li>
+    <li>The hover card also appears on focus, so keyboard users get the same quick facts.</li>
+    <li>Informational text sits at 4.5:1 or better; the muted <code>#9ca3af</code> from the style guide is used only
+    on genuinely disabled controls.</li>
+    <li>Motion respects <code>prefers-reduced-motion</code>.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Sorting, filtering, pagination</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Control</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td>Default sort</td><td>Offline count desc → degraded count desc → longest outage desc → name A–Z. Healthy centers therefore fall below the troubled ones and sort alphabetically among themselves, which is exactly the brief's rule, expressed as one comparator.</td></tr>
+        <tr><td>Other sorts</td><td>Longest outage, center name A–Z, most cameras. The active sort is shown in the control, never implied.</td></tr>
+        <tr><td>Filters</td><td>Free text over center name and store number; status; brand; state; parent-facing. Each applied filter appears as a removable chip with a "Clear all", and the result line always states what survived: "14 centers · 232 cameras · 19 needing attention".</td></tr>
+        <tr><td>Pagination</td><td>10 / 25 / 50 per page, server-side, hidden entirely when there is only one page. Changing pages preserves filters and sort.</td></tr>
+        <tr><td>Scope</td><td>Defaults to the single center the user is viewing, per the brief. Multi-center users get a one-time nudge — "Your role can see 14 centers" — so the wider view is discoverable without being imposed.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>All of it should live in the URL. A regional manager who finds three centers down wants to paste that exact
+  board into Slack, and a bookmark of "my brand, offline only, by outage age" is the feature people will actually
+  use every morning.</p>
+</section>
+
+<section>
+  <h2>States the view can be in</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>State</th><th>Treatment</th></tr></thead>
+      <tbody>
+        <tr><td>First load</td><td>Skeleton rows in the real row geometry, not a spinner — no layout jump when data lands.</td></tr>
+        <tr><td>Refreshing</td><td>Nothing but the ring moves. A 30-second full-page skeleton would make the page unusable.</td></tr>
+        <tr><td>All healthy</td><td>An explicit blue confirmation — "All cameras reporting normally, 232 cameras across 14 centers". A monitoring tool that shows nothing when nothing is wrong teaches people to distrust it.</td></tr>
+        <tr><td>No matches</td><td>Names the scope it searched and offers one button to clear filters.</td></tr>
+        <tr><td>Read failed</td><td>Amber banner, last good data retained, age stated, retry offered.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>Notes for whoever builds it</h2>
+  <ul>
+    <li><strong>Don't query <code>camera_assessment_logs_v2</code> directly.</strong> "Latest row per camera" over a
+    growing log, for every poll, by every admin, is the query that will hurt. Maintain a
+    <code>camera_current_status</code> projection — one row per camera, updated on heartbeat, holding status,
+    <code>status_since</code>, and <code>assessed_at</code>. Sorting centers by offline count and paginating them
+    then becomes an indexed read instead of a windowed scan.</li>
+    <li><strong>Compute the counts in SQL</strong>, per page of centers. Never ship 20,000 camera rows to the client
+    to count them there.</li>
+    <li><strong>Make the poll cheap.</strong> Return an <code>ETag</code> and let unchanged reads answer 304 — most
+    30-second polls change nothing.</li>
+    <li><strong>Distinguish "offline" from "we haven't heard".</strong> If <code>assessed_at</code> is older than the
+    30-minute heartbeat, the camera's status is unknown, not normal, and it should not be counted as healthy. We
+    scoped the legend to three values; this case still needs a decision (see question 1).</li>
+    <li><strong>Scope every query by the user's access</strong> server-side. The scope control is a convenience, never
+    the security boundary.</li>
+    <li><strong>Durations are computed from <code>status_since</code></strong>, not from the client clock, so a stale
+    tab can't invent a 6-hour outage.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <div class="cards">
+    <div class="q"><span class="n num">1</span><div>
+      <p>What should the board do with a camera whose last heartbeat is older than 30 minutes?</p>
+      <p>Right now it keeps whatever status it last reported, which quietly counts a silent camera as healthy. My
+      recommendation is a fourth neutral-gray state, "not reporting" — but that widens the legend you scoped to three.</p>
+    </div></div>
+    <div class="q"><span class="n num">2</span><div>
+      <p>Are "last checked" times shown in the viewer's timezone or the center's?</p>
+      <p>A Dallas admin looking at an Oklahoma center will read them differently. Relative times ("27m ago") dodge the
+      question, which is why the prototype uses them; absolute timestamps in the drawer will need an answer.</p>
+    </div></div>
+    <div class="q"><span class="n num">3</span><div>
+      <p>Is camera order within a center stable and meaningful?</p>
+      <p>The grid is only trustworthy if a room's block stays in the same position between visits. If cameras have a
+      display order, the grid should use it; if not, the block positions are effectively random and worth ordering by
+      room.</p>
+    </div></div>
+    <div class="q"><span class="n num">4</span><div>
+      <p>Does "degraded" have reasons behind it?</p>
+      <p>If the log distinguishes low bitrate from dropped frames from a bad angle, the drawer should say which — it's
+      the difference between "call the vendor" and "nudge the camera".</p>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  Notifications and historical aggregation are out of scope, as specified. The sub-nav reserves
+  <em>History</em> and <em>Alerts</em> as decorative tabs so the eventual home for both is already visible —
+  the same pattern <code>App.jsx</code> uses for Billing and Permissions.
+</footer>
+
+</div>
+</body>
+</html>
