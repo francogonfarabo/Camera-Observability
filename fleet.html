@@ -1,0 +1,999 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Camera health at account altitude — a fleet view above center selection, with problems-first triage, correlated-failure diagnosis, and drill-down into a center.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23159deb'/%3E%3Cpath d='M6 11h13v10H6z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M19 15l7-3.5v9L19 17' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Fleet Camera Health</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&family=Open+Sans:wght@600&display=swap">
+<style>
+/* ============================================================
+   WatchMeGrow — Camera Health at account altitude
+   Same visual language as the rest of the console (STYLE_GUIDE.md),
+   different information architecture: this view exists ABOVE center
+   selection, so no center is selected while you are in it.
+   Deliberately single-theme light, matching the product.
+   ============================================================ */
+:root{
+  --blue:#159deb; --blue-ink:#0b7ab8; --rail:#58a3ca; --rail-active:#4682a2;
+  --blue-tint:#DBEEFB; --blue-deep:#0C4A6E;
+
+  --off:#dc2626;  --off-tint:#fff0f0;  --off-line:#fecaca;
+  --deg:#f97316;  --deg-tint:#fff5e8;  --deg-line:#fed7aa;
+  --ok:#16a34a;   --ok-tint:#eaf7ee;   --ok-line:#bbe5c6;
+  --amber-tint:#FFECB1; --amber-ink:#7c4a03; --amber-line:#f5d98a;
+
+  --ink:#111827; --ink-2:#374151; --ink-3:#6b7280; --ink-4:#9ca3af;
+  --surface:#ffffff; --fill:#f4f5f7; --fill-2:#f8f9fb;
+  --line:#e0e3e8; --line-2:#e5e7eb; --line-3:#d1d5db;
+
+  --topbar-h:52px; --tabbar-h:68px;
+  --shadow-card:0 1px 2px rgba(17,24,39,.05);
+  --shadow-pop:0 6px 24px rgba(0,0,0,.16);
+  --shadow-modal:0 20px 60px rgba(0,0,0,.22);
+  --focus:0 0 0 3px rgba(21,157,235,.28);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--surface); color:var(--ink);
+  font-family:'DM Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:14px; line-height:1.45; -webkit-font-smoothing:antialiased;
+}
+button,input,select{font-family:inherit;font-size:inherit;color:inherit}
+button{background:none;border:none;cursor:pointer;outline:none}
+:focus-visible{outline:none;box-shadow:var(--focus);border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line-3);border-radius:4px}
+
+/* ---------- shell ---------- */
+.app{height:100dvh;display:flex;flex-direction:column;overflow:hidden;position:relative;background:var(--surface)}
+.topbar{
+  height:var(--topbar-h);flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px 0 0;background:linear-gradient(to right,#58a3ca 5.288%,#4b9a64 30%);
+  box-shadow:0 2px 6px rgba(0,0,0,.18);
+}
+.wordmark{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:26px;color:#fff;line-height:1;padding-left:73px}
+.app.acct .wordmark{padding-left:20px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+
+/* The one control that says which altitude you are at.
+   Center scope: a center search/name. Account scope: a scope indicator. */
+.centerpick{display:flex;align-items:center;gap:8px;width:clamp(180px,19vw,270px);padding:7px 12px;border-radius:9999px;border:none;background:rgba(255,255,255,.18);color:#fff;font-size:13px;font-weight:600;text-align:left}
+.centerpick .cname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scopeind{display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:9999px;background:rgba(255,255,255,.26);border:1px solid rgba(255,255,255,.34);color:#fff;font-size:13px;font-weight:700}
+
+/* Entry point 1 — persistent, same visual level as the center field, with a live badge. */
+.entry{display:flex;align-items:center;gap:8px;padding:7px 13px;border-radius:9999px;background:#fff;color:#0b6a92;font-size:13px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.entry:hover{background:#f2f8fc}
+.entry .badge{min-width:20px;height:20px;padding:0 6px;border-radius:9999px;background:var(--off);color:#fff;font-size:11.5px;font-weight:700;display:grid;place-items:center}
+.entry .badge.clear{background:var(--ok)}
+.avatar{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.2);display:grid;place-items:center;flex-shrink:0}
+
+.shellbody{display:flex;flex:1;min-height:0;overflow:hidden}
+.rail{width:73px;flex-shrink:0;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:22px 7px;gap:4px;overflow-y:auto}
+.app.acct .rail{display:none}
+.rail-item{width:59px;min-height:51px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:8px;padding:5px 6px;flex-shrink:0}
+.rail-item[aria-current="page"]{background:var(--rail-active)}
+.rail-item span{font-family:'Open Sans',sans-serif;font-weight:600;font-size:9px;color:#fff;line-height:1.2;text-align:center}
+.col{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
+
+/* sub-nav exists only in center scope — at account altitude there is nothing to tab between */
+.tabbar{height:var(--tabbar-h);flex-shrink:0;display:flex;align-items:stretch;padding:0 8px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabbar::-webkit-scrollbar{display:none}
+.app.acct .tabbar{display:none}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 16px;white-space:nowrap;border-bottom:3px solid transparent}
+.tab span{font-size:11px;font-weight:500;color:var(--ink-4)}
+.tab[aria-current="page"]{border-bottom-color:var(--blue)}
+.tab[aria-current="page"] span{color:var(--blue);font-weight:700}
+.tab.decor{cursor:default}
+.tabdiv{width:1px;background:#e2e4e8;margin:16px 8px;flex-shrink:0}
+/* Entry point 2 — deliberately quiet so it cannot compete with the tabs. */
+.zoomout{margin-left:auto;align-self:center;display:flex;align-items:center;gap:6px;padding:6px 10px;margin-right:6px;border-radius:7px;font-size:12px;font-weight:600;color:var(--ink-3);white-space:nowrap}
+.zoomout:hover{background:var(--fill);color:var(--blue-ink)}
+
+/* ---------- page ---------- */
+.page{flex:1;min-height:0;overflow-y:auto;background:var(--fill-2)}
+.page-inner{padding:18px 24px 40px;display:flex;flex-direction:column;gap:15px;max-width:1500px}
+.crumb{display:flex;align-items:center;gap:6px;align-self:flex-start;padding:5px 10px 5px 7px;border-radius:7px;font-size:12.5px;font-weight:700;color:var(--blue-ink);background:var(--blue-tint)}
+.crumb:hover{background:#cbe6f8}
+.pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
+h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:24px;line-height:1.15;color:var(--ink);text-wrap:balance}
+.subtitle{font-size:13px;color:var(--ink-3);margin-top:3px}
+
+.live{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px 7px 8px;box-shadow:var(--shadow-card)}
+.ring{position:relative;width:26px;height:26px;flex-shrink:0}
+.ring svg{transform:rotate(-90deg)}
+.ring .track{stroke:var(--line-2)}
+.ring .prog{stroke:var(--blue);transition:stroke-dashoffset .95s linear}
+.live.paused .prog{stroke:var(--ink-4);transition:none}
+.live-txt{display:flex;flex-direction:column;line-height:1.25}
+.live-txt b{font-size:12px;font-weight:700;color:var(--ink-2)}
+.live-txt em{font-size:11px;font-style:normal;color:var(--ink-3)}
+.ctrlbtn{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line-2);background:var(--surface)}
+.ctrlbtn:hover{background:var(--fill);border-color:var(--line-3)}
+
+/* summary row */
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.sum{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow-card);transition:border-color .12s,transform .12s}
+.sum.click:hover{border-color:var(--line-3);transform:translateY(-1px)}
+.sum.click[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),var(--shadow-card)}
+.sum-l{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3);display:flex;align-items:center;gap:6px}
+.sum-v{font-size:26px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+.sum-s{font-size:11.5px;color:var(--ink-3)}
+.sum.t-off .sum-v{color:var(--off)} .sum.t-deg .sum-v{color:#c2410c}
+.sum.t-ok .sum-v{color:var(--ok)}  .sum.t-n .sum-v{color:var(--ink)}
+
+/* toolbar */
+.toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow-card)}
+.seg{display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
+.seg button{padding:6px 12px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink-3);display:flex;align-items:center;gap:7px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--blue);box-shadow:var(--shadow-card);border:1px solid var(--line-2)}
+.field{position:relative;display:flex;align-items:center}
+.field svg{position:absolute;left:10px;pointer-events:none}
+.field input{width:220px;padding:8px 10px 8px 32px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface)}
+.field input:focus{border-color:var(--blue);box-shadow:var(--focus)}
+select{padding:8px 10px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface);cursor:pointer}
+select:focus{border-color:var(--blue);box-shadow:var(--focus)}
+.flabel{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);font-family:'Titillium Web',sans-serif}
+.spacer{flex:1;min-width:0}
+.resultline{font-size:12.5px;color:var(--ink-3)}
+
+/* status swatch — colour plus texture, never colour alone */
+.sw{width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
+.sw.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
+.sw.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 1.5px,transparent 1.5px 4px)}
+.sw.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.4 3.4l5.2 5.2M8.6 3.4l-5.2 5.2' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E")}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:2px 9px;font-size:11px;font-weight:700;border:1px solid;white-space:nowrap}
+.pill.off{background:var(--off-tint);color:#b91c1c;border-color:var(--off-line)}
+.pill.deg{background:var(--deg-tint);color:#c2410c;border-color:var(--deg-line)}
+.pill.ok{background:var(--ok-tint);color:#15803d;border-color:var(--ok-line)}
+.pill.pub{background:var(--blue-tint);color:var(--blue-deep);border-color:#a8d5f2}
+
+/* banners */
+.banner{display:flex;gap:12px;align-items:flex-start;border-radius:10px;padding:12px 14px;border:1px solid}
+.banner.warn{background:var(--amber-tint);border-color:var(--amber-line);color:var(--amber-ink)}
+.banner.info{background:var(--blue-tint);border-color:#a8d5f2;color:var(--blue-deep)}
+.banner .ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:rgba(255,255,255,.65)}
+.banner b{display:block;font-size:13px;font-weight:700}
+.banner p{font-size:12.5px;opacity:.92}
+.banner .act{margin-left:auto;font-size:12.5px;font-weight:700;text-decoration:underline;white-space:nowrap;color:inherit}
+
+/* ---------- centre cards (fleet view) ---------- */
+.list{display:flex;flex-direction:column;gap:11px}
+.centre{background:var(--surface);border:1px solid var(--line);border-left-width:3px;border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden}
+.centre.has-off{border-left-color:var(--off)}
+.centre.has-deg{border-left-color:var(--deg)}
+.centre.clean{border-left-color:var(--ok-line)}
+.c-head{display:flex;align-items:flex-start;gap:14px;padding:13px 16px 11px;flex-wrap:wrap}
+.c-id{display:flex;flex-direction:column;gap:3px;min-width:0}
+.c-name{display:inline-flex;align-items:center;gap:7px;font-family:'Titillium Web',sans-serif;font-weight:700;font-size:15px;line-height:1.2;color:var(--ink);text-align:left;border-radius:6px}
+.c-name:hover{color:var(--blue-ink);text-decoration:underline}
+.c-name .go{color:var(--ink-4);flex-shrink:0}
+.c-name:hover .go{color:var(--blue)}
+.c-meta{font-size:11.5px;color:var(--ink-3);display:flex;align-items:center;gap:6px}
+.pf{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;flex-shrink:0;background:var(--blue-tint);color:var(--blue-deep)}
+.c-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-left:auto}
+
+/* correlated-failure diagnosis — the line that turns symptoms into a cause */
+.diag{display:flex;gap:9px;align-items:flex-start;margin:0 16px 12px;padding:9px 12px;border-radius:9px;background:var(--amber-tint);border:1px solid var(--amber-line);color:var(--amber-ink);font-size:12.5px}
+.diag.soft{background:var(--fill);border-color:var(--line);color:var(--ink-2)}
+.diag svg{flex-shrink:0;margin-top:1px}
+.diag b{font-weight:700}
+
+/* camera tiles — status, not a live stream */
+.tiles{display:flex;flex-wrap:wrap;gap:10px;padding:0 16px 14px}
+.tile{width:158px;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;text-align:left;display:flex;flex-direction:column;transition:border-color .12s,box-shadow .12s}
+.tile:hover{border-color:var(--line-3);box-shadow:var(--shadow-card)}
+.tile:focus-visible{box-shadow:var(--focus)}
+.thumb{aspect-ratio:16/10;background:var(--fill);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;position:relative;border-bottom:1px solid var(--line)}
+.thumb.okbg{background:linear-gradient(160deg,#eef4f8,#e6eef4)}
+.thumb .st{position:absolute;top:6px;left:6px}
+.tile-b{padding:8px 9px 9px;display:flex;flex-direction:column;gap:3px}
+.tile-n{font-size:12.5px;font-weight:700;color:var(--ink);line-height:1.25}
+.tile-r{font-size:11px;color:var(--ink-3)}
+.tile-f{font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:4px}
+.tile-f b{color:var(--ink-2);font-weight:600}
+.watch{margin-top:5px;display:flex;align-items:center;justify-content:center;gap:5px;padding:5px 8px;border:1px solid var(--line-3);border-radius:7px;font-size:11.5px;font-weight:700;color:var(--ink-2);background:var(--surface)}
+.watch:hover{background:var(--blue-tint);border-color:#9fd0f0;color:var(--blue-deep)}
+.c-foot{border-top:1px solid var(--line-2);background:var(--fill-2);padding:8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.c-foot .lnk{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--blue-ink)}
+.c-foot .lnk:hover{text-decoration:underline}
+.c-foot .note{font-size:11.5px;color:var(--ink-3)}
+
+/* healthy centres, collapsed into one row */
+.healthy{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ok-line);border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden}
+.healthy-btn{width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;text-align:left}
+.healthy-btn:hover{background:var(--fill-2)}
+.healthy-ic{width:28px;height:28px;border-radius:50%;background:var(--ok-tint);border:1px solid var(--ok-line);display:grid;place-items:center;flex-shrink:0}
+.healthy-t{flex:1;min-width:0}
+.healthy-t b{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink);display:block}
+.healthy-t span{font-size:11.5px;color:var(--ink-3)}
+.chev{color:var(--ink-3);transition:transform .18s}
+.healthy[data-open="true"] .chev{transform:rotate(180deg)}
+.healthy-list{border-top:1px solid var(--line-2);display:flex;flex-direction:column}
+.hrow{display:flex;align-items:center;gap:12px;padding:9px 16px;text-align:left;border-bottom:1px solid var(--line-2)}
+.hrow:last-child{border-bottom:none}
+.hrow:hover{background:var(--fill-2)}
+.hrow .hn{font-weight:600;font-size:13px;color:var(--ink);flex:1;min-width:0}
+.hrow:hover .hn{color:var(--blue-ink);text-decoration:underline}
+.hrow .hm{font-size:11.5px;color:var(--ink-3)}
+
+/* pagination */
+.pager{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;box-shadow:var(--shadow-card)}
+.pgroup{display:flex;align-items:center;gap:6px}
+.pg{min-width:32px;height:32px;padding:0 8px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink-2);display:grid;place-items:center}
+.pg:hover{background:var(--fill)}
+.pg[aria-current="page"]{background:var(--blue);color:#fff}
+.pg:disabled{opacity:.35;cursor:not-allowed}
+.pgtxt{font-size:12.5px;color:var(--ink-3)}
+
+/* empty / skeleton */
+.empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:var(--surface);border:1px dashed var(--line-3);border-radius:12px;padding:42px 24px}
+.empty .ic{width:44px;height:44px;border-radius:50%;background:var(--fill);display:grid;place-items:center}
+.empty b{font-family:'Titillium Web',sans-serif;font-size:15px;font-weight:700}
+.empty p{font-size:13px;color:var(--ink-3);max-width:44ch}
+.btn{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;border:1px solid var(--line-3);background:var(--surface);color:var(--ink-2)}
+.btn:hover{background:var(--fill)}
+.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
+.btn.primary:hover{background:var(--blue-ink)}
+.skel{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line-2);border-radius:12px;padding:13px 16px;display:flex;flex-direction:column;gap:11px}
+.sk{background:linear-gradient(90deg,var(--fill) 25%,#eef0f3 37%,var(--fill) 63%);background-size:400% 100%;border-radius:6px;animation:sh 1.3s infinite linear}
+@keyframes sh{from{background-position:100% 0}to{background-position:0 0}}
+
+/* live-stream modal — playback is an explicit act, never the page's default */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(2px);display:grid;place-items:center;padding:20px;z-index:60}
+.scrim[hidden]{display:none}
+.modal{width:min(560px,100%);background:var(--surface);border-radius:14px;box-shadow:var(--shadow-modal);overflow:hidden;display:flex;flex-direction:column}
+.m-head{display:flex;align-items:flex-start;gap:10px;padding:14px 16px 12px;border-bottom:1px solid var(--line)}
+.m-head h2{font-family:'Titillium Web',sans-serif;font-size:16px;font-weight:700}
+.m-head .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.m-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.m-stage{aspect-ratio:16/9;border-radius:10px;border:1px solid var(--line);background:linear-gradient(160deg,#eef4f8,#e2eaf1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative}
+.m-stage .lbl{font-size:12.5px;font-weight:600;color:var(--ink-3)}
+.livetag{position:absolute;top:10px;left:10px;display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--ok-line);border-radius:20px;padding:3px 9px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#15803d}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.m-foot{border-top:1px solid var(--line);padding:11px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--fill-2)}
+.m-foot .cnt{font-size:11.5px;color:var(--ink-3)}
+dl.dl{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+dl.dl div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 12px;font-size:12.5px}
+dl.dl div+div{border-top:1px solid var(--line)}
+dl.dl dt{color:var(--ink-3)}
+dl.dl dd{font-weight:700;color:var(--ink);text-align:right}
+
+/* prototype-only strip */
+.proto{border:1px dashed var(--line-3);border-radius:12px;padding:11px 13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface)}
+.proto .tag{font-family:'Titillium Web',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-4)}
+.proto button{border:1px solid var(--line-3);border-radius:7px;padding:5px 10px;font-size:12px;font-weight:600;color:var(--ink-2)}
+.proto button:hover{background:var(--fill)}
+.proto button[aria-pressed="true"]{background:var(--blue-tint);border-color:#9fd0f0;color:var(--blue-deep)}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+@media (max-width:1080px){ .summary{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:640px){
+  :root{--topbar-h:46px}
+  .rail{display:none}
+  .wordmark{padding-left:14px;font-size:20px}
+  .centerpick{width:auto;min-width:0}
+  .centerpick .cname{display:none}
+  .entry span.lbl{display:none}
+  .page-inner{padding:14px 14px 32px}
+  h1{font-size:20px}
+  .field{flex:1 1 100%}
+  .field input{width:100%}
+  .tile{width:calc(50% - 5px)}
+  .tiles{padding:0 12px 12px}
+  .c-tags{margin-left:0;width:100%}
+}
+</style>
+<style>
+.vsw{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:80;display:flex;align-items:center;gap:4px;
+  background:rgba(255,255,255,.96);border:1px solid #e0e3e8;border-radius:9999px;padding:4px;
+  box-shadow:0 6px 24px rgba(0,0,0,.16);backdrop-filter:blur(6px);font-family:'DM Sans',system-ui,sans-serif}
+.vsw b{font-family:'Titillium Web',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:#9ca3af;padding:0 8px 0 10px;white-space:nowrap}
+.vsw a{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:9999px;font-size:12.5px;
+  font-weight:700;color:#374151;text-decoration:none;white-space:nowrap}
+.vsw a:hover{background:#f4f5f7}
+.vsw a[aria-current="page"]{background:#159deb;color:#fff}
+.vsw a.doc{color:#6b7280}
+/* clear the pinned bar so the last row of content is never hidden under it.
+   This block is emitted after the page's own styles, so it wins on equal specificity. */
+.page-inner{padding-bottom:82px}
+@media (max-width:640px){ .vsw b{display:none} .vsw a{padding:6px 10px;font-size:12px} }
+</style>
+</head>
+<body>
+<div class="app acct" id="app">
+  <!-- ===== top bar ===== -->
+  <header class="topbar">
+    <span class="wordmark">WatchMeGrow</span>
+    <div class="topbar-right" id="topRight"></div>
+  </header>
+
+  <div class="shellbody">
+    <!-- ===== icon rail — center-scoped nav, hidden at account altitude ===== -->
+    <nav class="rail" aria-label="Main">
+      <div class="rail-item" aria-current="page">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
+        <span>Cameras</span>
+      </div>
+      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></div>
+      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M5 8h14M5 12h9M5 16h11"/></svg><span>Requests</span></div>
+      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 6.5a3 3 0 010 6"/></svg><span>Users</span></div>
+      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg><span>Reports</span></div>
+      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1m0-12.8l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg><span>Settings</span></div>
+      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10z"/><path d="M10 20v-6h4v6"/></svg><span>Center</span></div>
+    </nav>
+
+    <div class="col">
+      <!-- ===== sub-nav — the existing per-center Cameras tabs ===== -->
+      <div class="tabbar" role="tablist" aria-label="Camera sections">
+        <button class="tab" role="tab" aria-current="page" aria-selected="true">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
+          <span>Live</span>
+        </button>
+        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg>
+          <span>History</span>
+        </button>
+        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M7 4h10a1 1 0 011 1v14.2a.6.6 0 01-.93.5L12 16.5l-5.07 3.2a.6.6 0 01-.93-.5V5a1 1 0 011-1z"/></svg>
+          <span>Saved Clips</span>
+        </button>
+        <div class="tabdiv"></div>
+        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8.5 20h7M12 16.5V20"/></svg>
+          <span>Admin Display</span>
+        </button>
+        <!-- Entry point 2: quiet, non-competing -->
+        <button class="zoomout" id="zoomOut">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          View across all centers
+        </button>
+      </div>
+
+      <main class="page" id="page"><div class="page-inner" id="inner"></div></main>
+    </div>
+  </div>
+
+  <div class="scrim" id="scrim" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+      <div class="m-head">
+        <div style="flex:1;min-width:0">
+          <h2 id="mTitle">—</h2>
+          <div class="sub" id="mSub">—</div>
+        </div>
+        <button class="ctrlbtn" id="mClose" aria-label="Close live view"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.4"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      </div>
+      <div class="m-body" id="mBody"></div>
+      <div class="m-foot">
+        <span class="cnt" id="mCnt">1 stream open</span>
+        <button class="btn" id="mStop">Stop stream</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sr" id="announce" aria-live="polite" aria-atomic="true"></div>
+</div>
+
+<script>
+/* =====================================================================
+   Data — deterministic stand-in for the read replica.
+   Each camera carries the recorder it runs through, which is what makes
+   a correlated-failure diagnosis possible.
+   ===================================================================== */
+let seed = 20260824;
+const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+
+const ROOMS = ["Infant A","Infant B","Toddler A","Toddler B","Twos","Threes","Pre-K A","Pre-K B",
+  "Nap room A","Nap room B","Hallway","Lobby","Playground East","Playground West","Gym","Art room",
+  "Music room","Front entry","Back entry","Cubbies","Bus loop","Sink area","Office","Kitchen"];
+
+/* off / deg are explicit camera indices so the recorder groupings — and
+   therefore the diagnosis cases — are deliberate rather than random. */
+const SEEDS = [
+  {name:"Sunrise Learning — Frisco",      brand:"Sunrise Learning",    st:"TX", store:"118", n:20, off:[8,9,11,14], deg:[3],     pub:true},
+  {name:"Sunrise Learning — McKinney",    brand:"Sunrise Learning",    st:"TX", store:"153", n:16, off:[1,4,6,10],  deg:[],      pub:true},
+  {name:"Sunrise Learning — Denton",      brand:"Sunrise Learning",    st:"TX", store:"149", n:22, off:[],          deg:[20],    pub:true},
+  {name:"Sunrise Learning — Plano",       brand:"Sunrise Learning",    st:"TX", store:"092", n:24, off:[],          deg:[],      pub:true},
+  {name:"Sunrise Learning — Allen",       brand:"Sunrise Learning",    st:"TX", store:"061", n:16, off:[],          deg:[],      pub:true},
+  {name:"Sunrise Learning — Prosper",     brand:"Sunrise Learning",    st:"TX", store:"170", n:14, off:[],          deg:[],      pub:false},
+  {name:"Bright Path Academy — Arlington",brand:"Bright Path Academy", st:"TX", store:"204", n:18, off:[16,17],     deg:[],      pub:true},
+  {name:"Bright Path Academy — Katy",     brand:"Bright Path Academy", st:"TX", store:"211", n:12, off:[],          deg:[],      pub:false},
+  {name:"Bright Path Academy — Round Rock",brand:"Bright Path Academy",st:"TX", store:"219", n:20, off:[5],         deg:[12,18], pub:true},
+  {name:"Little Acorns — Norman",         brand:"Little Acorns",       st:"OK", store:"305", n:10, off:[],          deg:[],      pub:true},
+  {name:"Little Acorns — Tulsa",          brand:"Little Acorns",       st:"OK", store:"312", n:14, off:[0,7,9],     deg:[],      pub:true},
+  {name:"Little Acorns — Edmond",         brand:"Little Acorns",       st:"OK", store:"318", n:12, off:[],          deg:[],      pub:false},
+  {name:"Cedar Grove — Shreveport",       brand:"Cedar Grove",         st:"LA", store:"401", n:16, off:[],          deg:[],      pub:true},
+  {name:"Cedar Grove — Baton Rouge",      brand:"Cedar Grove",         st:"LA", store:"408", n:18, off:[],          deg:[4],     pub:true},
+];
+
+const recorderOf = i => "NVR-" + (Math.floor(i / 8) + 1);
+
+function build(){
+  seed = 20260824;
+  return SEEDS.map((s, ci) => ({
+    id:"c"+ci, name:s.name, short:s.name.split("—")[1].trim(),
+    brand:s.brand, state:s.st, store:s.store, pub:s.pub,
+    cams: Array.from({length:s.n}, (_, i) => {
+      const status = s.off.includes(i) ? "off" : s.deg.includes(i) ? "deg" : "ok";
+      const since = status === "off" ? Math.floor(rnd()*400)+4
+                  : status === "deg" ? Math.floor(rnd()*180)+3
+                  : Math.floor(rnd()*4000)+200;
+      return {
+        id:`${s.store}-CAM${String(i+1).padStart(2,"0")}`, n:i+1,
+        room:ROOMS[i % ROOMS.length], status, recorder:recorderOf(i), since,
+        // An offline camera's last frame IS the moment it went offline — the two
+        // numbers describe the same event and must never disagree.
+        lastFrame: status === "off" ? since
+                 : status === "deg" ? Math.floor(rnd()*7)+1
+                 : Math.floor(rnd()*3)
+      };
+    })
+  }));
+}
+let DATA = build();
+
+const dur = m => m < 1 ? "under a minute" : m < 60 ? m + "m"
+  : m < 1440 ? Math.floor(m/60) + "h " + String(m%60).padStart(2,"0") + "m"
+  : Math.floor(m/1440) + "d " + Math.floor((m%1440)/60) + "h";
+const ago = m => m < 1 ? "just now" : dur(m) + " ago";
+const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+
+const tally = c => {
+  const off = c.cams.filter(x=>x.status==="off");
+  const deg = c.cams.filter(x=>x.status==="deg");
+  return { off:off.length, deg:deg.length, ok:c.cams.length-off.length-deg.length,
+           bad:off.length+deg.length, total:c.cams.length,
+           worst:Math.max(0, ...[...off,...deg].map(x=>x.since)) };
+};
+
+/* Do the offline cameras at this center share a recorder? That is the
+   difference between "three broken cameras" and "one broken network". */
+function diagnose(c){
+  const off = c.cams.filter(x=>x.status==="off");
+  if (off.length < 2) return null;
+  const byRec = {};
+  off.forEach(x=>{ (byRec[x.recorder] = byRec[x.recorder] || []).push(x); });
+  const [rec, group] = Object.entries(byRec).sort((a,b)=>b[1].length-a[1].length)[0];
+  if (group.length < 2) return null;
+  const all = group.length === off.length;
+  return { rec, count:group.length, total:off.length, all,
+    text: all
+      ? (off.length === 2
+          ? `Both offline cameras here run through recorder <b>${rec}</b> — likely one site network fault rather than two separate camera failures.`
+          : `All ${off.length} offline cameras here run through recorder <b>${rec}</b> — likely one site network fault, not ${off.length} separate camera failures.`)
+      : `${group.length} of the ${off.length} offline cameras run through recorder <b>${rec}</b> — worth checking that recorder before the cameras.` };
+}
+
+/* =====================================================================
+   View state
+   ===================================================================== */
+const V = {
+  scope:"account",        // "account" | "center"
+  center:null,            // active center id once drilled in
+  cameFromFleet:false,    // whether to offer the breadcrumb back up
+  mode:"problems",        // "problems" | "all"
+  q:"", state:"all", brand:"all",
+  page:1, per:10,
+  healthyOpen:false,
+  paused:false, tick:30, age:0,
+  loading:false, error:false,
+  soloCenter:false,       // simulate a user assigned to exactly one center
+  live:null               // {ci, idx} while a stream is explicitly open
+};
+const $ = id => document.getElementById(id);
+const centersFor = () => V.soloCenter ? DATA.slice(0,1) : DATA;
+
+function fleetCounts(){
+  const cs = centersFor(), t = cs.map(tally);
+  return {
+    centers: cs.length,
+    off: t.reduce((s,x)=>s+x.off,0),
+    deg: t.reduce((s,x)=>s+x.deg,0),
+    ok:  t.reduce((s,x)=>s+x.ok,0),
+    cams:t.reduce((s,x)=>s+x.total,0),
+    problemCenters: t.filter(x=>x.bad).length
+  };
+}
+
+function filtered(){
+  const q = V.q.trim().toLowerCase();
+  return centersFor().filter(c=>{
+    if (q && !(c.name.toLowerCase().includes(q) || c.store.includes(q))) return false;
+    if (V.state !== "all" && c.state !== V.state) return false;
+    if (V.brand !== "all" && c.brand !== V.brand) return false;
+    return true;
+  });
+}
+const byWorst = (x,y) => {
+  const a = tally(x), b = tally(y);
+  return b.off - a.off || b.deg - a.deg || b.worst - a.worst || x.name.localeCompare(y.name);
+};
+
+/* =====================================================================
+   Shell chrome — the header control that states your altitude
+   ===================================================================== */
+function renderChrome(){
+  const app = $("app");
+  app.classList.toggle("acct", V.scope === "account");
+  const n = fleetCounts();
+  const right = [];
+
+  if (V.scope === "account"){
+    right.push(`<span class="scopeind">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      All centers · <span class="num">${n.centers}</span></span>`);
+  } else {
+    const c = DATA.find(x=>x.id===V.center);
+    right.push(`<button class="centerpick" id="pick">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <span class="cname">${c ? c.name : "Search for a center"}</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.85)" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+    </button>`);
+    // Entry point 1 — persistent, same level as the center field, live badge.
+    // Hidden entirely for single-center users: nothing to aggregate.
+    if (!V.soloCenter){
+      const bad = n.off + n.deg;
+      right.push(`<button class="entry" id="entry" title="Camera health across all ${n.centers} centers">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
+        <span class="lbl">Camera health</span>
+        <span class="badge num ${bad?"":"clear"}">${bad}</span>
+      </button>`);
+    }
+  }
+  right.push(`<div class="avatar"><svg width="26" height="26" viewBox="0 0 32 32"><circle cx="16" cy="12" r="5.2" fill="rgba(255,255,255,.95)"/><ellipse cx="16" cy="25" rx="8.5" ry="5.2" fill="rgba(255,255,255,.95)"/></svg></div>`);
+  $("topRight").innerHTML = right.join("");
+
+  const zo = $("zoomOut");
+  if (zo) zo.hidden = V.soloCenter;
+}
+
+/* =====================================================================
+   Account scope — the fleet view
+   ===================================================================== */
+function liveControl(){
+  const C = 65.97;
+  return `<div class="live${V.paused?" paused":""}">
+    <div class="ring"><svg width="26" height="26" viewBox="0 0 26 26">
+      <circle class="track" cx="13" cy="13" r="10.5" fill="none" stroke-width="2.5"/>
+      <circle class="prog" cx="13" cy="13" r="10.5" fill="none" stroke-width="2.5" stroke-linecap="round"
+        stroke-dasharray="65.97" stroke-dashoffset="${C - C*(V.tick/30)}"/>
+    </svg></div>
+    <div class="live-txt">
+      <b>${V.paused?"Paused":V.error?"Retrying":"Live"}</b>
+      <em>${V.paused?"showing a frozen view":`next refresh in ${V.tick}s`}</em>
+    </div>
+    <button class="ctrlbtn" id="pauseBtn" aria-pressed="${V.paused}" aria-label="${V.paused?"Resume":"Pause"} auto-refresh">
+      ${V.paused
+        ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="#374151"><path d="M8 5l11 7-11 7z"/></svg>`
+        : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.4"><path d="M9 5v14M15 5v14"/></svg>`}
+    </button>
+    <button class="ctrlbtn" id="nowBtn" aria-label="Refresh now">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M20 12a8 8 0 11-2.3-5.6"/><path d="M20 4v4h-4"/></svg>
+    </button>
+  </div>`;
+}
+
+function tileHtml(c, cam){
+  const label = cam.status==="off"?"Offline":cam.status==="deg"?"Degraded":"Normal";
+  const thumb = cam.status==="off"
+    ? `<div class="thumb"><span class="st"><span class="pill off"><span class="sw off" style="width:8px;height:8px;border-radius:2px"></span>Offline</span></span>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg></div>`
+    : cam.status==="deg"
+    ? `<div class="thumb okbg"><span class="st"><span class="pill deg"><span class="sw deg" style="width:8px;height:8px;border-radius:2px"></span>Degraded</span></span>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg></div>`
+    : `<div class="thumb okbg"><span class="st"><span class="pill ok"><span class="sw ok" style="width:8px;height:8px;border-radius:2px"></span>Normal</span></span>
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg></div>`;
+  return `<div class="tile">
+    <button style="display:block;text-align:left;width:100%" data-drill="${c.id}"
+      aria-label="Cam ${cam.n}, ${cam.room} at ${c.name} — ${label}. Open this center's cameras.">
+      ${thumb}
+      <span class="tile-b">
+        <span class="tile-n">Cam ${cam.n} · ${cam.room}</span>
+        <span class="tile-r num">${cam.recorder}</span>
+        <span class="tile-f">Last frame <b class="num">${ago(cam.lastFrame)}</b></span>
+      </span>
+    </button>
+    <div style="padding:0 9px 9px">
+      <button class="watch" data-watch="${c.id}:${cam.n-1}">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 5.5l10 6.5-10 6.5z"/></svg>
+        Watch live
+      </button>
+    </div>
+  </div>`;
+}
+
+function centreHtml(c){
+  const t = tally(c);
+  const cls = t.off ? "has-off" : t.deg ? "has-deg" : "clean";
+  const d = diagnose(c);
+  const cams = V.mode === "problems" ? c.cams.filter(x=>x.status!=="ok") : c.cams;
+
+  const tags = [];
+  if (t.off) tags.push(`<span class="pill off"><span class="sw off" style="width:9px;height:9px;border-radius:2px"></span>${plural(t.off,"camera")} offline</span>`);
+  if (t.deg) tags.push(`<span class="pill deg"><span class="sw deg" style="width:9px;height:9px;border-radius:2px"></span>${t.deg} degraded</span>`);
+  if (!t.bad) tags.push(`<span class="pill ok">All ${t.total} reporting</span>`);
+
+  return `<section class="centre ${cls}" aria-label="${c.name}: ${t.off} offline, ${t.deg} degraded of ${t.total} cameras">
+    <div class="c-head">
+      <div class="c-id">
+        <button class="c-name" data-drill="${c.id}">
+          ${c.name}
+          <svg class="go" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
+        </button>
+        <span class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span>
+          ${c.pub?`<span class="pf" role="img" aria-label="Parent-facing center" title="Parent-facing — families can watch these cameras"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg></span>`:""}
+        </span>
+      </div>
+      <div class="c-tags">${tags.join("")}</div>
+    </div>
+    ${d?`<div class="diag${d.all?"":" soft"}">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16v.4"/></svg>
+      <span>${d.text}</span></div>`:""}
+    ${cams.length?`<div class="tiles">${cams.map(cam=>tileHtml(c,cam)).join("")}</div>`:""}
+    <div class="c-foot">
+      <button class="lnk" data-drill="${c.id}">
+        Open ${c.short} · all ${t.total} cameras
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+      ${V.mode==="problems" && t.bad ? `<span class="note num">${t.ok} other cameras here are reporting normally</span>` : ""}
+    </div>
+  </section>`;
+}
+
+function renderFleet(){
+  const n = fleetCounts();
+  const all = filtered();
+  const problems = all.filter(c=>tally(c).bad).sort(byWorst);
+  const healthy = all.filter(c=>!tally(c).bad).sort((a,b)=>a.name.localeCompare(b.name));
+
+  // "All cameras" lists every matching center individually, still grouped by center.
+  const listed = V.mode === "all" ? [...problems, ...healthy] : problems;
+  const pages = Math.max(1, Math.ceil(listed.length / V.per));
+  if (V.page > pages) V.page = pages;
+  const start = (V.page-1)*V.per;
+  const view = listed.slice(start, start + V.per);
+
+  const sums = [
+    {k:"off", cls:"t-off", l:"Cameras offline", v:n.off, s:`of ${n.cams} cameras`, click:true},
+    {k:"deg", cls:"t-deg", l:"Degraded",        v:n.deg, s:"reporting, but impaired", click:true},
+    {k:"ok",  cls:"t-ok",  l:"Healthy",         v:n.ok,  s:"reporting normally", click:false},
+    {k:"cen", cls:"t-n",   l:"Centers assigned",v:n.centers, s:`${n.problemCenters} need attention`, click:false},
+  ];
+
+  const skel = `${Array.from({length:3},()=>`<div class="skel">
+      <div class="sk" style="height:16px;width:34%"></div>
+      <div class="sk" style="height:11px;width:22%"></div>
+      <div style="display:flex;gap:10px">${Array.from({length:4},()=>`<div class="sk" style="height:132px;width:158px"></div>`).join("")}</div>
+    </div>`).join("")}`;
+
+  $("inner").innerHTML = `
+    <div class="pagehead">
+      <div>
+        <h1>Camera health</h1>
+        <p class="subtitle">Across all <span class="num">${n.centers}</span> centers you're assigned to · read ${V.age<5?"just now":V.age<60?V.age+"s ago":dur(Math.round(V.age/60))+" ago"}</p>
+      </div>
+      ${liveControl()}
+    </div>
+
+    <div class="summary">
+      ${sums.map(s=>s.click
+        ? `<button class="sum click ${s.cls}" data-sum="${s.k}" aria-pressed="false"><span class="sum-l">${s.l}</span><span class="sum-v num">${s.v}</span><span class="sum-s num">${s.s}</span></button>`
+        : `<div class="sum ${s.cls}"><span class="sum-l">${s.l}</span><span class="sum-v num">${s.v}</span><span class="sum-s num">${s.s}</span></div>`).join("")}
+    </div>
+
+    <div class="toolbar">
+      <div class="seg" role="group" aria-label="View">
+        <button id="mProb" aria-pressed="${V.mode==="problems"}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16v.4"/></svg>
+          Problems first</button>
+        <button id="mAll" aria-pressed="${V.mode==="all"}">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          All cameras</button>
+      </div>
+      <div class="field">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="q" placeholder="Center name or store number" value="${V.q}" aria-label="Filter centers">
+      </div>
+      <span class="flabel">State</span>
+      <select id="fState" aria-label="Filter by state">${["all",...new Set(DATA.map(c=>c.state))].map(s=>`<option value="${s}" ${V.state===s?"selected":""}>${s==="all"?"All states":s}</option>`).join("")}</select>
+      <span class="flabel">Brand</span>
+      <select id="fBrand" aria-label="Filter by brand">${["all",...new Set(DATA.map(c=>c.brand))].map(s=>`<option value="${s}" ${V.brand===s?"selected":""}>${s==="all"?"All brands":s}</option>`).join("")}</select>
+      <span class="spacer"></span>
+      <span class="resultline num">${listed.length} of ${all.length} centers listed</span>
+    </div>
+
+    ${V.error?`<div class="banner warn">
+      <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c4a03" stroke-width="2.4"><path d="M12 8v5"/><path d="M12 16.5v.4"/><circle cx="12" cy="12" r="9"/></svg></span>
+      <div><b>Couldn't refresh — showing the last good read</b><p>The read replica didn't answer. Statuses below are from ${dur(4)} ago.</p></div>
+      <button class="act" id="retry">Try again</button></div>`:""}
+
+    ${!V.error && !n.off && !n.deg ? `<div class="banner info">
+      <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0C4A6E" stroke-width="2.6"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
+      <div><b>Every camera is reporting</b><p>All ${n.cams} cameras across ${n.centers} centers checked in on the last heartbeat.</p></div></div>` : ""}
+
+    <div class="list" id="list">
+      ${V.loading ? skel
+        : view.length ? view.map(centreHtml).join("")
+        : `<div class="empty">
+            <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
+            <b>${V.mode==="problems" && !problems.length ? "No camera problems to triage" : "No centers match these filters"}</b>
+            <p>${V.mode==="problems" && !problems.length
+                ? "Every center you're assigned to has all cameras reporting. Switch to All cameras to browse them anyway."
+                : "Nothing matches. Widen the filters or clear them to start over."}</p>
+            <button class="btn primary" id="clearAll">${V.mode==="problems" && !problems.length ? "Show all cameras" : "Clear filters"}</button>
+          </div>`}
+    </div>
+
+    ${!V.loading && V.mode==="problems" && healthy.length ? `
+      <div class="healthy" data-open="${V.healthyOpen}">
+        <button class="healthy-btn" id="healthyToggle" aria-expanded="${V.healthyOpen}">
+          <span class="healthy-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.6"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
+          <span class="healthy-t">
+            <b><span class="num">${healthy.length}</span> ${healthy.length===1?"center":"centers"} healthy</b>
+            <span class="num">${healthy.reduce((s,c)=>s+c.cams.length,0)} cameras reporting · nothing to triage</span>
+          </span>
+          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        ${V.healthyOpen?`<div class="healthy-list">${healthy.map(c=>`
+          <button class="hrow" data-drill="${c.id}">
+            <span class="sw ok"></span>
+            <span class="hn">${c.name}</span>
+            <span class="hm num">${c.state} · #${c.store} · ${c.cams.length} cameras</span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
+          </button>`).join("")}</div>`:""}
+      </div>` : ""}
+
+    ${pages > 1 ? `<div class="pager">
+      <span class="pgtxt num">Showing ${start+1}–${Math.min(start+V.per, listed.length)} of ${listed.length} centers</span>
+      <div class="pgroup">
+        <button class="pg" data-pg="prev" ${V.page===1?"disabled":""} aria-label="Previous page"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 6l-6 6 6 6"/></svg></button>
+        ${Array.from({length:pages},(_,i)=>`<button class="pg num" data-pg="${i+1}" ${V.page===i+1?'aria-current="page"':""}>${i+1}</button>`).join("")}
+        <button class="pg" data-pg="next" ${V.page===pages?"disabled":""} aria-label="Next page"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M10 6l6 6-6 6"/></svg></button>
+      </div>
+      <span class="pgtxt">Page ${V.page} of ${pages}</span>
+    </div>` : ""}
+
+    ${protoStrip()}`;
+}
+
+/* =====================================================================
+   Center scope — the per-center page that already exists in the product
+   ===================================================================== */
+function renderCenter(){
+  const c = DATA.find(x=>x.id===V.center);
+  if (!c){ V.scope="account"; return render(); }
+  const t = tally(c);
+  $("inner").innerHTML = `
+    ${V.cameFromFleet?`<button class="crumb" id="backUp">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M14 6l-6 6 6 6"/></svg>
+      All centers</button>`:""}
+    <div class="pagehead">
+      <div>
+        <h1>${c.name}</h1>
+        <p class="subtitle"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span> —
+          ${t.bad? `<span style="color:#b91c1c;font-weight:600">${t.off} offline, ${t.deg} degraded</span>` : `<span style="color:#15803d;font-weight:600">all reporting</span>`}</p>
+      </div>
+    </div>
+    <div class="banner info">
+      <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0C4A6E" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg></span>
+      <div><b>You're now in ${c.short}'s context</b>
+      <p>Drilling in set this as the session's selected center, so Requests, Users, and Reports will load ${c.short} too. The left nav is back for the same reason.</p></div>
+    </div>
+    <div class="list">
+      <section class="centre ${t.off?"has-off":t.deg?"has-deg":"clean"}">
+        <div class="c-head">
+          <div class="c-id">
+            <span class="c-name" style="cursor:default">Cameras at ${c.short}</span>
+            <span class="c-meta num">${t.total} cameras · ${t.ok} reporting</span>
+          </div>
+          <div class="c-tags">
+            ${t.off?`<span class="pill off"><span class="sw off" style="width:9px;height:9px;border-radius:2px"></span>${t.off} offline</span>`:""}
+            ${t.deg?`<span class="pill deg"><span class="sw deg" style="width:9px;height:9px;border-radius:2px"></span>${t.deg} degraded</span>`:""}
+            ${!t.bad?`<span class="pill ok">All ${t.total} reporting</span>`:""}
+          </div>
+        </div>
+        <div class="tiles">${c.cams.map(cam=>tileHtml(c,cam)).join("")}</div>
+      </section>
+    </div>
+    ${protoStrip()}`;
+}
+
+function protoStrip(){
+  return `<div class="proto">
+    <span class="tag">Prototype controls</span>
+    <button data-demo="loading">First load</button>
+    <button data-demo="fail">Refresh failure</button>
+    <button data-demo="healthy">All healthy</button>
+    <button data-demo="solo" aria-pressed="${V.soloCenter}">Single-center user</button>
+    <button data-demo="reset">Reset data</button>
+    <span class="pgtxt">Scaffolding, not design. <b>Single-center user</b> shows the rule that the fleet entry point disappears when there is nothing to aggregate.</span>
+  </div>`;
+}
+
+function render(){
+  renderChrome();
+  if (V.scope === "account") renderFleet(); else renderCenter();
+  renderModal();
+}
+
+/* =====================================================================
+   Explicit live playback — never the page's default state
+   ===================================================================== */
+function renderModal(){
+  const s = $("scrim");
+  if (!V.live){ s.hidden = true; return; }
+  const c = DATA.find(x=>x.id===V.live.ci); if (!c){ V.live=null; s.hidden=true; return; }
+  const cam = c.cams[V.live.idx];
+  s.hidden = false;
+  $("mTitle").textContent = `Cam ${cam.n} · ${cam.room}`;
+  $("mSub").textContent = `${c.name} · ${c.state} · Store #${c.store}`;
+  const dead = cam.status === "off";
+  $("mBody").innerHTML = `
+    <div class="m-stage"${dead?' style="background:var(--fill)"':""}>
+      ${dead
+        ? `<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg>
+           <span class="lbl">No signal — nothing to stream</span>`
+        : `<span class="livetag"><span class="dot"></span>Live</span>
+           <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
+           <span class="lbl">Streaming ${cam.room}</span>`}
+    </div>
+    <dl class="dl">
+      <div><dt>Status</dt><dd>${dead?`<span class="pill off">Offline</span>`:cam.status==="deg"?`<span class="pill deg">Degraded</span>`:`<span class="pill ok">Normal</span>`}</dd></div>
+      <div><dt>Last frame received</dt><dd class="num">${ago(cam.lastFrame)}</dd></div>
+      <div><dt>${dead?"Offline for":"In this status for"}</dt><dd class="num">${dur(cam.since)}</dd></div>
+      <div><dt>Recorder</dt><dd class="num">${cam.recorder}</dd></div>
+      <div><dt>Camera ID</dt><dd class="num">${cam.id}</dd></div>
+    </dl>
+    <p class="pgtxt">Opened deliberately, one camera at a time. The fleet page never starts streams on its own — a user with 14 centers would otherwise open 232 of them just by loading it.</p>`;
+  $("mCnt").textContent = dead ? "no stream — camera is offline" : "1 stream open";
+}
+
+/* =====================================================================
+   Drill-down: set active center, go to its page, leave a way back up
+   ===================================================================== */
+function drill(ci){
+  V.center = ci; V.scope = "center"; V.cameFromFleet = true; V.live = null;
+  render(); $("page").scrollTo({top:0});
+  const c = DATA.find(x=>x.id===ci);
+  $("announce").textContent = `Opened ${c.name}. This center is now selected for the session.`;
+}
+function goFleet(){
+  V.scope = "account"; V.cameFromFleet = false; V.live = null; V.page = 1;
+  render(); $("page").scrollTo({top:0});
+  $("announce").textContent = "Camera health across all centers.";
+}
+
+/* =====================================================================
+   Refresh
+   ===================================================================== */
+let halfTick = false;
+function mutate(){
+  const pool = DATA.flatMap(c=>c.cams.map(cam=>({c,cam})));
+  const n = 1 + Math.floor(rnd()*3);
+  for (let k=0;k<n;k++){
+    const {cam} = pool[Math.floor(rnd()*pool.length)];
+    const roll = rnd();
+    if (cam.status === "ok"){ cam.status = roll<.55?"off":"deg"; cam.since = 1; cam.lastFrame = 1; }
+    else if (roll < .35){ cam.status = "ok"; cam.since = 1; cam.lastFrame = 0; }
+  }
+  halfTick = !halfTick;
+  DATA.forEach(c=>c.cams.forEach(cam=>{
+    if (!halfTick){ cam.since += 1; if (cam.status!=="ok") cam.lastFrame += 1; }
+    if (cam.status === "ok") cam.lastFrame = Math.floor(rnd()*3);
+  }));
+}
+function refresh(){
+  V.error = false; V.age = 0; mutate(); render();
+  const n = fleetCounts();
+  $("announce").textContent = `Updated. ${n.off} cameras offline, ${n.deg} degraded across ${n.problemCenters} centers.`;
+}
+
+setInterval(()=>{
+  V.age++;
+  const typing = document.activeElement && document.activeElement.id === "q";
+  const blocked = V.paused || document.hidden || !!V.live || typing || V.scope !== "account";
+  if (blocked) return;
+  V.tick--;
+  if (V.tick <= 0){ V.tick = 30; refresh(); }
+  else if (V.scope === "account"){
+    // repaint only the countdown, so typing and hover are never interrupted
+    const l = document.querySelector(".live");
+    if (l) l.outerHTML = liveControl();
+    const sub = document.querySelector(".subtitle");
+    if (sub) sub.innerHTML = `Across all <span class="num">${fleetCounts().centers}</span> centers you're assigned to · read ${V.age<5?"just now":V.age<60?V.age+"s ago":dur(Math.round(V.age/60))+" ago"}`;
+  }
+}, 1000);
+
+/* =====================================================================
+   Events — delegated, so re-rendered markup keeps working
+   ===================================================================== */
+document.addEventListener("click", e=>{
+  const t = e.target;
+  const drillBtn = t.closest("[data-drill]");
+  const watchBtn = t.closest("[data-watch]");
+
+  if (watchBtn){                       // explicit playback, never a drill
+    e.stopPropagation();
+    const [ci, idx] = watchBtn.dataset.watch.split(":");
+    V.live = {ci, idx:+idx}; renderModal(); $("mClose").focus();
+    return;
+  }
+  if (drillBtn){ drill(drillBtn.dataset.drill); return; }
+
+  if (t.closest("#entry") || t.closest("#zoomOut")) return goFleet();
+  if (t.closest("#backUp")) return goFleet();
+  if (t.closest("#mClose") || t.closest("#mStop") || t.id === "scrim"){ V.live=null; renderModal(); return; }
+  if (t.closest("#pauseBtn")){ V.paused=!V.paused; if(!V.paused) V.tick=30; render();
+    $("announce").textContent = V.paused?"Auto-refresh paused.":"Auto-refresh resumed."; return; }
+  if (t.closest("#nowBtn")){ V.tick=30; refresh(); return; }
+  if (t.closest("#retry")){ V.error=false; refresh(); return; }
+  if (t.closest("#mProb")){ V.mode="problems"; V.page=1; render(); return; }
+  if (t.closest("#mAll")){ V.mode="all"; V.page=1; render(); return; }
+  if (t.closest("#healthyToggle")){ V.healthyOpen=!V.healthyOpen; render(); return; }
+  if (t.closest("#clearAll")){
+    if (V.mode==="problems" && !filtered().filter(c=>tally(c).bad).length) V.mode="all";
+    else { V.q=""; V.state="all"; V.brand="all"; }
+    V.page=1; render(); return;
+  }
+  const sum = t.closest("[data-sum]");
+  if (sum){ V.mode="problems"; V.page=1; render(); return; }
+  const pg = t.closest("[data-pg]");
+  if (pg){
+    const listed = V.mode==="all" ? filtered() : filtered().filter(c=>tally(c).bad);
+    const pages = Math.max(1, Math.ceil(listed.length/V.per));
+    V.page = pg.dataset.pg==="prev" ? Math.max(1,V.page-1)
+           : pg.dataset.pg==="next" ? Math.min(pages,V.page+1) : +pg.dataset.pg;
+    render(); $("page").scrollTo({top:0,behavior:"smooth"}); return;
+  }
+  const demo = t.closest("[data-demo]");
+  if (demo){
+    const d = demo.dataset.demo;
+    if (d==="loading"){ V.loading=true; V.error=false; render(); setTimeout(()=>{V.loading=false; render();},1400); }
+    if (d==="fail"){ V.error=true; V.paused=false; render(); }
+    if (d==="healthy"){ DATA.forEach(c=>c.cams.forEach(cam=>{cam.status="ok"; cam.lastFrame=Math.floor(rnd()*3); cam.since=Math.floor(rnd()*4000)+200;})); V.error=false; render(); }
+    if (d==="solo"){ V.soloCenter=!V.soloCenter; V.page=1;
+      if (V.soloCenter){ V.center="c0"; V.scope="center"; V.cameFromFleet=false; }
+      else { V.scope="account"; }
+      render(); }
+    if (d==="reset"){ DATA=build(); V.error=false; V.live=null; V.q=""; V.state="all"; V.brand="all"; V.mode="problems"; V.healthyOpen=false; V.page=1; render(); }
+    return;
+  }
+});
+document.addEventListener("input", e=>{
+  if (e.target.id === "q"){
+    V.q = e.target.value; V.page = 1;
+    const pos = e.target.selectionStart; render();
+    const box = $("q"); if (box){ box.focus(); box.setSelectionRange(pos,pos); }
+  }
+});
+document.addEventListener("change", e=>{
+  if (e.target.id === "fState"){ V.state = e.target.value; V.page=1; render(); }
+  if (e.target.id === "fBrand"){ V.brand = e.target.value; V.page=1; render(); }
+});
+document.addEventListener("keydown", e=>{
+  if (e.key === "Escape" && V.live){ V.live=null; renderModal(); }
+});
+
+/* ---------- boot: cold start, no center selected ---------- */
+V.loading = true; render();
+setTimeout(()=>{ V.loading=false; render();
+  $("announce").textContent = "Camera health loaded for all assigned centers."; }, 900);
+</script>
+<nav class="vsw" aria-label="Prototype version">
+  <b>Version</b>
+  <a href="index.html">A · Nested</a>
+  <a href="fleet.html" aria-current="page">B · Fleet</a>
+  <a class="doc" href="rationale.html">Design notes</a>
+</nav>
+</body>
+</html>

@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Interactive prototype of the WatchMeGrow camera observability view — live per-camera status across centers, with filtering, sorting, pagination and a camera detail drawer.">
+<meta name="description" content="Camera health nested as a sub-tab of the WatchMeGrow camera section — live per-camera status across centers, with filtering, sorting, pagination and a detail drawer.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23159deb'/%3E%3Cpath d='M6 11h13v10H6z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M19 15l7-3.5v9L19 17' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
-<title>Camera Status Board</title>
+<title>Camera Health Board</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&family=Open+Sans:wght@600&display=swap">
 <style>
 /* ============================================================
-   WatchMeGrow — Camera Status Board
+   WatchMeGrow — Camera Health (nested in the camera section)
    Visual language taken from STYLE_GUIDE.md / src/App.jsx.
    Deliberately single-theme (the product is light-only), so
    every color is painted explicitly and nothing is left to
@@ -293,6 +293,22 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .pager{justify-content:center}
 }
 </style>
+<style>
+.vsw{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:80;display:flex;align-items:center;gap:4px;
+  background:rgba(255,255,255,.96);border:1px solid #e0e3e8;border-radius:9999px;padding:4px;
+  box-shadow:0 6px 24px rgba(0,0,0,.16);backdrop-filter:blur(6px);font-family:'DM Sans',system-ui,sans-serif}
+.vsw b{font-family:'Titillium Web',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:#9ca3af;padding:0 8px 0 10px;white-space:nowrap}
+.vsw a{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:9999px;font-size:12.5px;
+  font-weight:700;color:#374151;text-decoration:none;white-space:nowrap}
+.vsw a:hover{background:#f4f5f7}
+.vsw a[aria-current="page"]{background:#159deb;color:#fff}
+.vsw a.doc{color:#6b7280}
+/* clear the pinned bar so the last row of content is never hidden under it.
+   This block is emitted after the page's own styles, so it wins on equal specificity. */
+.page-inner{padding-bottom:82px}
+@media (max-width:640px){ .vsw b{display:none} .vsw a{padding:6px 10px;font-size:12px} }
+</style>
 </head>
 <body>
 <div class="app">
@@ -327,7 +343,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
       <div class="tabbar" role="tablist" aria-label="Camera sections">
         <button class="tab" role="tab" aria-current="page" aria-selected="true">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
-          <span>Current Status</span>
+          <span>Camera Health</span>
         </button>
         <div class="tabdiv"></div>
         <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
@@ -355,7 +371,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
           <div class="pagehead">
             <div>
-              <h1>Camera status</h1>
+              <h1>Camera health</h1>
               <p class="subtitle" id="asof">Every camera's most recent heartbeat, refreshed automatically.</p>
             </div>
             <div class="live" id="live">
@@ -837,7 +853,7 @@ function renderDrawer(){
 
   $("dBody").innerHTML = `${media}
     <dl class="dl">
-      <div><dt>Current status</dt><dd>${pill}</dd></div>
+      <div><dt>Status</dt><dd>${pill}</dd></div>
       <div><dt>${cam.status==="ok"?"Healthy for":"In this status for"}</dt><dd class="num">${dur(cam.since)}</dd></div>
       <div><dt>Last checked</dt><dd class="num" title="Heartbeat every 30 minutes">${ago(cam.checked)}</dd></div>
       <div><dt>Room</dt><dd>${cam.room}</dd></div>
@@ -1077,8 +1093,14 @@ document.querySelector(".proto").addEventListener("click", e=>{
   $("scopeCount").textContent = `(${DATA.length})`;
   S.loading = true; render();
   setTimeout(()=>{ S.loading = false; render();
-    $("announce").textContent = "Camera status loaded."; }, 900);
+    $("announce").textContent = "Camera health loaded."; }, 900);
 })();
 </script>
+<nav class="vsw" aria-label="Prototype version">
+  <b>Version</b>
+  <a href="index.html" aria-current="page">A · Nested</a>
+  <a href="fleet.html">B · Fleet</a>
+  <a class="doc" href="rationale.html">Design notes</a>
+</nav>
 </body>
 </html>
