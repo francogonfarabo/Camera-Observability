@@ -15,7 +15,6 @@
   --blue:#159deb; --blue-ink:#0b6fa8; --blue-tint:#DBEEFB; --blue-deep:#0C4A6E;
   --off:#dc2626; --deg:#f97316; --ok:#16a34a;
   --amber-tint:#FFECB1; --amber-ink:#7c4a03;
-  --measure:34em;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -44,15 +43,14 @@ body{
 header{padding:52px 0 0;display:flex;flex-direction:column;gap:14px}
 .eyebrow{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-ink)}
 h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,40px);line-height:1.1;color:var(--ink);letter-spacing:-.01em;text-wrap:balance}
-.lede{font-size:17px;color:var(--ink-3);max-width:var(--measure)}
+.lede{font-size:17px;color:var(--ink-3)}
 .meta{display:flex;gap:8px;flex-wrap:wrap;padding-top:6px}
 .tag{font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:4px 11px;color:var(--ink-3)}
 hr{border:none;border-top:1px solid var(--line)}
 
 section{display:flex;flex-direction:column;gap:12px}
 h2{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);
-   padding-bottom:9px;border-bottom:2px solid var(--ink);display:inline-block;align-self:flex-start}
-p,li{max-width:var(--measure)}
+   padding-bottom:9px;border-bottom:2px solid var(--ink)}
 a{color:var(--blue-ink);text-decoration-thickness:1px;text-underline-offset:2px}
 strong{color:var(--ink);font-weight:700}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--fill);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--ink)}
