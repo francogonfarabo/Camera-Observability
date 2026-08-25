@@ -158,6 +158,11 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       reversed — it should look identical to its siblings, just not navigate — and the center-search
       dropdown was turned into a non-functional reference: selecting a row does nothing, for now.</p>
     </div></div>
+    <div class="q"><span class="n num">6</span><div>
+      <p><strong>Asked for saved filters, in B only.</strong> Not a request to bring A and B back into
+      parity — a deliberate call that the save/reapply workflow belongs to the version built for triage
+      across many centers, not the single-center one.</p>
+    </div></div>
   </div>
 </section>
 
@@ -213,6 +218,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     just the broken cameras — four red among twenty green tells a different story than four red alone.</li>
     <li><strong>Correlated failures get named:</strong> "All 4 offline cameras here run through recorder
     NVR-2 — likely one site network fault," hedged to "3 of the 4…" when it's partial.</li>
+    <li><strong>Only B can save a view.</strong> Name the current mode, sort, search, and filters; reapply
+    or delete it from a chip row. Browser-local (<code>localStorage</code>), not an account setting — a
+    deliberate asymmetry between the two versions rather than the usual parity.</li>
     <li><strong>Single-center users see none of this</strong> — the toggle and the zoom-out link are
     absent, not present-and-pointless, when there's nothing to aggregate.</li>
   </ul>

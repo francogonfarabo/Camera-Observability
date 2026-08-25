@@ -223,6 +223,28 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .spacer{flex:1;min-width:0}
 .resultline{font-size:12.5px;color:var(--ink-3)}
 
+/* saved filter/sort views — a Toggle-only feature, kept on the browser
+   (localStorage) rather than an account, so it survives a reload but not
+   a different device */
+.saved-views{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;box-shadow:var(--shadow-card)}
+.sv-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);font-family:'Titillium Web',sans-serif;flex-shrink:0}
+.sv-empty{font-size:12.5px;color:var(--ink-4)}
+.view-chip{display:inline-flex;align-items:center;gap:1px;background:var(--fill);border:1px solid var(--line);border-radius:20px;padding:2px 2px 2px 3px}
+.view-chip .apply{padding:5px 6px 5px 9px;font-size:12.5px;font-weight:600;color:var(--ink-2);border-radius:16px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.view-chip .apply:hover{color:var(--blue-ink)}
+.view-chip .del{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:var(--ink-4);flex-shrink:0}
+.view-chip .del:hover{background:var(--off-tint);color:var(--off)}
+.sv-save{position:relative;margin-left:auto;flex-shrink:0}
+.sv-savebtn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:9999px;border:1px dashed var(--line-3);font-size:12.5px;font-weight:700;color:var(--blue-ink);white-space:nowrap}
+.sv-savebtn:hover{background:var(--blue-tint);border-color:#9fd0f0}
+.sv-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:30;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:var(--shadow-pop);width:min(260px,90vw)}
+.sv-pop input{flex:1;min-width:0;border:1px solid var(--line-3);border-radius:7px;padding:7px 9px;font-size:13px}
+.sv-pop input:focus{border-color:var(--blue);box-shadow:var(--focus)}
+.sv-confirm{flex-shrink:0;padding:7px 12px;border-radius:7px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700}
+.sv-confirm:hover{background:var(--blue-ink)}
+.sv-cancel{flex-shrink:0;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--ink-3)}
+.sv-cancel:hover{background:var(--fill)}
+
 .sw{width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
 .sw.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .sw.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 1.5px,transparent 1.5px 4px)}
@@ -382,6 +404,7 @@ dl.dl dd{font-weight:700;color:var(--ink);text-align:right}
   .stat{padding:13px 14px}
   h1{font-size:20px}
   .field{flex:1 1 100%} .field input{width:100%}
+  .sv-save{margin-left:0}
 }
 </style>
 <style>
@@ -559,10 +582,11 @@ const V = {
   center:null,
   cameFromHealth:false,
   drop:false, cq:"",
-  q:"", state:"all", brand:"all",
+  q:"", state:"all", brand:"all", sort:"issues",
   mode:"problems", page:1, per:10, healthyOpen:false,
   paused:false, tick:30, age:0, loading:false, error:false,
-  sel:null, soloCenter:false
+  sel:null, soloCenter:false,
+  savedViews:[], savingOpen:false   // saved filter/sort presets, Toggle only
 };
 const $ = id => document.getElementById(id);
 const centersFor = () => V.soloCenter ? DATA.slice(0,1) : DATA;
@@ -583,10 +607,96 @@ function filtered(){
     return true;
   });
 }
-const byWorst = (x,y) => {
-  const a = tally(x), b = tally(y);
-  return b.off - a.off || b.deg - a.deg || b.worst - a.worst || x.name.localeCompare(y.name);
-};
+// Same four sorts as version A, so "sorting" means the same thing in both.
+function sortCenters(list, sort){
+  const a = [...list];
+  const byName = (x,y) => x.name.localeCompare(y.name);
+  if (sort === "name") a.sort(byName);
+  else if (sort === "size") a.sort((x,y)=> y.cams.length - x.cams.length || byName(x,y));
+  else if (sort === "longest") a.sort((x,y)=> tally(y).worst - tally(x).worst || byName(x,y));
+  else a.sort((x,y)=>{ const p=tally(x), q=tally(y);
+    return q.off - p.off || q.deg - p.deg || q.worst - p.worst || byName(x,y); });
+  return a;
+}
+
+/* =====================================================================
+   Saved views — a named {mode, sort, q, state, brand} snapshot. Kept in
+   localStorage so it survives a reload; falls back to memory-only for the
+   session if storage is unavailable (e.g. a sandboxed viewer). This is a
+   browser-local convenience, not an account setting — it does not roam.
+   ===================================================================== */
+const VIEWS_KEY = "wmg.cameraHealth.savedViews.v1";
+function loadSavedViews(){
+  try { const raw = localStorage.getItem(VIEWS_KEY); return raw ? JSON.parse(raw) : []; }
+  catch(e){ return []; }
+}
+function persistSavedViews(views){
+  try { localStorage.setItem(VIEWS_KEY, JSON.stringify(views)); } catch(e){ /* storage unavailable */ }
+}
+function sortLabel(s){
+  return {issues:"Most issues first", longest:"Longest outage first", name:"Name A–Z", size:"Most cameras"}[s] || s;
+}
+function viewSummary(v){
+  const bits = [v.mode === "problems" ? "Problems first" : "All centers"];
+  if (v.q) bits.push(`"${v.q}"`);
+  if (v.state !== "all") bits.push(v.state);
+  if (v.brand !== "all") bits.push(v.brand);
+  bits.push(sortLabel(v.sort));
+  return bits.join(" · ");
+}
+function commitSaveView(){
+  const inp = $("sv-name");
+  const name = (inp ? inp.value : "").trim();
+  if (!name){ inp && inp.focus(); return; }
+  const existing = V.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
+  const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
+    name, mode:V.mode, sort:V.sort, q:V.q, state:V.state, brand:V.brand };
+  V.savedViews = existing ? V.savedViews.map(v=>v.id===existing.id?payload:v) : [...V.savedViews, payload];
+  persistSavedViews(V.savedViews);
+  V.savingOpen = false; render();
+  $("announce").textContent = `Saved view "${name}".`;
+}
+function applyView(id){
+  const v = V.savedViews.find(x=>x.id===id);
+  if (!v) return;
+  V.mode=v.mode; V.sort=v.sort; V.q=v.q; V.state=v.state; V.brand=v.brand; V.page=1; V.savingOpen=false;
+  render();
+  $("announce").textContent = `Applied saved view "${v.name}".`;
+}
+function deleteView(id){
+  const v = V.savedViews.find(x=>x.id===id);
+  V.savedViews = V.savedViews.filter(x=>x.id!==id);
+  persistSavedViews(V.savedViews);
+  render();
+  if (v) $("announce").textContent = `Removed saved view "${v.name}".`;
+}
+function renderSavedViews(){
+  const chips = V.savedViews.map(v => `
+    <span class="view-chip">
+      <button class="apply" data-apply-view="${v.id}" title="${esc(viewSummary(v))}">${esc(v.name)}</button>
+      <button class="del" data-del-view="${v.id}" aria-label="Remove saved view ${esc(v.name)}">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </span>`).join("");
+  return `<div class="saved-views">
+    <span class="sv-label">Saved views</span>
+    ${chips || `<span class="sv-empty">None yet — filter or sort, then save it</span>`}
+    <div class="sv-save">
+      <button class="sv-savebtn" id="saveViewBtn" aria-expanded="${V.savingOpen}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Save current view
+      </button>
+      ${V.savingOpen ? `
+        <div class="sv-pop" role="dialog" aria-label="Name this view">
+          <input id="sv-name" placeholder="e.g. Texas, offline only" maxlength="40" autocomplete="off">
+          <button class="sv-confirm" id="sv-confirm">Save</button>
+          <button class="sv-cancel" id="sv-cancel" aria-label="Cancel">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 5l14 14M19 5L5 19"/></svg>
+          </button>
+        </div>` : ""}
+    </div>
+  </div>`;
+}
 
 /* =====================================================================
    Header: the search field and the Camera health toggle inside it
@@ -798,9 +908,11 @@ function centreHtml(c, rank){
 
 function renderHealth(){
   const n = counts(), all = filtered();
-  const problems = all.filter(c=>tally(c).bad).sort(byWorst);
+  const problems = sortCenters(all.filter(c=>tally(c).bad), V.sort);
   const healthy = all.filter(c=>!tally(c).bad).sort((a,b)=>a.name.localeCompare(b.name));
-  const listed = V.mode === "all" ? [...problems, ...healthy] : problems;
+  // "All centers" sorts everyone together, so e.g. Name A–Z gives one
+  // continuous alphabet rather than problems-then-healthy.
+  const listed = V.mode === "all" ? sortCenters(all, V.sort) : problems;
   const pages = Math.max(1, Math.ceil(listed.length / V.per));
   if (V.page > pages) V.page = pages;
   const start = (V.page-1)*V.per, view = listed.slice(start, start+V.per);
@@ -841,9 +953,18 @@ function renderHealth(){
       <select id="fState" aria-label="Filter by state">${["all",...new Set(DATA.map(c=>c.state))].map(s=>`<option value="${s}" ${V.state===s?"selected":""}>${s==="all"?"All states":s}</option>`).join("")}</select>
       <span class="flabel">Brand</span>
       <select id="fBrand" aria-label="Filter by brand">${["all",...new Set(DATA.map(c=>c.brand))].map(s=>`<option value="${s}" ${V.brand===s?"selected":""}>${s==="all"?"All brands":esc(s)}</option>`).join("")}</select>
+      <span class="flabel">Sort</span>
+      <select id="fSort" aria-label="Sort centers">
+        <option value="issues" ${V.sort==="issues"?"selected":""}>Most issues first</option>
+        <option value="longest" ${V.sort==="longest"?"selected":""}>Longest outage first</option>
+        <option value="name" ${V.sort==="name"?"selected":""}>Center name A–Z</option>
+        <option value="size" ${V.sort==="size"?"selected":""}>Most cameras first</option>
+      </select>
       <span class="spacer"></span>
       <span class="resultline num">${listed.length} of ${all.length} centers listed</span>
     </div>
+
+    ${renderSavedViews()}
 
     ${V.error?`<div class="banner warn">
       <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c4a03" stroke-width="2.4"><path d="M12 8v5"/><path d="M12 16.5v.4"/><circle cx="12" cy="12" r="9"/></svg></span>
@@ -859,7 +980,7 @@ function renderHealth(){
             <div style="display:flex;flex-direction:column;gap:6px"><div class="sk" style="height:14px;width:80%"></div><div class="sk" style="height:11px;width:55%"></div></div>
             <div style="display:flex;flex-direction:column;gap:5px"><div class="sk" style="height:12px;width:72%"></div><div class="sk" style="height:12px;width:56%"></div></div>
             <div class="sk" style="height:20px;width:min(100%,470px)"></div></div>`).join("")
-        : view.length ? view.map((c,i)=>centreHtml(c, V.mode==="problems"?start+i+1:null)).join("")
+        : view.length ? view.map((c,i)=>centreHtml(c, (V.sort==="issues"||V.sort==="longest")?start+i+1:null)).join("")
         : `<div class="empty">
             <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
             <b>${V.mode==="problems" && !problems.length ? "No camera problems to triage" : "No centers match these filters"}</b>
@@ -1082,6 +1203,8 @@ document.addEventListener("click", e=>{
   }
   // Dropdown rows are illustrative — they intentionally do nothing.
   if (!t.closest("#sbar")){ if (V.drop){ V.drop=false; renderDrop(); } }
+  // Close the "name this view" popover on any click outside it.
+  if (V.savingOpen && !t.closest(".sv-save")){ V.savingOpen=false; render(); return; }
 
   // Cameras carries no data-rail, so it never reaches here.
   const rail = t.closest("[data-rail]");
@@ -1103,6 +1226,17 @@ document.addEventListener("click", e=>{
   if (t.closest("#mProb")){ V.mode="problems"; V.page=1; render(); return; }
   if (t.closest("#mAll")){ V.mode="all"; V.page=1; render(); return; }
   if (t.closest("#healthyToggle")){ V.healthyOpen=!V.healthyOpen; render(); return; }
+  if (t.closest("#saveViewBtn")){
+    V.savingOpen = !V.savingOpen; render();
+    if (V.savingOpen){ const inp = $("sv-name"); if (inp) inp.focus(); }
+    return;
+  }
+  if (t.closest("#sv-cancel")){ V.savingOpen=false; render(); return; }
+  if (t.closest("#sv-confirm")){ commitSaveView(); return; }
+  const av = t.closest("[data-apply-view]");
+  if (av){ applyView(av.dataset.applyView); return; }
+  const dv = t.closest("[data-del-view]");
+  if (dv){ deleteView(dv.dataset.delView); return; }
   if (t.closest("#clearAll")){
     if (V.mode==="problems" && !filtered().filter(c=>tally(c).bad).length) V.mode="all";
     else { V.q=""; V.state="all"; V.brand="all"; }
@@ -1150,6 +1284,12 @@ document.addEventListener("input", e=>{
 document.addEventListener("change", e=>{
   if (e.target.id === "fState"){ V.state = e.target.value; V.page=1; render(); }
   if (e.target.id === "fBrand"){ V.brand = e.target.value; V.page=1; render(); }
+  if (e.target.id === "fSort"){ V.sort = e.target.value; V.page=1; render(); }
+});
+document.addEventListener("keydown", e=>{
+  if (!e.target || e.target.id !== "sv-name") return;
+  if (e.key === "Enter"){ e.preventDefault(); commitSaveView(); }
+  if (e.key === "Escape"){ V.savingOpen=false; render(); }
 });
 document.addEventListener("keydown", e=>{
   if (!V.sel) return;
@@ -1192,6 +1332,7 @@ document.addEventListener("keydown", e=>{
 });
 
 /* ---------- boot: the default screen, no center selected ---------- */
+V.savedViews = loadSavedViews();
 render();
 $("announce").textContent = "Dashboard. No center selected yet.";
 </script>

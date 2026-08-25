@@ -56,6 +56,11 @@ beyond a Google Fonts stylesheet.
 - **Watch live** is an explicit per-camera action — the page never starts streams by itself.
 - **Drill down** by clicking a center name or camera tile: it sets the active center, lands
   on that center's Cameras page, and leaves an "← All centers" breadcrumb.
+- **Sort** — Most issues first, Longest outage, Name A–Z, Most cameras — the same four
+  options as version A. Combine it with the state/brand filters and search.
+- **Saved views** — name the current mix of mode, sort, filters, and search, then reapply
+  or delete it from the chip row. Stored in your browser (`localStorage`) only, so it
+  survives a reload but not a different device.
 - **Single-center user** (prototype controls) shows the entry point disappearing when there
   is nothing to aggregate.
 
