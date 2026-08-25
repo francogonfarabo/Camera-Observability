@@ -238,6 +238,16 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       realising mid-task that the question is bigger than the center you are in.</span>
     </div>
     <div class="card">
+      <span class="k">The Cameras nav item is not a route</span>
+      <p>In the left rail, Cameras is inert — no pointer, no hover, no focus, nothing happens on click. It still
+      lights up to say "you are here" when you have drilled into a center, but it is never a way to get there.
+      Every path to a camera runs through camera health.</p>
+      <span class="why">Two doors into the same room is how the seam reopens. If Cameras were clickable it would
+      have to answer "which center?" — and with no center chosen the honest answer is the error state on the
+      dashboard, which teaches people the nav is broken. Making it report position without offering passage keeps
+      one entry point and one story.</span>
+    </div>
+    <div class="card">
       <span class="k">Squares, not tiles — and no streams at all</span>
       <p>The board uses the same small status squares as version A: one per camera, colour plus texture,
       arranged in a wrapping grid per center. Clicking one opens a centered modal with that camera's status,

@@ -110,6 +110,12 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .rail-item[aria-current="page"]{background:var(--rail-active)}
 .rail-item:hover{background:rgba(255,255,255,.12)}
 .rail-item[aria-current="page"]:hover{background:var(--rail-active)}
+/* Cameras is not a route in this version — it still names where you are,
+   but it offers no hover, no pointer, and no way to click into it. */
+.rail-item.blocked{cursor:default;opacity:.5}
+.rail-item.blocked:hover{background:transparent}
+.rail-item.blocked.cur{opacity:1;background:var(--rail-active)}
+.rail-item.blocked.cur:hover{background:var(--rail-active)}
 .rail-item span{font-family:'Open Sans',sans-serif;font-weight:600;font-size:9px;color:#fff;line-height:1.2;text-align:center}
 .col{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
 
@@ -589,7 +595,9 @@ const byWorst = (x,y) => {
    ===================================================================== */
 const RAIL = [
   {k:"dashboard", l:"Dashboard", p:"<rect x='3' y='3' width='7' height='7'/><rect x='14' y='3' width='7' height='7'/><rect x='3' y='14' width='7' height='7'/><rect x='14' y='14' width='7' height='7'/>"},
-  {k:"cameras",   l:"Cameras",   p:"<path d='M3 7.5h11v9H3z'/><path d='M14 11l6-3v8l-6-3'/>"},
+  // Cameras is inert in this version: camera health is the single way in, so the
+  // nav item reports where you are without offering a second route to get there.
+  {k:"cameras",   l:"Cameras",   blocked:true, p:"<path d='M3 7.5h11v9H3z'/><path d='M14 11l6-3v8l-6-3'/>"},
   {k:"requests",  l:"Requests",  p:"<path d='M5 8h14M5 12h9M5 16h11'/>"},
   {k:"users",     l:"Users",     p:"<circle cx='9' cy='8' r='3.2'/><path d='M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6'/><path d='M16 6.5a3 3 0 010 6'/>"},
   {k:"reports",   l:"Reports",   p:"<path d='M4 19V9m5 10V5m5 14v-7m5 7V8'/>"},
@@ -623,11 +631,15 @@ function renderChrome(){
 
   // rail
   const active = V.screen === "center" ? "cameras" : "dashboard";
-  $("rail").innerHTML = RAIL.map(r=>`
-    <button class="rail-item" data-rail="${r.k}" ${r.k===active?'aria-current="page"':""}>
-      <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">${r.p}</svg>
-      <span>${r.l}</span>
-    </button>`).join("");
+  $("rail").innerHTML = RAIL.map(r=>{
+    const cur = r.k === active;
+    const icon = `<svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">${r.p}</svg>
+      <span>${r.l}</span>`;
+    return r.blocked
+      ? `<div class="rail-item blocked${cur?" cur":""}" aria-disabled="true"
+           title="Cameras open from Camera health — turn on the toggle in the search field">${icon}</div>`
+      : `<button class="rail-item" data-rail="${r.k}" ${cur?'aria-current="page"':""}>${icon}</button>`;
+  }).join("");
 
   $("tabbar").hidden = V.screen !== "center";
   $("zoomOut").hidden = V.soloCenter;
@@ -1075,13 +1087,9 @@ document.addEventListener("click", e=>{
   if (t.closest("[data-pick-all]")){ V.drop=false; toHealth(); return; }
   if (!t.closest("#sbar")){ if (V.drop){ V.drop=false; renderDrop(); } }
 
+  // Cameras carries no data-rail, so it never reaches here.
   const rail = t.closest("[data-rail]");
-  if (rail){
-    const k = rail.dataset.rail;
-    V.screen = (k === "cameras" && V.center) ? "center" : "dashboard";
-    if (k !== "cameras") V.cameFromHealth = false;
-    V.sel = null; render(); return;
-  }
+  if (rail){ V.screen = "dashboard"; V.cameFromHealth = false; V.sel = null; render(); return; }
   const cam = t.closest("[data-cam]");
   if (cam){ const [ci,i] = cam.dataset.cam.split(":"); openCam(ci, +i); return; }
   const dr = t.closest("[data-drill]");
