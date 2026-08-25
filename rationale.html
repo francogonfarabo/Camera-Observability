@@ -88,6 +88,26 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:560px){ body{padding:0 16px 60px} header{padding-top:34px} }
 </style>
+<style>
+.vsw{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:80;display:flex;align-items:center;gap:4px;
+  background:rgba(255,255,255,.96);border:1px solid #e0e3e8;border-radius:9999px;padding:4px;
+  box-shadow:0 6px 24px rgba(0,0,0,.16);backdrop-filter:blur(6px);font-family:'DM Sans',system-ui,sans-serif}
+.vsw b{font-family:'Titillium Web',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:#9ca3af;padding:0 8px 0 10px;white-space:nowrap}
+.vsw a{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:9999px;font-size:12.5px;
+  font-weight:700;color:#374151;text-decoration:none;white-space:nowrap}
+.vsw a:hover{background:#f4f5f7}
+.vsw a.doc{color:#6b7280}
+/* Comes after .doc, so it wins the tie in specificity and the current item is
+   always blue regardless of which of the three pages it is. */
+.vsw a[aria-current="page"]{background:#159deb;color:#fff}
+/* Clear the pinned bar so the last row of content is never hidden under it.
+   Emitted after the page's own styles, so it wins on equal specificity. Covers
+   both shell layouts (.page-inner, the prototypes) and the plain doc (.wrap). */
+.page-inner{padding-bottom:82px}
+.wrap{padding-bottom:70px}
+@media (max-width:640px){ .vsw b{display:none} .vsw a{padding:6px 10px;font-size:12px} }
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -281,5 +301,11 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 </footer>
 
 </div>
+<nav class="vsw" aria-label="Prototype version">
+  <b>Version</b>
+  <a href="index.html">A · Nested</a>
+  <a href="fleet.html">B · Fleet</a>
+  <a class="doc" href="rationale.html" aria-current="page">Design notes</a>
+</nav>
 </body>
 </html>
