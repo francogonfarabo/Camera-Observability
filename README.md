@@ -10,7 +10,7 @@ by looking at it rather than by arguing about it.
 | Page | Version | What it is |
 |---|---|---|
 | [`index.html`](index.html) | **A · Nested** | Camera health as the first sub-tab of the camera section, beside Live / History / Saved Clips / Admin Display |
-| [`fleet.html`](fleet.html) | **B · Fleet** | Camera health at *account* altitude — above center selection, with no center selected and the center-scoped nav hidden |
+| [`fleet.html`](fleet.html) | **B · Toggle** | Camera health at *account* altitude — above center selection, with no center selected and the center-scoped nav hidden |
 | [`rationale.html`](rationale.html) | — | Design notes: the two altitudes, layout decisions, refresh contract, accessibility, open questions |
 
 A version switcher is pinned to the bottom of both prototypes.
@@ -45,7 +45,7 @@ beyond a Google Fonts stylesheet.
 - **Keyboard** — each center's grid is one tab stop with arrow-key navigation, not one stop
   per camera.
 
-**Version B · Fleet** — worth exercising:
+**Version B · Toggle** — worth exercising:
 
 - **Cold start.** It opens in account scope: no center selected, left nav hidden, header
   reading "All centers · 14".
