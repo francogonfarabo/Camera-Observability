@@ -31,7 +31,7 @@
   --line:#e0e3e8; --line-2:#e5e7eb; --line-3:#d1d5db;
   --navy:#2c4f6b;
 
-  --topbar-h:54px; --tabbar-h:68px;
+  --topbar-h:54px;
   --shadow-card:0 1px 2px rgba(17,24,39,.05);
   --shadow-pop:0 6px 24px rgba(0,0,0,.16);
   --shadow-modal:0 20px 60px rgba(0,0,0,.22);
@@ -113,19 +113,6 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .rail-item span{font-family:'Open Sans',sans-serif;font-weight:600;font-size:9px;color:#fff;line-height:1.2;text-align:center}
 .col{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
 
-/* per-center sub-nav (center scope only) */
-.tabbar{height:var(--tabbar-h);flex-shrink:0;display:flex;align-items:stretch;padding:0 8px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
-.tabbar::-webkit-scrollbar{display:none}
-.tabbar[hidden]{display:none}
-.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 16px;white-space:nowrap;border-bottom:3px solid transparent}
-.tab span{font-size:11px;font-weight:500;color:var(--ink-4)}
-.tab[aria-current="page"]{border-bottom-color:var(--blue)}
-.tab[aria-current="page"] span{color:var(--blue);font-weight:700}
-.tab.decor{cursor:default}
-.tabdiv{width:1px;background:#e2e4e8;margin:16px 8px;flex-shrink:0}
-.zoomout{margin-left:auto;align-self:center;display:flex;align-items:center;gap:6px;padding:6px 10px;margin-right:6px;border-radius:7px;font-size:12px;font-weight:600;color:var(--ink-3);white-space:nowrap}
-.zoomout:hover{background:var(--fill);color:var(--blue-ink)}
-
 /* welcome band (dashboard) */
 .band{background:var(--band);color:#fff;padding:11px 22px;flex-shrink:0}
 .band h2{font-family:'Titillium Web',sans-serif;font-weight:600;font-size:17px;line-height:1.2}
@@ -183,8 +170,6 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .res .rb a:hover{text-decoration:underline}
 
 /* ---------- shared page furniture ---------- */
-.crumb{display:flex;align-items:center;gap:6px;align-self:flex-start;padding:5px 10px 5px 7px;border-radius:7px;font-size:12.5px;font-weight:700;color:var(--blue-ink);background:var(--blue-tint)}
-.crumb:hover{background:#cbe6f8}
 .pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap}
 h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:24px;line-height:1.15;color:var(--ink);text-wrap:balance}
 .subtitle{font-size:13px;color:var(--ink-3);margin-top:3px}
@@ -210,9 +195,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:24px;line-he
 .sum.t-ok .sum-v{color:var(--ok)}  .sum.t-n .sum-v{color:var(--ink)}
 
 .toolbar{display:flex;align-items:center;gap:9px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow-card)}
-.seg{display:inline-flex;background:var(--fill);border:1px solid var(--line);border-radius:9px;padding:3px;gap:3px}
-.seg button{padding:6px 12px;border-radius:7px;font-size:12.5px;font-weight:600;color:var(--ink-3);display:flex;align-items:center;gap:7px}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--blue);box-shadow:var(--shadow-card);border:1px solid var(--line-2)}
 .field{position:relative;display:flex;align-items:center}
 .field svg{position:absolute;left:10px;pointer-events:none}
 .field input{width:220px;padding:8px 10px 8px 32px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface)}
@@ -269,10 +251,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .centre.has-deg{border-left-color:var(--deg)}
 .centre.clean{border-left-color:var(--ok-line)}
 .crow{display:grid;grid-template-columns:minmax(190px,254px) 172px 1fr;gap:18px;align-items:start;padding:12px 16px}
-.c-name{display:inline-flex;align-items:center;gap:6px;font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);text-align:left;border-radius:6px}
-.c-name:hover{color:var(--blue-ink);text-decoration:underline}
-.c-name .go{color:var(--ink-4);flex-shrink:0}
-.c-name:hover .go{color:var(--blue)}
+/* The centre name is a label, not a link — this version has no center view. */
+.c-name{display:inline-flex;align-items:center;gap:6px;font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);text-align:left}
 .c-rank{font-size:11.5px;color:var(--ink-4);min-width:14px;flex-shrink:0;font-weight:600}
 .c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap}
 .pf{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;flex-shrink:0;background:var(--blue-tint);color:var(--blue-deep)}
@@ -292,28 +272,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .diag{display:flex;gap:9px;align-items:flex-start;margin:0 16px 12px;padding:9px 12px;border-radius:9px;background:var(--amber-tint);border:1px solid var(--amber-line);color:var(--amber-ink);font-size:12.5px}
 .diag.soft{background:var(--fill);border-color:var(--line);color:var(--ink-2)}
 .diag svg{flex-shrink:0;margin-top:1px}
-.c-foot{border-top:1px solid var(--line-2);background:var(--fill-2);padding:7px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.c-foot .lnk{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--blue-ink)}
-.c-foot .lnk:hover{text-decoration:underline}
-
-/* healthy centres collapsed */
-.healthy{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--ok-line);border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden}
-.healthy-btn{width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;text-align:left}
-.healthy-btn:hover{background:var(--fill-2)}
-.healthy-ic{width:28px;height:28px;border-radius:50%;background:var(--ok-tint);border:1px solid var(--ok-line);display:grid;place-items:center;flex-shrink:0}
-.healthy-t{flex:1;min-width:0}
-.healthy-t b{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink);display:block}
-.healthy-t span{font-size:11.5px;color:var(--ink-3)}
-.chev{color:var(--ink-3);transition:transform .18s}
-.healthy[data-open="true"] .chev{transform:rotate(180deg)}
-.healthy-list{border-top:1px solid var(--line-2);display:flex;flex-direction:column}
-.hrow{display:flex;align-items:center;gap:12px;padding:9px 16px;text-align:left;border-bottom:1px solid var(--line-2)}
-.hrow:last-child{border-bottom:none}
-.hrow:hover{background:var(--fill-2)}
-.hrow .hn{font-weight:600;font-size:13px;color:var(--ink);flex:1;min-width:0}
-.hrow:hover .hn{color:var(--blue-ink);text-decoration:underline}
-.hrow .hm{font-size:11.5px;color:var(--ink-3)}
-
 .pager{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;box-shadow:var(--shadow-card)}
 .pgroup{display:flex;align-items:center;gap:6px}
 .pg{min-width:32px;height:32px;padding:0 8px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink-2);display:grid;place-items:center}
@@ -446,26 +404,6 @@ dl.dl dd{font-weight:700;color:var(--ink);text-align:right}
   <div class="shellbody">
     <nav class="rail" id="rail" aria-label="Main"></nav>
     <div class="col">
-      <div class="tabbar" id="tabbar" role="tablist" aria-label="Camera sections" hidden>
-        <button class="tab" role="tab" aria-current="page" aria-selected="true">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
-          <span>Live</span>
-        </button>
-        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg><span>History</span>
-        </button>
-        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M7 4h10a1 1 0 011 1v14.2a.6.6 0 01-.93.5L12 16.5l-5.07 3.2a.6.6 0 01-.93-.5V5a1 1 0 011-1z"/></svg><span>Saved Clips</span>
-        </button>
-        <div class="tabdiv"></div>
-        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8.5 20h7M12 16.5V20"/></svg><span>Admin Display</span>
-        </button>
-        <button class="zoomout" id="zoomOut">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          View across all centers
-        </button>
-      </div>
       <div class="band" id="band" hidden><h2 id="bandTxt">Welcome back, Franco!</h2></div>
       <main class="page" id="page"><div class="page-inner" id="inner"></div></main>
     </div>
@@ -578,19 +516,16 @@ function diagnose(c){
    View state
    ===================================================================== */
 const V = {
-  screen:"dashboard",     // "dashboard" | "health" | "center"
-  center:null,
-  cameFromHealth:false,
+  screen:"dashboard",     // "dashboard" | "health" — there is no center view
   drop:false, cq:"",
   q:"", state:"all", brand:"all", sort:"issues",
-  mode:"problems", page:1, per:10, healthyOpen:false,
+  page:1, per:10,
   paused:false, tick:30, age:0, loading:false, error:false,
   sel:null, soloCenter:false,
   savedViews:[], savingOpen:false   // saved filter/sort presets, Toggle only
 };
 const $ = id => document.getElementById(id);
 const centersFor = () => V.soloCenter ? DATA.slice(0,1) : DATA;
-const activeCentre = () => DATA.find(x=>x.id===V.center) || null;
 
 function counts(){
   const cs = centersFor(), t = cs.map(tally);
@@ -625,7 +560,7 @@ function sortCenters(list, sort){
    session if storage is unavailable (e.g. a sandboxed viewer). This is a
    browser-local convenience, not an account setting — it does not roam.
    ===================================================================== */
-const VIEWS_KEY = "wmg.cameraHealth.savedViews.v1";
+const VIEWS_KEY = "wmg.cameraHealth.savedViews.v2";  // v1 stored a now-removed mode
 function loadSavedViews(){
   try { const raw = localStorage.getItem(VIEWS_KEY); return raw ? JSON.parse(raw) : []; }
   catch(e){ return []; }
@@ -637,7 +572,7 @@ function sortLabel(s){
   return {issues:"Most issues first", longest:"Longest outage first", name:"Name A–Z", size:"Most cameras"}[s] || s;
 }
 function viewSummary(v){
-  const bits = [v.mode === "problems" ? "Problems first" : "All centers"];
+  const bits = [];
   if (v.q) bits.push(`"${v.q}"`);
   if (v.state !== "all") bits.push(v.state);
   if (v.brand !== "all") bits.push(v.brand);
@@ -650,7 +585,7 @@ function commitSaveView(){
   if (!name){ inp && inp.focus(); return; }
   const existing = V.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
   const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
-    name, mode:V.mode, sort:V.sort, q:V.q, state:V.state, brand:V.brand };
+    name, sort:V.sort, q:V.q, state:V.state, brand:V.brand };
   V.savedViews = existing ? V.savedViews.map(v=>v.id===existing.id?payload:v) : [...V.savedViews, payload];
   persistSavedViews(V.savedViews);
   V.savingOpen = false; render();
@@ -659,7 +594,7 @@ function commitSaveView(){
 function applyView(id){
   const v = V.savedViews.find(x=>x.id===id);
   if (!v) return;
-  V.mode=v.mode; V.sort=v.sort; V.q=v.q; V.state=v.state; V.brand=v.brand; V.page=1; V.savingOpen=false;
+  V.sort=v.sort; V.q=v.q; V.state=v.state; V.brand=v.brand; V.page=1; V.savingOpen=false;
   render();
   $("announce").textContent = `Applied saved view "${v.name}".`;
 }
@@ -727,7 +662,7 @@ function renderChrome(){
   if (focus){ input.value = ""; input.placeholder = "All my centers"; }
   else {
     input.placeholder = "Search for center";
-    if (document.activeElement !== input) input.value = activeCentre() ? activeCentre().name : V.cq;
+    if (document.activeElement !== input) input.value = V.cq;
   }
   btn.setAttribute("aria-pressed", String(focus));
   btn.title = focus ? "Leave camera health" : "Camera health across all your centers";
@@ -739,16 +674,13 @@ function renderChrome(){
 
   // rail
   // Cameras looks exactly like its neighbours; it simply carries no data-rail,
-  // so clicking it goes nowhere. Camera health is the only route to a camera.
-  const active = V.screen === "center" ? "cameras" : "dashboard";
+  // so clicking it goes nowhere. Camera health is the only camera surface.
   $("rail").innerHTML = RAIL.map(r=>`
-    <button class="rail-item" ${r.blocked?"":`data-rail="${r.k}"`} ${r.k===active?'aria-current="page"':""}>
+    <button class="rail-item" ${r.blocked?"":`data-rail="${r.k}"`} ${r.k==="dashboard"?'aria-current="page"':""}>
       <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">${r.p}</svg>
       <span>${r.l}</span>
     </button>`).join("");
 
-  $("tabbar").hidden = V.screen !== "center";
-  $("zoomOut").hidden = V.soloCenter;
   $("band").hidden = V.screen !== "dashboard";
   renderDrop();
 }
@@ -772,12 +704,13 @@ function renderDrop(){
    Screen: default dashboard (no center selected → nothing to fetch)
    ===================================================================== */
 function renderDashboard(){
-  const c = activeCentre(), t = c ? tally(c) : null;
+  // No center is ever selected in this version, so this screen is always the
+  // cold start — which is precisely the argument for camera health.
   const cell = (label, body) => `<div class="stat">
     <button class="q" title="What is this?" aria-label="About ${label}">?</button>
     <span class="stat-l">${label}</span>${body}</div>`;
 
-  $("bandTxt").textContent = c ? `Welcome back, Franco! — ${c.short}` : "Welcome back, Franco!";
+  $("bandTxt").textContent = "Welcome back, Franco!";
 
   $("inner").innerHTML = `
     <div class="dashwrap">
@@ -788,12 +721,12 @@ function renderDashboard(){
           <span class="lbl">7-Day Snapshot</span> <span class="num">Aug 18, 2026 to Aug 25, 2026</span></span>
       </div>
       <div class="statrow">
-        ${cell("Who's online now?", `<span class="stat-e">${c?"No users are online at this time":"No center selected"}</span>`)}
+        ${cell("Who's online now?", `<span class="stat-e">No center selected</span>`)}
         ${cell("", `<div class="donut">
           <svg viewBox="0 0 88 88"><circle cx="44" cy="44" r="37" fill="none" stroke="#e5e7eb" stroke-width="10"/></svg>
           <span style="display:flex;flex-direction:column;align-items:center;gap:1px">
             <span class="dv num">0%</span><span class="dl">Active users</span></span></div>`)}
-        ${cell("Top 5 cameras", `<span class="stat-e">${c?`${t.total} cameras at ${esc(c.short)}`:"—"}</span>`)}
+        ${cell("Top 5 cameras", `<span class="stat-e">—</span>`)}
         ${cell("Top 5 active users", `<span class="stat-e">No users available at this time</span>`)}
       </div>
     </div>
@@ -816,15 +749,10 @@ function renderDashboard(){
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10a1 1 0 011 1v14.2a.6.6 0 01-.93.5L12 16.5l-5.07 3.2a.6.6 0 01-.93-.5V5a1 1 0 011-1z"/></svg></button>
         </div>
         <div class="dpanel">
-          ${c ? `<div class="grid" style="justify-content:center;max-width:420px">
-                   ${c.cams.map((cam,i)=>`<button class="blk ${cam.status}" data-cam="${c.id}:${i}" tabindex="${i===0?0:-1}"
-                     aria-label="Camera ${cam.n}, ${cam.room}, ${cam.status==="off"?"offline for "+dur(cam.since):cam.status==="deg"?"degraded":"normal"}"></button>`).join("")}
-                 </div>
-                 <span class="sub num">${t.total} cameras · ${t.off} offline · ${t.deg} degraded</span>`
-             : `<span class="err">Error!</span>
-                <span class="sub">Unable to load requested cameras.</span>
-                <span class="hint">No center is selected, so there is nothing to fetch. Switch on
-                <b>Camera health</b> in the search field to see every center at once.</span>`}
+          <span class="err">Error!</span>
+          <span class="sub">Unable to load requested cameras.</span>
+          <span class="hint">No center is selected, so there is nothing to fetch. Switch on
+          <b>Camera health</b> in the search field to see every center at once.</span>
         </div>
       </div>
 
@@ -885,10 +813,9 @@ function centreHtml(c, rank){
   return `<section class="centre ${cls}" aria-label="${esc(c.name)}: ${t.off} offline, ${t.deg} degraded of ${t.total} cameras">
     <div class="crow">
       <div>
-        <button class="c-name" data-drill="${c.id}">
+        <span class="c-name">
           ${rank?`<span class="c-rank num">${rank}</span>`:""}<span>${esc(c.name)}</span>
-          <svg class="go" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg>
-        </button>
+        </span>
         <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span>
           ${c.pub?`<span class="pf" role="img" aria-label="Parent-facing center" title="Parent-facing — families can watch these cameras"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg></span>`:""}
         </div>
@@ -899,20 +826,13 @@ function centreHtml(c, rank){
     ${d?`<div class="diag${d.all?"":" soft"}">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16v.4"/></svg>
       <span>${d.text}</span></div>`:""}
-    <div class="c-foot">
-      <button class="lnk" data-drill="${c.id}">Open ${esc(c.short)} in center view
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>
-    </div>
   </section>`;
 }
 
 function renderHealth(){
   const n = counts(), all = filtered();
-  const problems = sortCenters(all.filter(c=>tally(c).bad), V.sort);
-  const healthy = all.filter(c=>!tally(c).bad).sort((a,b)=>a.name.localeCompare(b.name));
-  // "All centers" sorts everyone together, so e.g. Name A–Z gives one
-  // continuous alphabet rather than problems-then-healthy.
-  const listed = V.mode === "all" ? sortCenters(all, V.sort) : problems;
+  // Every center is listed; the sort decides what floats to the top.
+  const listed = sortCenters(all, V.sort);
   const pages = Math.max(1, Math.ceil(listed.length / V.per));
   if (V.page > pages) V.page = pages;
   const start = (V.page-1)*V.per, view = listed.slice(start, start+V.per);
@@ -937,14 +857,6 @@ function renderHealth(){
       <span class="sum-l">${s.l}</span><span class="sum-v num">${s.v}</span><span class="sum-s num">${s.s}</span></div>`).join("")}</div>
 
     <div class="toolbar">
-      <div class="seg" role="group" aria-label="View">
-        <button id="mProb" aria-pressed="${V.mode==="problems"}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16v.4"/></svg>
-          Problems first</button>
-        <button id="mAll" aria-pressed="${V.mode==="all"}">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="7" height="7"/><rect x="14" y="4" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-          All centers</button>
-      </div>
       <div class="field">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
         <input id="q" placeholder="Center name or store number" value="${esc(V.q)}" aria-label="Filter centers">
@@ -983,28 +895,10 @@ function renderHealth(){
         : view.length ? view.map((c,i)=>centreHtml(c, (V.sort==="issues"||V.sort==="longest")?start+i+1:null)).join("")
         : `<div class="empty">
             <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
-            <b>${V.mode==="problems" && !problems.length ? "No camera problems to triage" : "No centers match these filters"}</b>
-            <p>${V.mode==="problems" && !problems.length
-                ? "Every center you're assigned to has all cameras reporting. Switch to All centers to browse them anyway."
-                : "Nothing matches. Widen the filters or clear them to start over."}</p>
-            <button class="btn primary" id="clearAll">${V.mode==="problems" && !problems.length ? "Show all centers" : "Clear filters"}</button></div>`}
+            <b>No centers match these filters</b>
+            <p>Nothing matches. Widen the filters or clear them to start over.</p>
+            <button class="btn primary" id="clearAll">Clear filters</button></div>`}
     </div>
-
-    ${!V.loading && V.mode==="problems" && healthy.length ? `
-      <div class="healthy" data-open="${V.healthyOpen}">
-        <button class="healthy-btn" id="healthyToggle" aria-expanded="${V.healthyOpen}">
-          <span class="healthy-ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.6"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
-          <span class="healthy-t">
-            <b><span class="num">${healthy.length}</span> ${healthy.length===1?"center":"centers"} healthy</b>
-            <span class="num">${healthy.reduce((s,c)=>s+c.cams.length,0)} cameras reporting · nothing to triage</span></span>
-          <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9l6 6 6-6"/></svg>
-        </button>
-        ${V.healthyOpen?`<div class="healthy-list">${healthy.map(c=>`
-          <button class="hrow" data-drill="${c.id}"><span class="sw ok"></span>
-            <span class="hn">${esc(c.name)}</span>
-            <span class="hm num">${c.state} · #${c.store} · ${c.cams.length} cameras</span>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2.2"><path d="M9 6l6 6-6 6"/></svg></button>`).join("")}</div>`:""}
-      </div>`:""}
 
     ${pages>1?`<div class="pager">
       <span class="pgtxt num">Showing ${start+1}–${Math.min(start+V.per,listed.length)} of ${listed.length} centers</span>
@@ -1015,44 +909,6 @@ function renderHealth(){
       </div>
       <span class="pgtxt">Page ${V.page} of ${pages}</span></div>`:""}
 
-    ${protoStrip()}`;
-}
-
-/* =====================================================================
-   Screen: a center's own cameras page
-   ===================================================================== */
-function renderCentre(){
-  const c = activeCentre();
-  if (!c){ V.screen = "dashboard"; return render(); }
-  const t = tally(c);
-  $("inner").innerHTML = `
-    ${V.cameFromHealth?`<button class="crumb" id="backUp">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M14 6l-6 6 6 6"/></svg>
-      All centers</button>`:""}
-    <div class="pagehead"><div>
-      <h1>${esc(c.name)}</h1>
-      <p class="subtitle"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span> —
-        ${t.bad?`<span style="color:#b91c1c;font-weight:600">${t.off} offline, ${t.deg} degraded</span>`
-               :`<span style="color:#15803d;font-weight:600">all reporting</span>`}</p>
-    </div></div>
-    ${V.cameFromHealth?`<div class="banner info">
-      <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0C4A6E" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg></span>
-      <div><b>You're now in ${esc(c.short)}'s context</b>
-      <p>Drilling in set this as the session's selected center, so Requests, Users, and Reports will load
-      ${esc(c.short)} too — and the left nav is back for the same reason.</p></div></div>`:""}
-    <div class="list"><section class="centre ${t.off?"has-off":t.deg?"has-deg":"clean"}">
-      <div class="crow">
-        <div>
-          <span class="c-name" style="cursor:default"><span>Cameras at ${esc(c.short)}</span></span>
-          <div class="c-meta num">${t.total} cameras · ${t.ok} reporting</div>
-        </div>
-        <div class="stats">${t.bad
-          ? `${t.off?`<span class="stat2 off"><span class="sw off"></span><b class="num">${t.off}</b> offline</span>`:""}
-             ${t.deg?`<span class="stat2 deg"><span class="sw deg"></span><b class="num">${t.deg}</b> degraded</span>`:""}`
-          : `<span class="stat2 ok"><span class="sw ok"></span>All <b class="num">${t.total}</b> reporting</span>`}</div>
-        ${squares(c)}
-      </div>
-    </section></div>
     ${protoStrip()}`;
 }
 
@@ -1070,9 +926,7 @@ function protoStrip(){
 
 function render(){
   renderChrome();
-  if (V.screen === "health") renderHealth();
-  else if (V.screen === "center") renderCentre();
-  else renderDashboard();
+  if (V.screen === "health") renderHealth(); else renderDashboard();
   renderModal();
 }
 
@@ -1118,7 +972,6 @@ function renderModal(){
     <div class="m-acts">
       <a class="btn primary" href="#" onclick="return false" style="justify-content:center">View live on my.wmg
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a>
-      <button class="btn" style="justify-content:center" data-drill="${c.id}">Open ${esc(c.short)} in center view</button>
     </div>
     <p class="pgtxt">Opened one at a time on purpose. The board never starts a stream by itself — a user with
     ${counts().centers} centers would otherwise open ${counts().cams} of them just by loading the page.</p>`;
@@ -1139,21 +992,16 @@ function stepCam(d){
   V.sel.idx = n; renderModal();
 }
 
-/* ---------- navigation ---------- */
+/* ---------- navigation: two screens only ---------- */
 function toHealth(){
   V.screen="health"; V.sel=null; V.drop=false; V.page=1;
   render(); $("page").scrollTo({top:0});
   $("announce").textContent = "Camera health, all assigned centers. Center navigation hidden.";
 }
 function leaveHealth(){
-  V.screen = V.center ? "center" : "dashboard"; V.sel=null;
+  V.screen="dashboard"; V.sel=null;
   render(); $("page").scrollTo({top:0});
-  $("announce").textContent = V.center ? "Back in center view." : "Back to the dashboard.";
-}
-function drill(ci){
-  V.center=ci; V.cameFromHealth = V.screen==="health"; V.screen="center"; V.sel=null; V.drop=false;
-  render(); $("page").scrollTo({top:0});
-  $("announce").textContent = `Opened ${DATA.find(x=>x.id===ci).name}. Now the session's selected center.`;
+  $("announce").textContent = "Back to the dashboard.";
 }
 
 /* ---------- refresh ---------- */
@@ -1208,14 +1056,10 @@ document.addEventListener("click", e=>{
 
   // Cameras carries no data-rail, so it never reaches here.
   const rail = t.closest("[data-rail]");
-  if (rail){ V.screen = "dashboard"; V.cameFromHealth = false; V.sel = null; render(); return; }
+  if (rail){ V.screen = "dashboard"; V.sel = null; render(); return; }
   const cam = t.closest("[data-cam]");
   if (cam){ const [ci,i] = cam.dataset.cam.split(":"); openCam(ci, +i); return; }
-  const dr = t.closest("[data-drill]");
-  if (dr){ drill(dr.dataset.drill); return; }
 
-  if (t.closest("#zoomOut")) return toHealth();
-  if (t.closest("#backUp")) return toHealth();
   if (t.closest("#mClose") || t.id === "scrim") return closeCam();
   if (t.closest("#mPrev")) return stepCam(-1);
   if (t.closest("#mNext")) return stepCam(1);
@@ -1223,9 +1067,6 @@ document.addEventListener("click", e=>{
     $("announce").textContent = V.paused?"Auto-refresh paused.":"Auto-refresh resumed."; return; }
   if (t.closest("#nowBtn")){ V.tick=30; refresh(); return; }
   if (t.closest("#retry")){ V.error=false; refresh(); return; }
-  if (t.closest("#mProb")){ V.mode="problems"; V.page=1; render(); return; }
-  if (t.closest("#mAll")){ V.mode="all"; V.page=1; render(); return; }
-  if (t.closest("#healthyToggle")){ V.healthyOpen=!V.healthyOpen; render(); return; }
   if (t.closest("#saveViewBtn")){
     V.savingOpen = !V.savingOpen; render();
     if (V.savingOpen){ const inp = $("sv-name"); if (inp) inp.focus(); }
@@ -1237,15 +1078,10 @@ document.addEventListener("click", e=>{
   if (av){ applyView(av.dataset.applyView); return; }
   const dv = t.closest("[data-del-view]");
   if (dv){ deleteView(dv.dataset.delView); return; }
-  if (t.closest("#clearAll")){
-    if (V.mode==="problems" && !filtered().filter(c=>tally(c).bad).length) V.mode="all";
-    else { V.q=""; V.state="all"; V.brand="all"; }
-    V.page=1; render(); return;
-  }
+  if (t.closest("#clearAll")){ V.q=""; V.state="all"; V.brand="all"; V.page=1; render(); return; }
   const pg = t.closest("[data-pg]");
   if (pg){
-    const listed = V.mode==="all" ? filtered() : filtered().filter(c=>tally(c).bad);
-    const pages = Math.max(1, Math.ceil(listed.length/V.per));
+    const pages = Math.max(1, Math.ceil(filtered().length/V.per));
     V.page = pg.dataset.pg==="prev" ? Math.max(1,V.page-1)
            : pg.dataset.pg==="next" ? Math.min(pages,V.page+1) : +pg.dataset.pg;
     render(); $("page").scrollTo({top:0,behavior:"smooth"}); return;
@@ -1257,12 +1093,13 @@ document.addEventListener("click", e=>{
     if (d==="fail"){ V.error=true; V.paused=false; render(); }
     if (d==="healthy"){ DATA.forEach(c=>c.cams.forEach(cam=>{cam.status="ok"; cam.lastFrame=Math.floor(rnd()*3); cam.since=Math.floor(rnd()*4000)+200;})); V.error=false; render(); }
     if (d==="solo"){
+      // One assigned center means nothing to aggregate, so the toggle vanishes
+      // and there is nowhere to be but the dashboard.
       V.soloCenter=!V.soloCenter; V.page=1;
-      if (V.soloCenter){ V.center="c0"; V.screen="center"; V.cameFromHealth=false; }
-      else { V.center=null; V.screen="dashboard"; }
+      if (V.soloCenter) V.screen="dashboard";
       render();
     }
-    if (d==="reset"){ DATA=build(); Object.assign(V,{error:false,sel:null,q:"",state:"all",brand:"all",mode:"problems",healthyOpen:false,page:1,cq:""}); render(); }
+    if (d==="reset"){ DATA=build(); Object.assign(V,{error:false,sel:null,q:"",state:"all",brand:"all",sort:"issues",page:1,cq:""}); render(); }
     return;
   }
 });
@@ -1338,8 +1175,8 @@ $("announce").textContent = "Dashboard. No center selected yet.";
 </script>
 <nav class="vsw" aria-label="Prototype version">
   <b>Version</b>
-  <a href="index.html">A · Nested</a>
-  <a href="fleet.html" aria-current="page">B · Toggle</a>
+  <a href="index.html">Nested</a>
+  <a href="fleet.html" aria-current="page">Toggle</a>
   <a class="doc" href="rationale.html">Design notes</a>
 </nav>
 </body>

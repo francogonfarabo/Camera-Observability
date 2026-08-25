@@ -163,6 +163,12 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       parity — a deliberate call that the save/reapply workflow belongs to the version built for triage
       across many centers, not the single-center one.</p>
     </div></div>
+    <div class="q"><span class="n num">7</span><div>
+      <p><strong>Cut B back to one list and one destination.</strong> The problems-first / all-centers
+      switch went — every center is listed and the sort does that job — and every route into a single
+      center's camera page went with it. Both were in the original concept spec; both were removed after
+      seeing them built, on the grounds that a triage board should be the answer rather than a menu.</p>
+    </div></div>
   </div>
 </section>
 
@@ -203,30 +209,30 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 <section>
   <h2>What's different between them</h2>
   <ul>
-    <li><strong>Altitude is stated by one control.</strong> In focus mode the search field reads "All my
-    centers" with a filled blue chip; in center scope the chip goes quiet and the field names a center.</li>
+    <li><strong>Altitude is stated by one control.</strong> The search field reads "All my centers" with a
+    filled blue chip while camera health is on, and reverts to a center search when it's off.</li>
     <li><strong>The center-scoped nav hides, it doesn't grey out</strong> — absent reads as a different
     altitude, greyed reads as broken permissions.</li>
-    <li><strong>Two entry points:</strong> the toggle for a cold start, plus a low-contrast "View across all
-    centers" link from inside a center for someone already mid-task.</li>
     <li><strong>Cameras in the rail looks normal but isn't a route</strong> — every path to a camera runs
     through camera health, so there's one door, not two.</li>
-    <li><strong>Detail opens in a modal, not version A's drawer</strong> — at account altitude the grid
-    behind it belongs to one center among fourteen, so less context is worth preserving, and a modal reads
-    as the harder stop that suits triage.</li>
-    <li><strong>Healthy centers collapse into one row;</strong> problem centers show their full grid, not
-    just the broken cameras — four red among twenty green tells a different story than four red alone.</li>
+    <li><strong>Detail opens in a modal, not version A's drawer</strong> — a modal reads as the harder stop
+    that suits triage, and the grid behind it is one center among fourteen rather than the one you chose.</li>
+    <li><strong>Every center is listed, always.</strong> No problems-first / all-centers switch and no
+    collapsed healthy row: the sort decides what floats to the top, so there is one list rather than a mode
+    to be in. Problem centers show their whole grid, not just the broken cameras — four red among twenty
+    green tells a different story than four red alone.</li>
     <li><strong>Correlated failures get named:</strong> "All 4 offline cameras here run through recorder
     NVR-2 — likely one site network fault," hedged to "3 of the 4…" when it's partial.</li>
-    <li><strong>Only B can save a view.</strong> Name the current mode, sort, search, and filters; reapply
-    or delete it from a chip row. Browser-local (<code>localStorage</code>), not an account setting — a
+    <li><strong>Only B can save a view.</strong> Name the current sort, search, and filters; reapply or
+    delete it from a chip row. Browser-local (<code>localStorage</code>), not an account setting — a
     deliberate asymmetry between the two versions rather than the usual parity.</li>
-    <li><strong>Single-center users see none of this</strong> — the toggle and the zoom-out link are
-    absent, not present-and-pointless, when there's nothing to aggregate.</li>
+    <li><strong>Single-center users see none of this</strong> — the toggle is absent rather than
+    present-and-pointless when there's nothing to aggregate.</li>
   </ul>
-  <p><strong>Drill-down</strong> — clicking a center name, or "Open in center view" inside a camera's modal
-  — sets the session's active center, lands on that center's existing Cameras page, and leaves an
-  "← All centers" breadcrumb. No new UI; it's the page that already exists.</p>
+  <p><strong>There is no center view.</strong> B has exactly two screens: the cold-start dashboard and camera
+  health. Center names are labels, not links; the camera modal offers my.wmg and nothing else. This is the
+  sharper reading of "camera health is the only place to check cameras" — if drilling into a single center's
+  camera page were one click away, the board would be a menu rather than the answer.</p>
 </section>
 
 <section>
@@ -283,8 +289,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       fourth "not reporting" state — but that widens the three-value legend.</p>
     </div></div>
     <div class="q"><span class="n num">3</span><div>
-      <p>Does drilling into a center from the toggle view <em>persist</em> as the session's center?</p>
-      <p>The prototype persists it, matching "you're now in this center's context." Recommend keeping that.</p>
+      <p>Where does someone go once camera health tells them a center is broken?</p>
+      <p>B deliberately has no route into a single center, so the next step happens outside this screen — on
+      my.wmg, or by leaving camera health and picking the center the normal way. Worth confirming that matches
+      how the work actually continues, since it is the one thing the board stops short of.</p>
     </div></div>
     <div class="q"><span class="n num">4</span><div>
       <p>Timestamps in the viewer's timezone, or the center's?</p>
@@ -311,8 +319,8 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 </div>
 <nav class="vsw" aria-label="Prototype version">
   <b>Version</b>
-  <a href="index.html">A · Nested</a>
-  <a href="fleet.html">B · Toggle</a>
+  <a href="index.html">Nested</a>
+  <a href="fleet.html">Toggle</a>
   <a class="doc" href="rationale.html" aria-current="page">Design notes</a>
 </nav>
 </body>

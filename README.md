@@ -13,7 +13,7 @@ by looking at it rather than by arguing about it.
 | [`fleet.html`](fleet.html) | **B · Toggle** | Camera health at *account* altitude — above center selection, with no center selected and the center-scoped nav hidden |
 | [`rationale.html`](rationale.html) | — | Design notes: the two altitudes, layout decisions, refresh contract, accessibility, open questions |
 
-A version switcher is pinned to the bottom of both prototypes.
+A version switcher is pinned to the bottom of every page.
 
 ## The difference in one line
 
@@ -47,20 +47,20 @@ beyond a Google Fonts stylesheet.
 
 **Version B · Toggle** — worth exercising:
 
-- **Cold start.** It opens in account scope: no center selected, left nav hidden, header
-  reading "All centers · 14".
-- **Problems first.** Centers with failures are listed individually; healthy ones collapse
-  into one expandable row. Toggle **All cameras** for the full list.
+- **Cold start.** It opens on the dashboard with no center selected, which is why its camera
+  panel reads "Error! Unable to load requested cameras." Switch on **Camera health** in the
+  search field to enter focus mode: left nav hidden, field reading "All my centers".
+- **Every center is listed**, paginated, with the sort deciding what floats to the top —
+  there is no problems-first/all-centers mode switch.
 - **Correlated-failure diagnosis.** Frisco and Arlington show a confident shared-recorder
   diagnosis; McKinney and Tulsa show the hedged "3 of the 4…" variant.
-- **Watch live** is an explicit per-camera action — the page never starts streams by itself.
-- **Drill down** by clicking a center name or camera tile: it sets the active center, lands
-  on that center's Cameras page, and leaves an "← All centers" breadcrumb.
+- **No center view.** Center names are labels, not links, and a camera's modal offers only
+  my.wmg. Camera health is the only place cameras are checked.
 - **Sort** — Most issues first, Longest outage, Name A–Z, Most cameras — the same four
   options as version A. Combine it with the state/brand filters and search.
-- **Saved views** — name the current mix of mode, sort, filters, and search, then reapply
-  or delete it from the chip row. Stored in your browser (`localStorage`) only, so it
-  survives a reload but not a different device.
+- **Saved views** — name the current mix of sort, filters, and search, then reapply or
+  delete it from the chip row. Stored in your browser (`localStorage`) only, so it survives
+  a reload but not a different device.
 - **Single-center user** (prototype controls) shows the entry point disappearing when there
   is nothing to aggregate.
 
