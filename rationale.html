@@ -136,9 +136,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     </div>
     <div class="card dev">
       <span class="k">B · Fleet — a scope above center selection</span>
-      <p>Camera Health becomes the one thing that exists at <em>account</em> altitude: no center is selected,
-      the center-scoped left nav is hidden, and the header's center field is replaced by a scope indicator
-      reading "All centers · 14". Drilling into a center drops you back to normal center scope.</p>
+      <p>Camera Health becomes the one thing that exists at <em>account</em> altitude, reached by a toggle inside
+      the header's center-search field. Switching it on puts the app in focus mode: no center is selected, the
+      center-scoped left nav and sub-nav are hidden, and the field reads "All my centers". Drilling into a center
+      drops you back to normal center scope.</p>
       <span class="why">Resolves the seam honestly — the app stops claiming a center is selected when none is.
       The cost is real: a new scope in an app that has only ever had one, plus the shell work to hide and
       restore navigation.</span>
@@ -206,9 +207,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <div class="cards">
     <div class="card">
       <span class="k">The altitude is stated by exactly one control</span>
-      <p>In account scope the header's center field is replaced by a scope indicator — "All centers · 14". In
-      center scope it reverts to the center's name. One control, two states, so there is never a moment where
-      the header and the page disagree about where you are.</p>
+      <p>In focus mode the field reads "All my centers" and its chip is filled blue. In center scope the chip goes
+      quiet and the field carries the center's name. One control, two states, so there is never a moment where the
+      header and the page disagree about where you are.</p>
     </div>
     <div class="card">
       <span class="k">The center-scoped nav is hidden, not disabled</span>
@@ -219,29 +220,60 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       at this height there is only one thing to look at, so tabs would be furniture.</span>
     </div>
     <div class="card">
-      <span class="k">Two entry points, because there are two journeys</span>
-      <p>A persistent header button with a live count badge — "Camera health · 19" — for the cold start where
-      no center is chosen yet. And a quiet "View across all centers" link on the per-center Cameras page for
-      someone already inside a center who wants to zoom out.</p>
-      <span class="why">The badge is the whole discoverability story on a good day: with zero issues the
-      feature has no reason to be clicked, so the count has to do the arguing. The second link is deliberately
-      low-contrast text, not a button — it must not compete with Live / History / Saved Clips.</span>
+      <span class="k">The way in is a toggle inside the center-search field</span>
+      <p>The header's center field carries a "Camera health" affordance on its right edge. Off, it is quiet grey
+      text. On, it becomes a filled <code>#58A3CA</code> chip with a dismiss ✕, the field's placeholder changes
+      from "Search for center" to "All my centers", and the app enters focus mode.</p>
+      <span class="why">Putting the toggle inside the control that already answers "which center am I looking
+      at?" means one component owns scope. You do not learn a new place to look — you learn that the same
+      control has a second position. The ✕ matters as much as the chip: an entered mode needs a visible exit,
+      or it reads as being stuck.</span>
     </div>
     <div class="card">
-      <span class="k">Tiles show status, not streams</span>
-      <p>Each camera tile carries a static thumbnail, its recorder, and a last-frame-received time. Live
-      playback is an explicit per-camera action that opens one stream in a modal.</p>
-      <span class="why">This is the load-bearing constraint. A user with 14 centers opening a page of live
-      tiles would start 232 concurrent streams — a bandwidth and licensing problem created by nothing more
-      than navigation. Making playback deliberate keeps the cost proportional to the intent.</span>
+      <span class="k">A second, quieter way in from inside a center</span>
+      <p>A low-contrast "View across all centers" link sits at the far end of the per-center Cameras tab bar,
+      for someone already in a center who wants to zoom out.</p>
+      <span class="why">Deliberately text, not a button — it must not compete with Live / History / Saved
+      Clips. Two entry points because there are two journeys: arriving cold with no center chosen, and
+      realising mid-task that the question is bigger than the center you are in.</span>
+    </div>
+    <div class="card">
+      <span class="k">Squares, not tiles — and no streams at all</span>
+      <p>The board uses the same small status squares as version A: one per camera, colour plus texture,
+      arranged in a wrapping grid per center. Clicking one opens a centered modal with that camera's status,
+      duration, last-frame-received time, recorder, and a link out to my.wmg.</p>
+      <span class="why">Squares beat thumbnails here twice over. They let a 20-camera center read as one glance
+      instead of a scroll, and they make the streaming problem disappear by construction — a user with 14
+      centers would otherwise trigger 232 concurrent streams just by loading the page. Playback stays an
+      explicit act on one camera, reached through the modal.</span>
+    </div>
+    <div class="card">
+      <span class="k">The modal is the detail surface, not a side panel</span>
+      <p>Version A uses a right-hand drawer; version B uses a centered modal with ← / → to walk the center's
+      cameras and Esc to close, returning focus to the square you came from.</p>
+      <span class="why">The drawer's advantage in version A was keeping the grid visible while you inspect. At
+      account altitude the grid you would keep visible belongs to one center among fourteen, so the context
+      worth preserving is weaker — and a modal reads as a harder stop, which suits a page you are triaging
+      from rather than browsing.</span>
+    </div>
+    <div class="card">
+      <span class="k">There is a screen before any of this</span>
+      <p>The prototype opens on the normal dashboard with no center selected, which is why its camera panel
+      reads "Error! Unable to load requested cameras." — there is genuinely nothing to fetch yet.</p>
+      <span class="why">That empty state is the argument for the feature. The app's cold start is a screen that
+      cannot answer anything until you pick one center out of fourteen; the toggle beside the search field is
+      the shortest path from there to "what is broken anywhere?". Selecting a center from the dropdown fills
+      the same panel with that center's cameras, so the contrast is visible in two clicks.</span>
     </div>
     <div class="card">
       <span class="k">Healthy centers collapse to one row</span>
-      <p>Centers with a problem are listed individually with their failing cameras shown. Everything healthy
+      <p>Centers with a problem are listed individually with their full square grid shown. Everything healthy
       folds into a single expandable "7 centers healthy · 104 cameras reporting" row.</p>
-      <span class="why">This is what makes the page work at scale. Equal-weight tiles for 14 centers is a wall
-      to be searched; problems-first with the good news compressed is a queue to be worked. The "All cameras"
-      toggle still gives the full list when someone wants to browse rather than triage.</span>
+      <span class="why">This is what makes the page work at scale. Equal-weight rows for 14 centers is a wall
+      to be searched; problems-first with the good news compressed is a queue to be worked. The "All centers"
+      toggle still gives the full list when someone wants to browse rather than triage. Problem centers show
+      every camera, not only the broken ones — with squares that context is free, and four red among twenty
+      green tells a different story than four red alone.</span>
     </div>
     <div class="card">
       <span class="k">Correlated failures get named</span>
@@ -253,11 +285,12 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       overconfident diagnosis that sends someone to the wrong box costs more than no diagnosis at all.</span>
     </div>
   </div>
-  <p><strong>Drill-down.</strong> Clicking a center name or any camera tile does three things at once: sets the
-  session's active center, lands on that center's existing Cameras page, and leaves an "← All centers"
-  breadcrumb. No new UI is invented for the destination — it is the page that already exists.</p>
+  <p><strong>Drill-down.</strong> Clicking a center name — or the "Open in center view" action inside a camera's
+  modal — does three things at once: sets the session's active center, lands on that center's existing Cameras
+  page, and leaves an "← All centers" breadcrumb. No new UI is invented for the destination; it is the page that
+  already exists. Clicking a square opens the camera instead, so the two gestures never collide.</p>
   <p><strong>Single-center users see none of this.</strong> With one assigned center there is nothing to
-  aggregate, so the header entry point and the zoom-out link are both absent rather than present-and-pointless.
+  aggregate, so the Camera health toggle and the zoom-out link are both absent rather than present-and-pointless.
   The prototype's "Single-center user" control demonstrates the rule.</p>
 </section>
 
@@ -402,29 +435,37 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <h2>Open questions</h2>
   <div class="cards">
     <div class="q"><span class="n num">1</span><div>
+      <p>Should the Camera health toggle carry a count?</p>
+      <p>The concept spec called a live count badge the main discoverability driver — with zero issues the feature
+      has no reason to be clicked, so the number does the arguing. The visual reference for the toggle has no badge,
+      and I built it without one. The middle option is to append the number only when it is non-zero, so the chip
+      reads "Camera health · 19" on a bad day and stays clean on a good one. Worth deciding deliberately, because
+      as built the feature is silent about needing attention until someone opens it.</p>
+    </div></div>
+    <div class="q"><span class="n num">2</span><div>
       <p>What should the board do with a camera whose last heartbeat is older than 30 minutes?</p>
       <p>Right now it keeps whatever status it last reported, which quietly counts a silent camera as healthy. My
       recommendation is a fourth neutral-gray state, "not reporting" — but that widens the legend you scoped to three.</p>
     </div></div>
-    <div class="q"><span class="n num">2</span><div>
+    <div class="q"><span class="n num">3</span><div>
       <p>Fleet version: does drilling into a center <em>persist</em> as the session's selected center?</p>
       <p>If it persists, navigating to Requests afterwards stays in that center — which matches the existing mental
       model of "you are now in this center's context". If it is a one-off jump, the selection reverts when you leave.
       The prototype persists it and says so in a banner on arrival. I recommend persisting; the alternative means the
       app's active center can differ from the page you are looking at, which is harder to explain than it is to build.</p>
     </div></div>
-    <div class="q"><span class="n num">3</span><div>
+    <div class="q"><span class="n num">4</span><div>
       <p>Are "last checked" times shown in the viewer's timezone or the center's?</p>
       <p>A Dallas admin looking at an Oklahoma center will read them differently. Relative times ("27m ago") dodge the
       question, which is why the prototype uses them; absolute timestamps in the drawer will need an answer.</p>
     </div></div>
-    <div class="q"><span class="n num">4</span><div>
+    <div class="q"><span class="n num">5</span><div>
       <p>Is camera order within a center stable and meaningful?</p>
       <p>The grid is only trustworthy if a room's block stays in the same position between visits. If cameras have a
       display order, the grid should use it; if not, the block positions are effectively random and worth ordering by
       room.</p>
     </div></div>
-    <div class="q"><span class="n num">5</span><div>
+    <div class="q"><span class="n num">6</span><div>
       <p>Does "degraded" have reasons behind it?</p>
       <p>If the log distinguishes low bitrate from dropped frames from a bad angle, the drawer should say which — it's
       the difference between "call the vendor" and "nudge the camera".</p>
