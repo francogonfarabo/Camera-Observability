@@ -38,10 +38,9 @@ body{
   font-size:15.5px; line-height:1.62; -webkit-font-smoothing:antialiased;
   padding:0 24px 90px;
 }
-.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:38px}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:34px}
 .num{font-variant-numeric:tabular-nums}
 
-/* header */
 header{padding:52px 0 0;display:flex;flex-direction:column;gap:14px}
 .eyebrow{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-ink)}
 h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,40px);line-height:1.1;color:var(--ink);letter-spacing:-.01em;text-wrap:balance}
@@ -50,36 +49,29 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:clamp(28px,4
 .tag{font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:4px 11px;color:var(--ink-3)}
 hr{border:none;border-top:1px solid var(--line)}
 
-/* sections */
-section{display:flex;flex-direction:column;gap:14px}
+section{display:flex;flex-direction:column;gap:12px}
 h2{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);
    padding-bottom:9px;border-bottom:2px solid var(--ink);display:inline-block;align-self:flex-start}
-h3{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:18px;color:var(--ink);line-height:1.25;text-wrap:balance}
 p,li{max-width:var(--measure)}
 a{color:var(--blue-ink);text-decoration-thickness:1px;text-underline-offset:2px}
 strong{color:var(--ink);font-weight:700}
 code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--fill);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--ink)}
-ul{display:flex;flex-direction:column;gap:8px;padding-left:20px}
+ul{display:flex;flex-direction:column;gap:7px;padding-left:20px}
 li::marker{color:var(--ink-3)}
 
-/* q→a table */
 .tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
-table{border-collapse:collapse;width:100%;min-width:520px;font-size:14px}
-th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line-2);vertical-align:top}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:13.5px}
+th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line-2);vertical-align:top}
 th{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);background:var(--fill);white-space:nowrap}
 tr:last-child td{border-bottom:none}
-td strong{display:block}
 td:first-child{color:var(--ink);font-weight:600}
 
-/* decision cards */
-.cards{display:flex;flex-direction:column;gap:11px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:15px 17px;display:flex;flex-direction:column;gap:7px}
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
 .card .k{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink)}
-.card p{font-size:14.5px;max-width:none}
-.card .why{font-size:13.5px;color:var(--ink-3)}
+.card p{font-size:14px;max-width:none}
 .card.dev{border-left:3px solid var(--blue)}
 
-/* swatches */
 .sw-row{display:flex;flex-wrap:wrap;gap:10px}
 .sw-item{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 13px 8px 10px;font-size:13px}
 .sw{width:18px;height:18px;border-radius:5px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
@@ -89,13 +81,12 @@ td:first-child{color:var(--ink);font-weight:600}
 .sw-item b{color:var(--ink);font-weight:700}
 .sw-item span{color:var(--ink-3);font-size:12px}
 
-/* open questions */
-.q{display:flex;gap:13px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-.q .n{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;color:var(--blue-ink);background:var(--blue-tint);border-radius:7px;width:26px;height:26px;display:grid;place-items:center;flex-shrink:0}
-.q p{font-size:14.5px;max-width:none}
-.q p+p{margin-top:4px;color:var(--ink-3);font-size:13.5px}
+.q{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.q .n{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;color:var(--blue-ink);background:var(--blue-tint);border-radius:7px;width:25px;height:25px;display:grid;place-items:center;flex-shrink:0}
+.q p{font-size:14px;max-width:none}
+.q p+p{margin-top:4px;color:var(--ink-3);font-size:13px}
 
-footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:18px}
+footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:16px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:560px){ body{padding:0 16px 60px} header{padding-top:34px} }
 </style>
@@ -105,10 +96,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 
 <header>
   <span class="eyebrow">WatchMeGrow · Cameras</span>
-  <h1>Camera health: two versions and why they differ</h1>
-  <p class="lede">Design notes for a live board that tells a center admin, a regional manager, or an exec which
-  cameras are down right now and how long they have been down — built at two different altitudes, so the
-  altitude itself can be the thing you decide on.</p>
+  <h1>Camera health: two versions, and how they got here</h1>
+  <p class="lede">A live board that tells a center admin, a regional manager, or an exec which cameras are
+  down right now — built at two altitudes, and steered at each turn by specific calls rather than left to
+  default choices.</p>
   <div class="meta">
     <span class="tag">Visual language from <code>STYLE_GUIDE.md</code></span>
     <span class="tag">Light theme only</span>
@@ -120,327 +111,135 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 <hr>
 
 <section>
-  <h2>Two versions</h2>
-  <p>The same feature, placed at two different heights in the product. Everything else — visual language,
-  status encoding, refresh behavior, accessibility — is deliberately identical, so the comparison is about
-  <strong>placement</strong> and nothing else.</p>
+  <h2>How this took shape</h2>
+  <p>The decisions below were Franco's; this is where each one landed in the design.</p>
   <div class="cards">
-    <div class="card dev">
-      <span class="k">A · Nested — a tab inside the camera section</span>
-      <p>Camera Health becomes the first sub-tab of the existing Cameras area, beside Live, History, Saved
-      Clips, and Admin Display. It still shows every center you can reach, but it lives inside the
-      center-scoped part of the app.</p>
-      <span class="why">Cheapest to ship and nothing about the shell changes. The cost is a conceptual seam:
-      a tab sitting inside "the center you selected" that nonetheless reports on all centers. The header still
-      names one center while the page talks about fourteen.</span>
-    </div>
-    <div class="card dev">
-      <span class="k">B · Fleet — a scope above center selection</span>
-      <p>Camera Health becomes the one thing that exists at <em>account</em> altitude, reached by a toggle inside
-      the header's center-search field. Switching it on puts the app in focus mode: no center is selected, the
-      center-scoped left nav and sub-nav are hidden, and the field reads "All my centers". Drilling into a center
-      drops you back to normal center scope.</p>
-      <span class="why">Resolves the seam honestly — the app stops claiming a center is selected when none is.
-      The cost is real: a new scope in an app that has only ever had one, plus the shell work to hide and
-      restore navigation.</span>
-    </div>
+    <div class="q"><span class="n num">1</span><div>
+      <p><strong>Set the frame before any layout existed.</strong> Light theme only (the dark mockup as
+      reference, not a target), a 1–20 center scale, a three-value legend, and "a working prototype plus
+      these notes" as the deliverable — settled by a few answers before a single row was drawn.</p>
+    </div></div>
+    <div class="q"><span class="n num">2</span><div>
+      <p><strong>Called for a second version and wrote its brief.</strong> The fleet concept spec — no
+      center selected until one is chosen, two entry points, problems collapsed by default, no streaming as
+      a default state, a named diagnosis when failures share a cause — is where most of what's different
+      about version B comes from.</p>
+    </div></div>
+    <div class="q"><span class="n num">3</span><div>
+      <p><strong>Renamed the feature</strong> from "Current Status" to "Camera health" everywhere, ahead of
+      the fork, so neither version carries the old name.</p>
+    </div></div>
+    <div class="q"><span class="n num">4</span><div>
+      <p><strong>Reset the fleet version's mechanics with reference images</strong> mid-build: the way in
+      became a toggle inside the center-search field rather than a separate header button; camera detail
+      moved from tiles into version A's status squares; a real dashboard screen was added as what you land
+      on before choosing a center.</p>
+    </div></div>
+    <div class="q"><span class="n num">5</span><div>
+      <p><strong>Two corrections after seeing it live.</strong> The greyed-out Cameras nav item was
+      reversed — it should look identical to its siblings, just not navigate — and the center-search
+      dropdown was turned into a non-functional reference: selecting a row does nothing, for now.</p>
+    </div></div>
   </div>
-  <p><strong>My read:</strong> B is the right long-term model and A is the right first ship. The nested version
-  gets the triage value into users' hands without touching global navigation; the fleet version is what it
-  should become once the account scope is worth building. If the fleet view is likely within two quarters,
-  build B now — retrofitting a scope later means re-teaching the navigation twice.</p>
 </section>
 
 <section>
-  <h2>The job of the page</h2>
-  <p>This is a monitoring surface, not a document: it gets scanned, not read. So every design decision below
-  serves one of the four questions the brief asked it to answer, and each question is answered by a specific
-  element rather than by "the dashboard" in general.</p>
-  <div class="tablewrap">
-    <table>
-      <thead><tr><th>The question</th><th>What answers it</th></tr></thead>
-      <tbody>
-        <tr><td>Which centers have the most cameras offline?</td>
-            <td><strong>Default sort + the count column.</strong> Centers rank by offline count, then degraded count, then outage length. Counts sit in their own column with tabular figures so the digits stack vertically and the worst center reads without parsing a sentence.</td></tr>
-        <tr><td>Which cameras have been offline the longest?</td>
-            <td><strong>The "Longest outage" tile and the per-row "Longest" line.</strong> Clicking the tile re-sorts the whole board by outage age, which is a different ranking from "most offline" and often the more urgent one.</td></tr>
-        <tr><td>Is this one camera actually down?</td>
-            <td><strong>The detail drawer</strong> — status, how long, when last checked, and a direct link to the live feed on my.wmg. The page reports a heartbeat; only the feed confirms a picture.</td></tr>
-        <tr><td>Show me only the centers I care about.</td>
-            <td><strong>Scope segment + filter bar.</strong> Scope switches between the center you're viewing and every center your role can reach; filters narrow by brand, state, parent-facing, and status.</td></tr>
-      </tbody>
-    </table>
+  <h2>Two versions</h2>
+  <div class="cards">
+    <div class="card dev">
+      <span class="k">A · Nested — a tab inside the camera section</span>
+      <p>Camera health as the first sub-tab, beside Live, History, Saved Clips, and Admin Display. Cheapest
+      to ship, but the header still names one center while the page reports on fourteen.</p>
+    </div>
+    <div class="card dev">
+      <span class="k">B · Fleet — a scope above center selection</span>
+      <p>Camera health as the one thing that exists at account altitude, reached by a toggle in the
+      header's search field. No center selected, center-scoped nav hidden. Resolves the seam honestly, at
+      the cost of a scope the app has never had before.</p>
+    </div>
   </div>
+  <p>B is the right long-term model; A is the right first ship. If the fleet view is likely within two
+  quarters, build B now — retrofitting a scope later means re-teaching the navigation twice.</p>
 </section>
 
 <section>
   <h2>Layout</h2>
-  <p>One row per <code>center_id</code>, as specified. The row is three columns rather than the mockup's two:</p>
-  <div class="cards">
-    <div class="card">
-      <span class="k">Identity — name, state, store number, camera count</span>
-      <p>Plus a small eye glyph when the center is parent-facing, and an icon link out to my.wmg. Kept to two
-      lines so every row has the same height.</p>
-    </div>
-    <div class="card">
-      <span class="k">Status counts — a fixed column of aligned numbers</span>
-      <p>"4 offline / 1 degraded / Longest 4h 05m", each on its own line with the number right-aligned in a
-      2-character box.</p>
-      <span class="why">Why its own column: when the counts share the identity block they wrap unpredictably and
-      the digits never line up. Given a column, ten rows of counts become a single scannable ladder — you find
-      the worst center by looking down one narrow strip, not by reading ten sentences.</span>
-    </div>
-    <div class="card">
-      <span class="k">Camera grid — one block per camera, wrapping</span>
-      <p>20px blocks, top-aligned, in physical camera order so a room's block sits in the same place every visit.
-      A compact density drops them to 14px when someone needs twenty centers on one screen.</p>
-    </div>
+  <p>One row per center in both versions: identity, a fixed column of aligned status counts, then a
+  wrapping grid of camera squares. Status is colour plus texture, never colour alone — red and green is the
+  pair that fails for red-green colour blindness, and this board's whole meaning rides on exactly that pair.</p>
+  <div class="sw-row">
+    <span class="sw-item"><span class="sw off"></span><b>Offline</b><span>cross</span></span>
+    <span class="sw-item"><span class="sw deg"></span><b>Degraded</b><span>diagonal hatch</span></span>
+    <span class="sw-item"><span class="sw ok"></span><b>Normal</b><span>flat fill</span></span>
   </div>
-  <p>A 3px left edge on each card carries the row's worst status, giving the list a scannable vertical margin
-  before any text is read. Ten rows fit in about 810px, so a typical page needs one screen and a nudge.</p>
+  <p>The counts get their own column because sharing it with identity makes them wrap unpredictably; given
+  a column, ten rows becomes one scannable ladder of digits. A 3px left edge carries each row's worst
+  status, so the list reads before any text does.</p>
 </section>
 
 <section>
-  <h2>The fleet version in detail</h2>
-  <p>Version B is not a re-skin — it changes what the app claims about your position in it. Six decisions carry
-  that difference.</p>
-  <div class="cards">
-    <div class="card">
-      <span class="k">The altitude is stated by exactly one control</span>
-      <p>In focus mode the field reads "All my centers" and its chip is filled blue. In center scope the chip goes
-      quiet and the field carries the center's name. One control, two states, so there is never a moment where the
-      header and the page disagree about where you are.</p>
-    </div>
-    <div class="card">
-      <span class="k">The center-scoped nav is hidden, not disabled</span>
-      <p>Dashboard, Requests, Users, Reports, and Settings all mean "for this center". At account altitude
-      there is no this-center, so showing them would offer actions that cannot resolve.</p>
-      <span class="why">Hiding rather than greying is the honest choice: a greyed nav reads as broken
-      permissions, an absent nav reads as a different altitude. The sub-nav disappears for the same reason —
-      at this height there is only one thing to look at, so tabs would be furniture.</span>
-    </div>
-    <div class="card">
-      <span class="k">The way in is a toggle inside the center-search field</span>
-      <p>The header's center field carries a "Camera health" affordance on its right edge. Off, it is quiet grey
-      text. On, it becomes a filled <code>#58A3CA</code> chip with a dismiss ✕, the field's placeholder changes
-      from "Search for center" to "All my centers", and the app enters focus mode.</p>
-      <span class="why">Putting the toggle inside the control that already answers "which center am I looking
-      at?" means one component owns scope. You do not learn a new place to look — you learn that the same
-      control has a second position. The ✕ matters as much as the chip: an entered mode needs a visible exit,
-      or it reads as being stuck.</span>
-    </div>
-    <div class="card">
-      <span class="k">A second, quieter way in from inside a center</span>
-      <p>A low-contrast "View across all centers" link sits at the far end of the per-center Cameras tab bar,
-      for someone already in a center who wants to zoom out.</p>
-      <span class="why">Deliberately text, not a button — it must not compete with Live / History / Saved
-      Clips. Two entry points because there are two journeys: arriving cold with no center chosen, and
-      realising mid-task that the question is bigger than the center you are in.</span>
-    </div>
-    <div class="card">
-      <span class="k">The Cameras nav item is not a route</span>
-      <p>In the left rail, Cameras looks exactly like Requests, Users, and Reports — same weight, same hover, no
-      dimming — but clicking it goes nowhere. It still lights up to say "you are here" after you drill into a
-      center. Every path to a camera runs through camera health.</p>
-      <span class="why">Two doors into the same room is how the seam reopens. If Cameras were a route it would
-      have to answer "which center?" — and with no center chosen the honest answer is the error state on the
-      dashboard, which teaches people the nav is broken. It is left looking normal rather than disabled because
-      a greyed item reads as a permissions problem, which is a different and wronger message. Worth noting for
-      build: an item that looks live and does nothing is a real accessibility snag, so production should either
-      route it to camera health or mark it disabled properly.</span>
-    </div>
-    <div class="card">
-      <span class="k">Squares, not tiles — and no streams at all</span>
-      <p>The board uses the same small status squares as version A: one per camera, colour plus texture,
-      arranged in a wrapping grid per center. Clicking one opens a centered modal with that camera's status,
-      duration, last-frame-received time, recorder, and a link out to my.wmg.</p>
-      <span class="why">Squares beat thumbnails here twice over. They let a 20-camera center read as one glance
-      instead of a scroll, and they make the streaming problem disappear by construction — a user with 14
-      centers would otherwise trigger 232 concurrent streams just by loading the page. Playback stays an
-      explicit act on one camera, reached through the modal.</span>
-    </div>
-    <div class="card">
-      <span class="k">The modal is the detail surface, not a side panel</span>
-      <p>Version A uses a right-hand drawer; version B uses a centered modal with ← / → to walk the center's
-      cameras and Esc to close, returning focus to the square you came from.</p>
-      <span class="why">The drawer's advantage in version A was keeping the grid visible while you inspect. At
-      account altitude the grid you would keep visible belongs to one center among fourteen, so the context
-      worth preserving is weaker — and a modal reads as a harder stop, which suits a page you are triaging
-      from rather than browsing.</span>
-    </div>
-    <div class="card">
-      <span class="k">There is a screen before any of this</span>
-      <p>The prototype opens on the normal dashboard with no center selected, which is why its camera panel
-      reads "Error! Unable to load requested cameras." — there is genuinely nothing to fetch yet.</p>
-      <span class="why">That empty state is the argument for the feature. The app's cold start is a screen that
-      cannot answer anything until you pick one center out of fourteen; the toggle beside the search field is
-      the shortest path from there to "what is broken anywhere?". The center-search dropdown is drawn for
-      reference but not wired up — selecting a center does nothing in this prototype, because the journey being
-      tested is the one that goes up rather than sideways.</span>
-    </div>
-    <div class="card">
-      <span class="k">Healthy centers collapse to one row</span>
-      <p>Centers with a problem are listed individually with their full square grid shown. Everything healthy
-      folds into a single expandable "7 centers healthy · 104 cameras reporting" row.</p>
-      <span class="why">This is what makes the page work at scale. Equal-weight rows for 14 centers is a wall
-      to be searched; problems-first with the good news compressed is a queue to be worked. The "All centers"
-      toggle still gives the full list when someone wants to browse rather than triage. Problem centers show
-      every camera, not only the broken ones — with squares that context is free, and four red among twenty
-      green tells a different story than four red alone.</span>
-    </div>
-    <div class="card">
-      <span class="k">Correlated failures get named</span>
-      <p>When the offline cameras at a center share a recorder, the card says so: "All 4 offline cameras here
-      run through recorder NVR-2 — likely one site network fault, not 4 separate camera failures." When only
-      some of them share it, the wording softens to "3 of the 4 … worth checking that recorder first."</p>
-      <span class="why">A list of four dead cameras invites four truck rolls. Naming the shared recorder turns
-      the same data into one hypothesis, and the hedged variant matters as much as the confident one — an
-      overconfident diagnosis that sends someone to the wrong box costs more than no diagnosis at all.</span>
-    </div>
-  </div>
-  <p><strong>Drill-down.</strong> Clicking a center name — or the "Open in center view" action inside a camera's
-  modal — does three things at once: sets the session's active center, lands on that center's existing Cameras
-  page, and leaves an "← All centers" breadcrumb. No new UI is invented for the destination; it is the page that
-  already exists. Clicking a square opens the camera instead, so the two gestures never collide.</p>
-  <p><strong>Single-center users see none of this.</strong> With one assigned center there is nothing to
-  aggregate, so the Camera health toggle and the zoom-out link are both absent rather than present-and-pointless.
-  The prototype's "Single-center user" control demonstrates the rule.</p>
-</section>
-
-<section>
-  <h2>Where I departed from the mockup</h2>
-  <p>Five deliberate changes. Each is reversible if you disagree.</p>
-  <div class="cards">
-    <div class="card dev">
-      <span class="k">1 · Light, not dark</span>
-      <p>Your call, and the right one — it's the only way the page belongs to the same product as
-      Cameras / Rooms / Classes. The dark mockup informed the content and hierarchy, nothing else. The video
-      frame in the drawer is a light neutral placeholder rather than a black box.</p>
-    </div>
-    <div class="card dev">
-      <span class="k">2 · A drawer, not a modal</span>
-      <p>Clicking a block opens a non-blocking panel on the right instead of a centered modal. Checking cameras
-      is repetitive — you rarely inspect one and stop. A modal makes you close it to see the grid again; the
-      drawer keeps the grid visible and adds <code>←</code> / <code>→</code> to walk the center's cameras in
-      place. Below 640px it becomes a bottom sheet.</p>
-    </div>
-    <div class="card dev">
-      <span class="k">3 · Status has a shape, not only a color</span>
-      <p>Red and green are the classic failure case for the ~8% of men with deuteranopia, and this board's entire
-      meaning is carried by red-versus-green. So each status also has a texture, and the row states its counts in
-      words regardless.</p>
-      <div class="sw-row" style="padding-top:4px">
-        <span class="sw-item"><span class="sw off"></span><b>Offline</b><span>cross</span></span>
-        <span class="sw-item"><span class="sw deg"></span><b>Degraded</b><span>diagonal hatch</span></span>
-        <span class="sw-item"><span class="sw ok"></span><b>Normal</b><span>flat fill</span></span>
-      </div>
-    </div>
-    <div class="card dev">
-      <span class="k">4 · Rank numbers on the rows</span>
-      <p>When the sort is "most issues" or "longest outage", each row shows its rank. It makes the ordering an
-      explicit claim the user can verify rather than an ordering they have to trust — and it makes the ranking
-      visibly change after a refresh.</p>
-    </div>
-    <div class="card dev">
-      <span class="k">5 · Summary tiles above the list</span>
-      <p>Four numbers — centers with issues, cameras offline, degraded, longest outage — that double as
-      one-click filters. Not a dashboard; the smallest possible answer to "how bad is it right now" before
-      anyone scrolls. In single-center scope they turn read-only, because filtering one center by its own status
-      does nothing.</p>
-    </div>
-  </div>
+  <h2>What's different between them</h2>
+  <ul>
+    <li><strong>Altitude is stated by one control.</strong> In focus mode the search field reads "All my
+    centers" with a filled blue chip; in center scope the chip goes quiet and the field names a center.</li>
+    <li><strong>The center-scoped nav hides, it doesn't grey out</strong> — absent reads as a different
+    altitude, greyed reads as broken permissions.</li>
+    <li><strong>Two entry points:</strong> the toggle for a cold start, plus a low-contrast "View across all
+    centers" link from inside a center for someone already mid-task.</li>
+    <li><strong>Cameras in the rail looks normal but isn't a route</strong> — every path to a camera runs
+    through camera health, so there's one door, not two.</li>
+    <li><strong>Detail opens in a modal, not version A's drawer</strong> — at account altitude the grid
+    behind it belongs to one center among fourteen, so less context is worth preserving, and a modal reads
+    as the harder stop that suits triage.</li>
+    <li><strong>Healthy centers collapse into one row;</strong> problem centers show their full grid, not
+    just the broken cameras — four red among twenty green tells a different story than four red alone.</li>
+    <li><strong>Correlated failures get named:</strong> "All 4 offline cameras here run through recorder
+    NVR-2 — likely one site network fault," hedged to "3 of the 4…" when it's partial.</li>
+    <li><strong>Single-center users see none of this</strong> — the toggle and the zoom-out link are
+    absent, not present-and-pointless, when there's nothing to aggregate.</li>
+  </ul>
+  <p><strong>Drill-down</strong> — clicking a center name, or "Open in center view" inside a camera's modal
+  — sets the session's active center, lands on that center's existing Cameras page, and leaves an
+  "← All centers" breadcrumb. No new UI; it's the page that already exists.</p>
 </section>
 
 <section>
   <h2>The refresh contract</h2>
-  <p>A page that rewrites itself every 30 seconds is hostile unless it follows rules. These are the rules I built:</p>
   <ul>
-    <li><strong>The countdown is visible.</strong> A ring drains toward the next read, and the subtitle says how
-    old the current data is — "read 12s ago". A live view that can't say when it last succeeded isn't a live view.</li>
-    <li><strong>Pause is real, and labeled.</strong> Paused shows "showing a frozen view", not a stopped clock.</li>
-    <li><strong>It stops refreshing on its own</strong> when the tab is hidden, when a camera drawer is open, and
-    while someone is typing in the filter box. Every skipped poll is a query the read replica never serves.</li>
-    <li><strong>Ranking never changes under the cursor.</strong> If a refresh would reorder rows while the pointer
-    or the keyboard focus is inside the list, the new order is held and a pill offers "Ranking changed — reorder".
-    It applies itself the moment the user leaves. Reordering under a moving cursor is how people click the wrong
-    camera.</li>
-    <li><strong>Page position survives a refresh</strong> — page number, scroll, filters, and the focused block in
-    the camera grid.</li>
-    <li><strong>Failure is stated, not hidden.</strong> A failed read leaves the last good data on screen behind an
-    amber banner naming its age, and never shows an empty board.</li>
-    <li><strong>Screen readers get a polite summary</strong> after each read — "3 of 6 centers have camera issues,
-    9 cameras offline" — not 250 individual block changes.</li>
+    <li><strong>The countdown is visible</strong> and the subtitle states data age — "read 12s ago".</li>
+    <li><strong>Pause is real and labeled:</strong> "showing a frozen view," not a stopped clock.</li>
+    <li><strong>It stops on its own</strong> when the tab is hidden, a detail view is open, or someone is
+    typing a filter.</li>
+    <li><strong>Ranking never changes under the cursor.</strong> A reorder is held behind a
+    "Ranking changed — reorder" pill until the user leaves the list.</li>
+    <li><strong>Failure is stated, not hidden</strong> — an amber banner names the data's age and offers
+    retry; the board never goes blank.</li>
+    <li><strong>Screen readers get one polite summary per read</strong>, not per-block noise.</li>
   </ul>
 </section>
 
 <section>
-  <h2>Keyboard and assistive access</h2>
+  <h2>Keyboard and access</h2>
   <ul>
-    <li>252 cameras would be 252 tab stops. Instead each center's grid is <strong>one</strong> tab stop with a
-    roving focus: arrows move between cameras, <code>Home</code> / <code>End</code> jump to the ends,
-    <code>Enter</code> opens the drawer, <code>Esc</code> closes it and returns focus to the block you came from.</li>
-    <li>Every block has an accessible name that includes the duration: "Camera 14, Nap room B, offline for 1h 05m".</li>
-    <li>The hover card also appears on focus, so keyboard users get the same quick facts.</li>
-    <li>Informational text sits at 4.5:1 or better; the muted <code>#9ca3af</code> from the style guide is used only
-    on genuinely disabled controls.</li>
-    <li>Motion respects <code>prefers-reduced-motion</code>.</li>
+    <li>Each center's grid is <strong>one</strong> tab stop with roving focus — arrows move between cameras,
+    not 20 separate stops per center.</li>
+    <li>Every square's accessible name includes the duration: "Camera 14, Nap room B, offline for 1h 05m".</li>
+    <li>The hover card also appears on focus. Informational text sits at 4.5:1 contrast or better.</li>
   </ul>
 </section>
 
 <section>
-  <h2>Sorting, filtering, pagination</h2>
-  <div class="tablewrap">
-    <table>
-      <thead><tr><th>Control</th><th>Behavior</th></tr></thead>
-      <tbody>
-        <tr><td>Default sort</td><td>Offline count desc → degraded count desc → longest outage desc → name A–Z. Healthy centers therefore fall below the troubled ones and sort alphabetically among themselves, which is exactly the brief's rule, expressed as one comparator.</td></tr>
-        <tr><td>Other sorts</td><td>Longest outage, center name A–Z, most cameras. The active sort is shown in the control, never implied.</td></tr>
-        <tr><td>Filters</td><td>Free text over center name and store number; status; brand; state; parent-facing. Each applied filter appears as a removable chip with a "Clear all", and the result line always states what survived: "14 centers · 232 cameras · 19 needing attention".</td></tr>
-        <tr><td>Pagination</td><td>10 / 25 / 50 per page, server-side, hidden entirely when there is only one page. Changing pages preserves filters and sort.</td></tr>
-        <tr><td>Scope</td><td>Defaults to the single center the user is viewing, per the brief. Multi-center users get a one-time nudge — "Your role can see 14 centers" — so the wider view is discoverable without being imposed.</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p>All of it should live in the URL. A regional manager who finds three centers down wants to paste that exact
-  board into Slack, and a bookmark of "my brand, offline only, by outage age" is the feature people will actually
-  use every morning.</p>
-</section>
-
-<section>
-  <h2>States the view can be in</h2>
-  <div class="tablewrap">
-    <table>
-      <thead><tr><th>State</th><th>Treatment</th></tr></thead>
-      <tbody>
-        <tr><td>First load</td><td>Skeleton rows in the real row geometry, not a spinner — no layout jump when data lands.</td></tr>
-        <tr><td>Refreshing</td><td>Nothing but the ring moves. A 30-second full-page skeleton would make the page unusable.</td></tr>
-        <tr><td>All healthy</td><td>An explicit blue confirmation — "All cameras reporting normally, 232 cameras across 14 centers". A monitoring tool that shows nothing when nothing is wrong teaches people to distrust it.</td></tr>
-        <tr><td>No matches</td><td>Names the scope it searched and offers one button to clear filters.</td></tr>
-        <tr><td>Read failed</td><td>Amber banner, last good data retained, age stated, retry offered.</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<section>
-  <h2>Notes for whoever builds it</h2>
+  <h2>Notes for engineering</h2>
   <ul>
-    <li><strong>Don't query <code>camera_assessment_logs_v2</code> directly.</strong> "Latest row per camera" over a
-    growing log, for every poll, by every admin, is the query that will hurt. Maintain a
-    <code>camera_current_status</code> projection — one row per camera, updated on heartbeat, holding status,
-    <code>status_since</code>, and <code>assessed_at</code>. Sorting centers by offline count and paginating them
-    then becomes an indexed read instead of a windowed scan.</li>
-    <li><strong>Compute the counts in SQL</strong>, per page of centers. Never ship 20,000 camera rows to the client
-    to count them there.</li>
-    <li><strong>Make the poll cheap.</strong> Return an <code>ETag</code> and let unchanged reads answer 304 — most
-    30-second polls change nothing.</li>
-    <li><strong>Distinguish "offline" from "we haven't heard".</strong> If <code>assessed_at</code> is older than the
-    30-minute heartbeat, the camera's status is unknown, not normal, and it should not be counted as healthy. We
-    scoped the legend to three values; this case still needs a decision (see question 1).</li>
-    <li><strong>Scope every query by the user's access</strong> server-side. The scope control is a convenience, never
-    the security boundary.</li>
-    <li><strong>Durations are computed from <code>status_since</code></strong>, not from the client clock, so a stale
-    tab can't invent a 6-hour outage.</li>
+    <li><strong>Don't query the assessment log directly per poll.</strong> Maintain a
+    <code>camera_current_status</code> projection — one row per camera — so sorting and paginating is an
+    indexed read, not a windowed scan.</li>
+    <li><strong>Compute counts in SQL</strong>, per page. Never ship thousands of camera rows to count
+    client-side.</li>
+    <li><strong>Distinguish "offline" from "we haven't heard."</strong> A camera past its heartbeat window
+    is unknown, not healthy — see question 2.</li>
+    <li><strong>Scope every query server-side</strong> by the user's access; the UI toggle is a
+    convenience, never the security boundary.</li>
   </ul>
 </section>
 
@@ -449,48 +248,38 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <div class="cards">
     <div class="q"><span class="n num">1</span><div>
       <p>Should the Camera health toggle carry a count?</p>
-      <p>The concept spec called a live count badge the main discoverability driver — with zero issues the feature
-      has no reason to be clicked, so the number does the arguing. The visual reference for the toggle has no badge,
-      and I built it without one. The middle option is to append the number only when it is non-zero, so the chip
-      reads "Camera health · 19" on a bad day and stays clean on a good one. Worth deciding deliberately, because
-      as built the feature is silent about needing attention until someone opens it.</p>
+      <p>The concept spec called a badge the main discoverability driver on a good day; the reference
+      image had none, so it shipped without one. A middle option: show the number only when non-zero.</p>
     </div></div>
     <div class="q"><span class="n num">2</span><div>
-      <p>What should the board do with a camera whose last heartbeat is older than 30 minutes?</p>
-      <p>Right now it keeps whatever status it last reported, which quietly counts a silent camera as healthy. My
-      recommendation is a fourth neutral-gray state, "not reporting" — but that widens the legend you scoped to three.</p>
+      <p>What happens to a camera whose last heartbeat is over 30 minutes old?</p>
+      <p>Right now it keeps its last status, which quietly counts a silent camera as healthy. Recommend a
+      fourth "not reporting" state — but that widens the three-value legend.</p>
     </div></div>
     <div class="q"><span class="n num">3</span><div>
-      <p>Fleet version: does drilling into a center <em>persist</em> as the session's selected center?</p>
-      <p>If it persists, navigating to Requests afterwards stays in that center — which matches the existing mental
-      model of "you are now in this center's context". If it is a one-off jump, the selection reverts when you leave.
-      The prototype persists it and says so in a banner on arrival. I recommend persisting; the alternative means the
-      app's active center can differ from the page you are looking at, which is harder to explain than it is to build.</p>
+      <p>Does drilling into a center from the fleet view <em>persist</em> as the session's center?</p>
+      <p>The prototype persists it, matching "you're now in this center's context." Recommend keeping that.</p>
     </div></div>
     <div class="q"><span class="n num">4</span><div>
-      <p>Are "last checked" times shown in the viewer's timezone or the center's?</p>
-      <p>A Dallas admin looking at an Oklahoma center will read them differently. Relative times ("27m ago") dodge the
-      question, which is why the prototype uses them; absolute timestamps in the drawer will need an answer.</p>
+      <p>Timestamps in the viewer's timezone, or the center's?</p>
+      <p>Relative times ("27m ago") dodge the question for now; absolute timestamps will need an answer.</p>
     </div></div>
     <div class="q"><span class="n num">5</span><div>
       <p>Is camera order within a center stable and meaningful?</p>
-      <p>The grid is only trustworthy if a room's block stays in the same position between visits. If cameras have a
-      display order, the grid should use it; if not, the block positions are effectively random and worth ordering by
-      room.</p>
+      <p>If not, ordering by room would beat whatever order the log happens to return.</p>
     </div></div>
     <div class="q"><span class="n num">6</span><div>
-      <p>Does "degraded" have reasons behind it?</p>
-      <p>If the log distinguishes low bitrate from dropped frames from a bad angle, the drawer should say which — it's
-      the difference between "call the vendor" and "nudge the camera".</p>
+      <p>Does "degraded" carry a reason?</p>
+      <p>Low bitrate versus dropped frames versus a bad angle is the difference between calling the vendor
+      and nudging the camera.</p>
     </div></div>
   </div>
 </section>
 
 <footer>
   History, saved-clip playback, and an admin display mode are out of scope for this pass, but the sub-nav
-  already reserves <em>Live</em>, <em>History</em>, <em>Saved Clips</em>, and <em>Admin Display</em> as
-  decorative tabs — grouped and separated by dividers — so their eventual home is visible now rather than
-  invented later. The same pattern <code>App.jsx</code> uses for Billing and Permissions.
+  reserves <em>Live</em>, <em>History</em>, <em>Saved Clips</em>, and <em>Admin Display</em> as decorative
+  tabs — grouped and separated by dividers — so their eventual home is visible now rather than invented later.
 </footer>
 
 </div>
