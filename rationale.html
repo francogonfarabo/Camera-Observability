@@ -239,13 +239,15 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     </div>
     <div class="card">
       <span class="k">The Cameras nav item is not a route</span>
-      <p>In the left rail, Cameras is inert — no pointer, no hover, no focus, nothing happens on click. It still
-      lights up to say "you are here" when you have drilled into a center, but it is never a way to get there.
-      Every path to a camera runs through camera health.</p>
-      <span class="why">Two doors into the same room is how the seam reopens. If Cameras were clickable it would
+      <p>In the left rail, Cameras looks exactly like Requests, Users, and Reports — same weight, same hover, no
+      dimming — but clicking it goes nowhere. It still lights up to say "you are here" after you drill into a
+      center. Every path to a camera runs through camera health.</p>
+      <span class="why">Two doors into the same room is how the seam reopens. If Cameras were a route it would
       have to answer "which center?" — and with no center chosen the honest answer is the error state on the
-      dashboard, which teaches people the nav is broken. Making it report position without offering passage keeps
-      one entry point and one story.</span>
+      dashboard, which teaches people the nav is broken. It is left looking normal rather than disabled because
+      a greyed item reads as a permissions problem, which is a different and wronger message. Worth noting for
+      build: an item that looks live and does nothing is a real accessibility snag, so production should either
+      route it to camera health or mark it disabled properly.</span>
     </div>
     <div class="card">
       <span class="k">Squares, not tiles — and no streams at all</span>
@@ -272,8 +274,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       reads "Error! Unable to load requested cameras." — there is genuinely nothing to fetch yet.</p>
       <span class="why">That empty state is the argument for the feature. The app's cold start is a screen that
       cannot answer anything until you pick one center out of fourteen; the toggle beside the search field is
-      the shortest path from there to "what is broken anywhere?". Selecting a center from the dropdown fills
-      the same panel with that center's cameras, so the contrast is visible in two clicks.</span>
+      the shortest path from there to "what is broken anywhere?". The center-search dropdown is drawn for
+      reference but not wired up — selecting a center does nothing in this prototype, because the journey being
+      tested is the one that goes up rather than sideways.</span>
     </div>
     <div class="card">
       <span class="k">Healthy centers collapse to one row</span>

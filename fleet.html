@@ -110,12 +110,6 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .rail-item[aria-current="page"]{background:var(--rail-active)}
 .rail-item:hover{background:rgba(255,255,255,.12)}
 .rail-item[aria-current="page"]:hover{background:var(--rail-active)}
-/* Cameras is not a route in this version — it still names where you are,
-   but it offers no hover, no pointer, and no way to click into it. */
-.rail-item.blocked{cursor:default;opacity:.5}
-.rail-item.blocked:hover{background:transparent}
-.rail-item.blocked.cur{opacity:1;background:var(--rail-active)}
-.rail-item.blocked.cur:hover{background:var(--rail-active)}
 .rail-item span{font-family:'Open Sans',sans-serif;font-weight:600;font-size:9px;color:#fff;line-height:1.2;text-align:center}
 .col{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
 
@@ -630,16 +624,14 @@ function renderChrome(){
   btn.hidden = V.soloCenter;
 
   // rail
+  // Cameras looks exactly like its neighbours; it simply carries no data-rail,
+  // so clicking it goes nowhere. Camera health is the only route to a camera.
   const active = V.screen === "center" ? "cameras" : "dashboard";
-  $("rail").innerHTML = RAIL.map(r=>{
-    const cur = r.k === active;
-    const icon = `<svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">${r.p}</svg>
-      <span>${r.l}</span>`;
-    return r.blocked
-      ? `<div class="rail-item blocked${cur?" cur":""}" aria-disabled="true"
-           title="Cameras open from Camera health — turn on the toggle in the search field">${icon}</div>`
-      : `<button class="rail-item" data-rail="${r.k}" ${cur?'aria-current="page"':""}>${icon}</button>`;
-  }).join("");
+  $("rail").innerHTML = RAIL.map(r=>`
+    <button class="rail-item" ${r.blocked?"":`data-rail="${r.k}"`} ${r.k===active?'aria-current="page"':""}>
+      <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8">${r.p}</svg>
+      <span>${r.l}</span>
+    </button>`).join("");
 
   $("tabbar").hidden = V.screen !== "center";
   $("zoomOut").hidden = V.soloCenter;
@@ -652,12 +644,14 @@ function renderDrop(){
   if (!V.drop || V.screen === "health"){ d.hidden = true; return; }
   const q = V.cq.trim().toLowerCase();
   const hits = DATA.filter(c => !q || c.name.toLowerCase().includes(q) || c.store.includes(q)).slice(0, 6);
+  // Illustrative only for now: the rows show what center search looks like,
+  // but selecting one is deliberately not wired up.
   d.hidden = false;
   d.innerHTML = (hits.length
-    ? hits.map((c,i)=>`<button class="drow${i===0?" hl":""}" data-pick="${c.id}" role="option" aria-selected="${i===0}">
+    ? hits.map((c,i)=>`<button class="drow${i===0?" hl":""}" role="option" aria-selected="${i===0}">
         <span class="dn">${esc(c.name)}</span><span class="db">${esc(c.brand)}</span></button>`).join("")
     : `<div class="dempty">No center matches "${esc(V.cq)}"</div>`)
-    + `<button class="dfoot" data-pick-all="1">Search all centers</button>`;
+    + `<button class="dfoot">Search all centers</button>`;
 }
 
 /* =====================================================================
@@ -715,8 +709,8 @@ function renderDashboard(){
                  <span class="sub num">${t.total} cameras · ${t.off} offline · ${t.deg} degraded</span>`
              : `<span class="err">Error!</span>
                 <span class="sub">Unable to load requested cameras.</span>
-                <span class="hint">No center is selected, so there is nothing to fetch. Pick a center from the
-                search field — or switch on <b>Camera health</b> to see every center at once.</span>`}
+                <span class="hint">No center is selected, so there is nothing to fetch. Switch on
+                <b>Camera health</b> in the search field to see every center at once.</span>`}
         </div>
       </div>
 
@@ -1082,9 +1076,7 @@ document.addEventListener("click", e=>{
     if (V.screen === "health") leaveHealth(); else toHealth();
     return;
   }
-  const pick = t.closest("[data-pick]");
-  if (pick){ V.cq=""; V.drop=false; drill(pick.dataset.pick); return; }
-  if (t.closest("[data-pick-all]")){ V.drop=false; toHealth(); return; }
+  // Dropdown rows are illustrative — they intentionally do nothing.
   if (!t.closest("#sbar")){ if (V.drop){ V.drop=false; renderDrop(); } }
 
   // Cameras carries no data-rail, so it never reaches here.
@@ -1142,10 +1134,6 @@ $("cq").addEventListener("focus", ()=>{ if (V.screen!=="health"){ V.drop=true; r
 $("cq").addEventListener("input", e=>{ V.cq = e.target.value; V.drop=true; renderDrop(); });
 $("cq").addEventListener("keydown", e=>{
   if (e.key === "Escape"){ V.drop=false; renderDrop(); e.target.blur(); }
-  if (e.key === "Enter"){
-    const first = document.querySelector(".drow[data-pick]");
-    if (first){ V.cq=""; V.drop=false; drill(first.dataset.pick); }
-  }
 });
 
 document.addEventListener("input", e=>{
