@@ -56,8 +56,12 @@ beyond a Google Fonts stylesheet.
   diagnosis; McKinney and Tulsa show the hedged "3 of the 4…" variant.
 - **No center view.** Center names are labels, not links, and a camera's modal offers only
   my.wmg. Camera health is the only place cameras are checked.
-- **Sort** — Most issues first, Longest outage, Name A–Z, Most cameras — the same four
-  options as version A. Combine it with the state/brand filters and search.
+- **One filter dropdown** on the far right of the toolbar, with search on the left. State,
+  brand, and sort live in a single grouped panel; whatever is active reads as a chip beside
+  the trigger, with a count badge.
+- **KPIs follow the filter.** Filter to one state and the four summary cards total that
+  subset, with a line under them saying so and the fourth card switching to
+  "Centers in view · of 14 assigned".
 - **Saved views** — name the current mix of sort, filters, and search, then reapply or
   delete it from the chip row. Stored in your browser (`localStorage`) only, so it survives
   a reload but not a different device.

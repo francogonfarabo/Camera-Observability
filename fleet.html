@@ -209,6 +209,42 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .spacer{flex:1;min-width:0}
 .resultline{font-size:12.5px;color:var(--ink-3)}
 
+/* ---------- one consolidated filter dropdown, far right ----------
+   Active filters read as chips beside the trigger. They use the primary
+   blue rather than orange: on this board orange already means "degraded",
+   so an orange chip would read as a status rather than a filter. */
+.fwrap{position:relative;margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.fchip{display:inline-flex;align-items:center;gap:2px;background:var(--blue);color:#fff;border-radius:20px;padding:3px 3px 3px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.fchip .x{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;color:#fff}
+.fchip .x:hover{background:rgba(255,255,255,.28)}
+.ftrigger{display:inline-flex;align-items:center;gap:9px;padding:7px 13px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;font-weight:700;color:var(--ink-2);background:var(--surface);white-space:nowrap}
+.ftrigger:hover{background:var(--fill);border-color:var(--ink-4)}
+.ftrigger[aria-expanded="true"]{border-color:var(--blue);color:var(--blue-ink);box-shadow:var(--focus)}
+.ftrigger .cnt{min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:var(--blue);color:#fff;font-size:11px;display:grid;place-items:center}
+
+.fpanel{position:absolute;top:calc(100% + 9px);right:0;z-index:45;background:var(--surface);border:1px solid var(--line);
+  border-radius:14px;box-shadow:var(--shadow-modal);width:min(600px,calc(100vw - 28px));overflow:hidden}
+.fpanel[hidden]{display:none}
+.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.fcol{padding:16px 18px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;gap:2px;min-width:0}
+.fcol:last-child{border-right:none}
+.fcol h4{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;color:var(--ink);
+  padding-bottom:9px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.fopt{text-align:left;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:600;color:var(--blue-ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fopt:hover{background:var(--blue-tint)}
+.fopt[aria-pressed="true"]{background:var(--blue);color:#fff}
+.fpanel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;
+  border-top:1px solid var(--line);background:var(--fill-2)}
+.fpanel-foot .clear{font-size:12.5px;font-weight:700;color:var(--ink-3);padding:6px 8px;border-radius:7px}
+.fpanel-foot .clear:hover{background:var(--fill);color:var(--off)}
+.fpanel-foot .done{padding:7px 16px;border-radius:8px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700}
+.fpanel-foot .done:hover{background:var(--blue-ink)}
+
+/* the KPI row follows the filter, so say so when a filter is on */
+.sumnote{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-3);margin-top:-4px}
+.sumnote svg{flex-shrink:0;color:var(--blue)}
+
 /* saved filter/sort views — a Toggle-only feature, kept on the browser
    (localStorage) rather than an account, so it survives a reload but not
    a different device */
@@ -367,6 +403,12 @@ dl.dl dd{font-weight:700;color:var(--ink);text-align:right}
   h1{font-size:20px}
   .field{flex:1 1 100%} .field input{width:100%}
   .sv-save{margin-left:0}
+  .fwrap{margin-left:0;width:100%;justify-content:flex-start}
+  /* Anchor to the wrapper's own width so it can't overhang the viewport. */
+  .fpanel{width:100%;right:0;left:auto}
+  .fgrid{grid-template-columns:1fr}
+  .fcol{border-right:none;border-bottom:1px solid var(--line-2);padding:13px 15px}
+  .fcol:last-child{border-bottom:none}
 }
 </style>
 <style>
@@ -523,6 +565,7 @@ const V = {
   screen:"dashboard",     // "dashboard" | "health" — there is no center view
   drop:false, cq:"",
   q:"", state:"all", brand:"all", sort:"issues",
+  filtersOpen:false,
   page:1, per:10,
   paused:false, tick:30, age:0, loading:false, error:false,
   sel:null, soloCenter:false,
@@ -531,8 +574,9 @@ const V = {
 const $ = id => document.getElementById(id);
 const centersFor = () => V.soloCenter ? DATA.slice(0,1) : DATA;
 
-function counts(){
-  const cs = centersFor(), t = cs.map(tally);
+// Pass a list to total just that slice; omit it for the whole account.
+function counts(list){
+  const cs = list || centersFor(), t = cs.map(tally);
   return { centers:cs.length, off:t.reduce((s,x)=>s+x.off,0), deg:t.reduce((s,x)=>s+x.deg,0),
            ok:t.reduce((s,x)=>s+x.ok,0), cams:t.reduce((s,x)=>s+x.total,0),
            problemCentres:t.filter(x=>x.bad).length };
@@ -546,6 +590,16 @@ function filtered(){
     return true;
   });
 }
+// Chips and the trigger badge cover what the dropdown owns. The search box
+// is its own visible control, so echoing its text as a chip would duplicate it.
+const activeFilters = () => {
+  const a = [];
+  if (V.state !== "all") a.push({k:"state", label:V.state});
+  if (V.brand !== "all") a.push({k:"brand", label:V.brand});
+  return a;
+};
+// ...but search still narrows the set, so it counts for the KPI scope note.
+const hasAnyFilter = () => activeFilters().length > 0 || !!V.q.trim();
 // Same four sorts as version A, so "sorting" means the same thing in both.
 function sortCenters(list, sort){
   const a = [...list];
@@ -598,7 +652,7 @@ function commitSaveView(){
 function applyView(id){
   const v = V.savedViews.find(x=>x.id===id);
   if (!v) return;
-  V.sort=v.sort; V.q=v.q; V.state=v.state; V.brand=v.brand; V.page=1; V.savingOpen=false;
+  V.sort=v.sort; V.q=v.q; V.state=v.state; V.brand=v.brand; V.page=1; V.savingOpen=false; V.filtersOpen=false;
   render();
   $("announce").textContent = `Applied saved view "${v.name}".`;
 }
@@ -609,6 +663,47 @@ function deleteView(id){
   render();
   if (v) $("announce").textContent = `Removed saved view "${v.name}".`;
 }
+/* One dropdown holds every filter and the sort. The trigger sits far right;
+   whatever is active reads as a chip beside it so the panel need not be open
+   to know what is on. */
+function renderFilters(){
+  const states = ["all", ...new Set(DATA.map(c=>c.state))];
+  const brands = ["all", ...new Set(DATA.map(c=>c.brand))];
+  const sorts = [["issues","Most issues first"],["longest","Longest outage first"],
+                 ["name","Center name A–Z"],["size","Most cameras first"]];
+  const opt = (group, value, label, current) =>
+    `<button class="fopt" data-f="${group}" data-v="${esc(value)}" aria-pressed="${current===value}">${esc(label)}</button>`;
+
+  const chips = activeFilters().map(f => `
+    <span class="fchip">${esc(f.label)}
+      <button class="x" data-clear-filter="${f.k}" aria-label="Remove ${esc(f.label)} filter">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button></span>`).join("");
+  const n = activeFilters().length;
+
+  return `<div class="fwrap">
+    ${chips}
+    <button class="ftrigger" id="filterBtn" aria-expanded="${V.filtersOpen}" aria-haspopup="true">
+      Filters${n?`<span class="cnt num">${n}</span>`:""}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16l-6.5 7.6V20l-3-1.8v-4.6z"/></svg>
+    </button>
+    <div class="fpanel" id="fpanel" ${V.filtersOpen?"":"hidden"} role="dialog" aria-label="Filters and sort">
+      <div class="fgrid">
+        <div class="fcol"><h4>State</h4>
+          ${states.map(s=>opt("state", s, s==="all"?"All states":s, V.state)).join("")}</div>
+        <div class="fcol"><h4>Brand</h4>
+          ${brands.map(b=>opt("brand", b, b==="all"?"All brands":b, V.brand)).join("")}</div>
+        <div class="fcol"><h4>Sort by</h4>
+          ${sorts.map(([v,l])=>opt("sort", v, l, V.sort)).join("")}</div>
+      </div>
+      <div class="fpanel-foot">
+        <button class="clear" id="fClear">Clear all filters</button>
+        <button class="done" id="fDone">Done</button>
+      </div>
+    </div>
+  </div>`;
+}
+
 function renderSavedViews(){
   const chips = V.savedViews.map(v => `
     <span class="view-chip">
@@ -834,7 +929,11 @@ function centreHtml(c, rank){
 }
 
 function renderHealth(){
-  const n = counts(), all = filtered();
+  // The KPI row totals whatever the filters left behind, not the whole
+  // account — a summary that ignores the filter under it is just wrong.
+  const all = filtered();
+  const n = counts(all), acct = counts();
+  const isFiltered = hasAnyFilter();
   // Every center is listed; the sort decides what floats to the top.
   const listed = sortCenters(all, V.sort);
   const pages = Math.max(1, Math.ceil(listed.length / V.per));
@@ -850,40 +949,33 @@ function renderHealth(){
      s: n.deg ? "reporting, but impaired" : "all at full quality"},
     {cls:"t-ok", l:"Healthy", v:n.ok,
      s: n.ok === n.cams ? "every camera reporting" : `of ${n.cams} cameras`},
-    {cls:"t-n", l:"Centers assigned", v:n.centers,
-     s: n.problemCentres ? `${n.problemCentres} need${n.problemCentres===1?"s":""} attention` : "all reporting"},
+    {cls:"t-n", l: isFiltered ? "Centers in view" : "Centers assigned", v:n.centers,
+     s: isFiltered ? `of ${acct.centers} assigned`
+       : n.problemCentres ? `${n.problemCentres} need${n.problemCentres===1?"s":""} attention` : "all reporting"},
   ];
 
   $("inner").innerHTML = `
     <div class="pagehead">
       <div>
         <h1>Camera health</h1>
-        <p class="subtitle">Across all <span class="num">${n.centers}</span> centers you're assigned to · read ${V.age<5?"just now":V.age<60?V.age+"s ago":dur(Math.round(V.age/60))+" ago"}</p>
+        <p class="subtitle">Across all <span class="num">${acct.centers}</span> centers you're assigned to · read ${V.age<5?"just now":V.age<60?V.age+"s ago":dur(Math.round(V.age/60))+" ago"}</p>
       </div>
       ${liveControl()}
     </div>
 
     <div class="summary">${sums.map(s=>`<div class="sum ${s.cls}">
       <span class="sum-l">${s.l}</span><span class="sum-v num">${s.v}</span><span class="sum-s num">${s.s}</span></div>`).join("")}</div>
+    ${isFiltered?`<p class="sumnote">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16l-6.5 7.6V20l-3-1.8v-4.6z"/></svg>
+      These totals cover the <span class="num">${n.centers}</span> ${n.centers===1?"center":"centers"} matching your filters, not all <span class="num">${acct.centers}</span>.</p>`:""}
 
     <div class="toolbar">
       <div class="field">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-        <input id="q" placeholder="Center name or store number" value="${esc(V.q)}" aria-label="Filter centers">
+        <input id="q" placeholder="Center name or store number" value="${esc(V.q)}" aria-label="Search centers">
       </div>
-      <span class="flabel">State</span>
-      <select id="fState" aria-label="Filter by state">${["all",...new Set(DATA.map(c=>c.state))].map(s=>`<option value="${s}" ${V.state===s?"selected":""}>${s==="all"?"All states":s}</option>`).join("")}</select>
-      <span class="flabel">Brand</span>
-      <select id="fBrand" aria-label="Filter by brand">${["all",...new Set(DATA.map(c=>c.brand))].map(s=>`<option value="${s}" ${V.brand===s?"selected":""}>${s==="all"?"All brands":esc(s)}</option>`).join("")}</select>
-      <span class="flabel">Sort</span>
-      <select id="fSort" aria-label="Sort centers">
-        <option value="issues" ${V.sort==="issues"?"selected":""}>Most issues first</option>
-        <option value="longest" ${V.sort==="longest"?"selected":""}>Longest outage first</option>
-        <option value="name" ${V.sort==="name"?"selected":""}>Center name A–Z</option>
-        <option value="size" ${V.sort==="size"?"selected":""}>Most cameras first</option>
-      </select>
-      <span class="spacer"></span>
-      <span class="resultline num">${listed.length} of ${all.length} centers listed</span>
+      <span class="resultline num">${listed.length} of ${acct.centers} centers listed</span>
+      ${renderFilters()}
     </div>
 
     ${renderSavedViews()}
@@ -892,9 +984,9 @@ function renderHealth(){
       <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7c4a03" stroke-width="2.4"><path d="M12 8v5"/><path d="M12 16.5v.4"/><circle cx="12" cy="12" r="9"/></svg></span>
       <div><b>Showing the last good read</b><p>The most recent refresh didn't come back, so these statuses are from ${dur(4)} ago.</p></div>
       <button class="act" id="retry">Try again</button></div>`:""}
-    ${!V.error && !n.off && !n.deg ? `<div class="banner info">
+    ${!V.error && !n.off && !n.deg && n.centers ? `<div class="banner info">
       <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0C4A6E" stroke-width="2.6"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
-      <div><b>Every camera is reporting</b><p>All ${n.cams} cameras across ${n.centers} centers checked in on the last heartbeat.</p></div></div>`:""}
+      <div><b>Every camera ${isFiltered?"in view":""} is reporting</b><p>All ${n.cams} cameras across ${isFiltered?"the":""} ${n.centers} ${n.centers===1?"center":"centers"} ${isFiltered?"you filtered to":""} checked in on the last heartbeat.</p></div></div>`:""}
 
     <div class="list" id="list">
       ${V.loading
@@ -1032,7 +1124,8 @@ function mutate(){
 }
 function refresh(){
   V.error=false; V.age=0; mutate(); render();
-  const n = counts();
+  // Announce what is actually on screen, which is the filtered set.
+  const n = counts(filtered());
   $("announce").textContent = (n.off || n.deg)
     ? `Updated. ${n.off} cameras offline, ${n.deg} degraded across ${n.problemCentres} centers.`
     : `Updated. All ${n.cams} cameras reporting normally.`;
@@ -1063,8 +1156,29 @@ document.addEventListener("click", e=>{
   }
   // Dropdown rows are illustrative — they intentionally do nothing.
   if (!t.closest("#sbar")){ if (V.drop){ V.drop=false; renderDrop(); } }
-  // Close the "name this view" popover on any click outside it.
-  if (V.savingOpen && !t.closest(".sv-save")){ V.savingOpen=false; render(); return; }
+
+  // Dismiss-on-outside-click runs AFTER the two triggers below, so that
+  // opening one popover while the other is open takes a single click
+  // instead of being swallowed as a dismissal.
+  const onFilterTrigger = !!t.closest("#filterBtn");
+  const onSaveTrigger   = !!t.closest("#saveViewBtn");
+  if (V.savingOpen && !onFilterTrigger && !t.closest(".sv-save")){ V.savingOpen=false; render(); return; }
+  if (V.filtersOpen && !onSaveTrigger && !t.closest(".fwrap")){ V.filtersOpen=false; render(); return; }
+
+  if (onFilterTrigger){ V.filtersOpen=!V.filtersOpen; V.savingOpen=false; render(); return; }
+  if (t.closest("#fDone")){ V.filtersOpen=false; render(); return; }
+  if (t.closest("#fClear")){ V.q=""; V.state="all"; V.brand="all"; V.page=1; render(); return; }
+  const fo = t.closest(".fopt");
+  if (fo){
+    // The panel stays open so several choices can be made in one visit.
+    V[fo.dataset.f] = fo.dataset.v; V.page=1; render(); return;
+  }
+  const cf = t.closest("[data-clear-filter]");
+  if (cf){
+    const k = cf.dataset.clearFilter;
+    if (k === "q") V.q = ""; else V[k] = "all";
+    V.page=1; render(); return;
+  }
 
   // Cameras carries no data-rail, so it never reaches here.
   const rail = t.closest("[data-rail]");
@@ -1079,8 +1193,8 @@ document.addEventListener("click", e=>{
     $("announce").textContent = V.paused?"Auto-refresh paused.":"Auto-refresh resumed."; return; }
   if (t.closest("#nowBtn")){ V.tick=30; refresh(); return; }
   if (t.closest("#retry")){ V.error=false; refresh(); return; }
-  if (t.closest("#saveViewBtn")){
-    V.savingOpen = !V.savingOpen; render();
+  if (onSaveTrigger){
+    V.savingOpen = !V.savingOpen; V.filtersOpen=false; render();
     if (V.savingOpen){ const inp = $("sv-name"); if (inp) inp.focus(); }
     return;
   }
@@ -1130,12 +1244,8 @@ document.addEventListener("input", e=>{
     const box = $("q"); if (box){ box.focus(); box.setSelectionRange(pos,pos); }
   }
 });
-document.addEventListener("change", e=>{
-  if (e.target.id === "fState"){ V.state = e.target.value; V.page=1; render(); }
-  if (e.target.id === "fBrand"){ V.brand = e.target.value; V.page=1; render(); }
-  if (e.target.id === "fSort"){ V.sort = e.target.value; V.page=1; render(); }
-});
 document.addEventListener("keydown", e=>{
+  if (e.key === "Escape" && V.filtersOpen && !V.sel){ V.filtersOpen=false; render(); $("filterBtn")?.focus(); return; }
   if (!e.target || e.target.id !== "sv-name") return;
   if (e.key === "Enter"){ e.preventDefault(); commitSaveView(); }
   if (e.key === "Escape"){ V.savingOpen=false; render(); }
