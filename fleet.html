@@ -295,7 +295,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .c-name{display:inline-flex;align-items:center;gap:6px;font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);text-align:left}
 .c-rank{font-size:11.5px;color:var(--ink-4);min-width:14px;flex-shrink:0;font-weight:600}
 .c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.pf{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;flex-shrink:0;background:var(--blue-tint);color:var(--blue-deep)}
 .stats{display:flex;flex-direction:column;gap:3px;padding-top:1px}
 .stat2{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .stat2 b{min-width:2ch;text-align:right;font-weight:700}
@@ -896,9 +895,7 @@ function centreHtml(c, rank){
         <span class="c-name">
           ${rank?`<span class="c-rank num">${rank}</span>`:""}<span>${esc(c.name)}</span>
         </span>
-        <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span>
-          ${c.pub?`<span class="pf" role="img" aria-label="Parent-facing center" title="Parent-facing — families can watch these cameras"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg></span>`:""}
-        </div>
+        <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span></div>
       </div>
       <div class="stats">${stats}</div>
       ${squares(c)}
