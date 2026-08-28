@@ -52,10 +52,9 @@ beyond a Google Fonts stylesheet.
   search field to enter focus mode: left nav hidden, field reading "All my centers".
 - **Every center is listed**, paginated, with the sort deciding what floats to the top —
   there is no problems-first/all-centers mode switch.
-- **Correlated-failure diagnosis.** Frisco and Arlington show a confident shared-recorder
-  diagnosis; McKinney and Tulsa show the hedged "3 of the 4…" variant.
 - **No center view.** Center names are labels, not links, and a camera's modal offers only
-  my.wmg. Camera health is the only place cameras are checked.
+  Status, duration, Last checked, Room, and a link to my.wmg. Camera health is the only
+  place cameras are checked.
 - **One filter dropdown** on the far right of the toolbar, with search on the left. State,
   brand, and sort live in a single grouped panel; whatever is active reads as a chip beside
   the trigger, with a count badge.

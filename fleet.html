@@ -309,9 +309,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .blk.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 .blk.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2px,transparent 2px 5px)}
 .blk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E")}
-.diag{display:flex;gap:9px;align-items:flex-start;margin:0 16px 12px;padding:9px 12px;border-radius:9px;background:var(--amber-tint);border:1px solid var(--amber-line);color:var(--amber-ink);font-size:12.5px}
-.diag.soft{background:var(--fill);border-color:var(--line);color:var(--ink-2)}
-.diag svg{flex-shrink:0;margin-top:1px}
 .pager{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;box-shadow:var(--shadow-card)}
 .pgroup{display:flex;align-items:center;gap:6px}
 .pg{min-width:32px;height:32px;padding:0 8px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink-2);display:grid;place-items:center}
@@ -479,8 +476,7 @@ dl.dl dd{font-weight:700;color:var(--ink);text-align:right}
 
 <script>
 /* =====================================================================
-   Data — deterministic stand-in. Each camera carries the recorder it
-   runs through, which is what makes a correlated diagnosis possible.
+   Data — deterministic stand-in for the read replica.
    ===================================================================== */
 let seed = 20260824;
 const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -543,21 +539,6 @@ const tally = c => {
            bad:off.length+deg.length, total:c.cams.length,
            worst:Math.max(0, ...[...off,...deg].map(x=>x.since)) };
 };
-function diagnose(c){
-  const off = c.cams.filter(x=>x.status==="off");
-  if (off.length < 2) return null;
-  const byRec = {};
-  off.forEach(x=>{ (byRec[x.recorder] = byRec[x.recorder] || []).push(x); });
-  const [rec, group] = Object.entries(byRec).sort((a,b)=>b[1].length-a[1].length)[0];
-  if (group.length < 2) return null;
-  const all = group.length === off.length;
-  return { all, text: all
-    ? (off.length === 2
-        ? `Both offline cameras here run through recorder <b>${rec}</b> — likely one site network fault rather than two separate camera failures.`
-        : `All ${off.length} offline cameras here run through recorder <b>${rec}</b> — likely one site network fault, not ${off.length} separate camera failures.`)
-    : `${group.length} of the ${off.length} offline cameras run through recorder <b>${rec}</b> — worth checking that recorder before the cameras.` };
-}
-
 /* =====================================================================
    View state
    ===================================================================== */
@@ -901,7 +882,7 @@ function squares(c){
 }
 
 function centreHtml(c, rank){
-  const t = tally(c), d = diagnose(c);
+  const t = tally(c);
   const cls = t.off ? "has-off" : t.deg ? "has-deg" : "clean";
   const stats = t.bad ? [
     t.off?`<span class="stat2 off"><span class="sw off"></span><b class="num">${t.off}</b> offline</span>`:"",
@@ -922,9 +903,6 @@ function centreHtml(c, rank){
       <div class="stats">${stats}</div>
       ${squares(c)}
     </div>
-    ${d?`<div class="diag${d.all?"":" soft"}">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 3l9 16H3z"/><path d="M12 9v4M12 16v.4"/></svg>
-      <span>${d.text}</span></div>`:""}
   </section>`;
 }
 
@@ -1048,7 +1026,7 @@ function renderModal(){
   const media = cam.status === "off"
     ? `<div class="media"><span class="tag"><span class="pill off"><span class="sw off" style="width:8px;height:8px;border-radius:2px"></span>Offline</span></span>
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg>
-        <span class="lbl">No signal · last frame ${ago(cam.lastFrame)}</span></div>`
+        <span class="lbl">No signal</span></div>`
     : cam.status === "deg"
     ? `<div class="media okbg"><span class="tag"><span class="pill deg"><span class="sw deg" style="width:8px;height:8px;border-radius:2px"></span>Degraded</span></span>
         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
@@ -1065,11 +1043,8 @@ function renderModal(){
     <dl class="dl">
       <div><dt>Status</dt><dd>${pill}</dd></div>
       <div><dt>${cam.status==="ok"?"Healthy for":"In this status for"}</dt><dd class="num">${dur(cam.since)}</dd></div>
-      <div><dt>Last frame received</dt><dd class="num">${ago(cam.lastFrame)}</dd></div>
       <div><dt>Last checked</dt><dd class="num" title="Heartbeat every 30 minutes">${ago(cam.checked)}</dd></div>
       <div><dt>Room</dt><dd>${esc(cam.room)}</dd></div>
-      <div><dt>Recorder</dt><dd class="num">${cam.recorder}</dd></div>
-      <div><dt>Camera ID</dt><dd class="num">${cam.id}</dd></div>
     </dl>
     <div class="m-acts">
       <a class="btn primary" href="#" onclick="return false" style="justify-content:center">View live on my.wmg

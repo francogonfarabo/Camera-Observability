@@ -169,6 +169,12 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       center's camera page went with it. Both were in the original concept spec; both were removed after
       seeing them built, on the grounds that a triage board should be the answer rather than a menu.</p>
     </div></div>
+    <div class="q"><span class="n num">8</span><div>
+      <p><strong>Pulled the recorder thread out of B.</strong> The shared-recorder diagnosis banner is gone
+      from every card, and the modal drops Recorder, Camera ID, and Last frame received down to Status,
+      duration, Last checked, and Room. The recorder field stays in the data model — it still drives the
+      hover tooltip — but nothing in the board argues from it anymore.</p>
+    </div></div>
   </div>
 </section>
 
@@ -221,8 +227,6 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     collapsed healthy row: the sort decides what floats to the top, so there is one list rather than a mode
     to be in. Problem centers show their whole grid, not just the broken cameras — four red among twenty
     green tells a different story than four red alone.</li>
-    <li><strong>Correlated failures get named:</strong> "All 4 offline cameras here run through recorder
-    NVR-2 — likely one site network fault," hedged to "3 of the 4…" when it's partial.</li>
     <li><strong>Only B can save a view.</strong> Name the current sort, search, and filters; reapply or
     delete it from a chip row. Browser-local (<code>localStorage</code>), not an account setting — a
     deliberate asymmetry between the two versions rather than the usual parity.</li>
