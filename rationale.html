@@ -227,6 +227,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     collapsed healthy row: the sort decides what floats to the top, so there is one list rather than a mode
     to be in. Problem centers show their whole grid, not just the broken cameras — four red among twenty
     green tells a different story than four red alone.</li>
+    <li><strong>The row holds at 100 cameras.</strong> A 100-camera site wraps to three tidy rows on desktop
+    and seven on a phone, with no overflow at any width and the keyboard grid still a single tab stop. Squares
+    stay one fixed size at every count on purpose: scaling them down for large sites would make a red square
+    mean something different from card to card, and comparing centers at a glance is the whole job.</li>
     <li><strong>Only B can save a view.</strong> Name the current sort, search, and filters; reapply or
     delete it from a chip row. Browser-local (<code>localStorage</code>), not an account setting — a
     deliberate asymmetry between the two versions rather than the usual parity.</li>

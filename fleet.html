@@ -488,7 +488,8 @@ const SEEDS = [
   {name:"Sunrise Learning — Frisco",      brand:"Sunrise Learning",    st:"TX", store:"118", n:20, off:[8,9,11,14], deg:[3],     pub:true},
   {name:"Sunrise Learning — McKinney",    brand:"Sunrise Learning",    st:"TX", store:"153", n:16, off:[1,4,6,10],  deg:[],      pub:true},
   {name:"Sunrise Learning — Denton",      brand:"Sunrise Learning",    st:"TX", store:"149", n:22, off:[],          deg:[20],    pub:true},
-  {name:"Sunrise Learning — Plano",       brand:"Sunrise Learning",    st:"TX", store:"092", n:24, off:[],          deg:[],      pub:true},
+  // A deliberately large site, to prove the row holds at ~5x the usual count.
+  {name:"Sunrise Learning — Plano",       brand:"Sunrise Learning",    st:"TX", store:"092", n:100, off:[7,23,46,71,92], deg:[15,58,88], pub:true},
   {name:"Sunrise Learning — Allen",       brand:"Sunrise Learning",    st:"TX", store:"061", n:16, off:[],          deg:[],      pub:true},
   {name:"Sunrise Learning — Prosper",     brand:"Sunrise Learning",    st:"TX", store:"170", n:14, off:[],          deg:[],      pub:false},
   {name:"Bright Path Academy — Arlington",brand:"Bright Path Academy", st:"TX", store:"204", n:18, off:[16,17],     deg:[],      pub:true},
@@ -501,6 +502,12 @@ const SEEDS = [
   {name:"Cedar Grove — Baton Rouge",      brand:"Cedar Grove",         st:"LA", store:"408", n:18, off:[],          deg:[4],     pub:true},
 ];
 const recorderOf = i => "NVR-" + (Math.floor(i / 8) + 1);
+// Past 24 cameras the room list wraps, so number the repeats rather than
+// shipping four cameras all called "Infant A".
+const roomName = i => {
+  const pass = Math.floor(i / ROOMS.length);
+  return pass ? `${ROOMS[i % ROOMS.length]} ${pass + 1}` : ROOMS[i % ROOMS.length];
+};
 
 function build(){
   seed = 20260824;
@@ -514,7 +521,7 @@ function build(){
                   : Math.floor(rnd()*4000)+200;
       return {
         id:`${s.store}-CAM${String(i+1).padStart(2,"0")}`, n:i+1,
-        room:ROOMS[i % ROOMS.length], status, recorder:recorderOf(i), since,
+        room:roomName(i), status, recorder:recorderOf(i), since,
         // An offline camera's last frame IS the moment it dropped — one event,
         // so the two numbers must never disagree.
         lastFrame: status === "off" ? since : status === "deg" ? Math.floor(rnd()*7)+1 : Math.floor(rnd()*3),
