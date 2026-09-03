@@ -1,26 +1,28 @@
 # Camera Health — WatchMeGrow
 
-Design prototypes for **camera health**: a live board showing every camera's most
-recent heartbeat, so a center admin, regional manager, or exec can see what is down
-right now and for how long.
+Design prototype for **camera health**: a live board showing every camera's most recent
+heartbeat, so a center admin, regional manager, or exec can see what is down right now
+and for how long.
 
-The same feature is built at **two altitudes**, so the placement decision can be made
-by looking at it rather than by arguing about it.
+Camera health has its own top-level rail item, **Monitoring** — set apart from the
+center-scoped section icons (Cameras, Dashboard, Users, …) by a subtle divider, since it
+answers a different kind of question than any of them.
 
-| Page | Version | What it is |
-|---|---|---|
-| [`index.html`](index.html) | **A · Nested** | Camera health as the first sub-tab of the camera section, beside Live / History / Saved Clips / Admin Display |
-| [`fleet.html`](fleet.html) | **B · Toggle** | Camera health at *account* altitude — above center selection, with no center selected and the center-scoped nav hidden |
-| [`rationale.html`](rationale.html) | — | Design notes: the two altitudes, layout decisions, refresh contract, accessibility, open questions |
+| Page | What it is |
+|---|---|
+| [`index.html`](index.html) | Camera health under **Monitoring**, with Live / History / Saved Clips / Admin Display as its sub-tabs |
+| [`rationale.html`](rationale.html) | Design notes: layout decisions, the refresh contract, accessibility, open questions |
 
-A version switcher is pinned to the bottom of every page.
+A version switcher is pinned to the bottom of both pages.
 
-## The difference in one line
+## A hidden second version still exists
 
-Version A puts a cross-center view *inside* the center-scoped part of the app, which is
-cheap to ship but leaves the header naming one center while the page reports on fourteen.
-Version B introduces an account scope that sits above center selection, which resolves
-that seam honestly but is genuinely new navigation.
+This project explored two placements for camera health — nested under a section's own
+sub-nav (what's linked above) versus living at *account* altitude above center selection
+entirely, reached by a toggle in the header. The account-altitude version (`fleet.html`)
+is still in the repo and still deployed, but is no longer linked from the switcher — the
+nested placement is the one going forward. See the design notes for the full comparison
+and why both were worth building before choosing.
 
 ## What these are and aren't
 
@@ -30,55 +32,35 @@ from a fixed seed and mutated on each refresh so the live behavior can be evalua
 
 Not production code. They exist to settle the interaction design before anyone writes a query.
 
-## Trying them
+## Trying it
 
-Open either file directly in a browser — self-contained, no build step, no dependencies
+Open `index.html` directly in a browser — self-contained, no build step, no dependencies
 beyond a Google Fonts stylesheet.
 
-**Version A · Nested** — worth exercising:
-
-- **Scope** opens on a single center; switch to **All centers** for the multi-center board —
-  Nested's own toggle, kept as-is even after the filter/KPI updates below arrived from Toggle.
+- **Monitoring**, top of the left rail, is where camera health lives — set apart from
+  Cameras/Dashboard/Users/etc. by a divider, since it isn't scoped to a center the way
+  they are.
+- **Scope** opens on a single center; switch to **All centers** for the multi-center board.
+- **One filter dropdown** on the far right of the toolbar — Status, Brand, State, and Sort
+  grouped in one panel, with Parent-facing as an audience toggle beneath the columns.
+  Search stays on the left. Active filters read as chips beside the trigger; KPI tiles
+  still work as one-click shortcuts into the same panel.
+- **KPIs follow the filter** and go calm (grey, not alert red/orange) when Offline or
+  Degraded read zero.
+- **Saved views** — name the current status/brand/state/audience/sort/search combination,
+  reapply or delete it from the chip row. Stored in your browser (`localStorage`) only.
 - **Auto-refresh** runs a 30s cycle with a visible countdown, pause, and refresh-now, and
   stops on its own when the tab is hidden, a drawer is open, or you are typing a filter.
 - **Deferred reordering** — hover the list and refresh a few times. Rankings are held behind
   a "Ranking changed — reorder" pill rather than moving rows under your cursor.
 - **Keyboard** — each center's grid is one tab stop with arrow-key navigation, not one stop
   per camera.
-- **One filter dropdown**, ported from Toggle — Status, Brand, State, and Sort in a single
-  grouped panel on the far right, with Parent-facing as an audience toggle beneath the
-  columns. Search stays on the left, unchanged. KPI tiles still work as one-click shortcuts
-  into the panel.
-- **KPIs follow the filter**, ported from Toggle, and go calm (grey, not alert red/orange)
-  when Offline or Degraded read zero.
-- **Saved views**, ported from Toggle — name the current status/brand/state/audience/sort/
-  search combination, reapply or delete it from the chip row. A separate `localStorage` key
-  from Toggle's, since the two versions save different fields.
 
-**Version B · Toggle** — worth exercising:
-
-- **Cold start.** It opens on the dashboard with no center selected, which is why its camera
-  panel reads "Error! Unable to load requested cameras." Switch on **Camera health** in the
-  search field to enter focus mode: left nav hidden, field reading "All my centers".
-- **Every center is listed**, paginated, with the sort deciding what floats to the top —
-  there is no problems-first/all-centers mode switch.
-- **No center view.** Center names are labels, not links, and a camera's modal offers only
-  Status, duration, Last checked, Room, and a link to my.wmg. Camera health is the only
-  place cameras are checked.
-- **One filter dropdown** on the far right of the toolbar, with search on the left. State,
-  brand, and sort live in a single grouped panel; whatever is active reads as a chip beside
-  the trigger, with a count badge.
-- **KPIs follow the filter.** Filter to one state and the four summary cards total that
-  subset, with a line under them saying so and the fourth card switching to
-  "Centers in view · of 14 assigned".
-- **Saved views** — name the current mix of sort, filters, and search, then reapply or
-  delete it from the chip row. Stored in your browser (`localStorage`) only, so it survives
-  a reload but not a different device.
-- **Single-center user** (prototype controls) shows the entry point disappearing when there
-  is nothing to aggregate.
-
-The dashed strip at the bottom of each page forces first-load, refresh-failure, and
+The dashed strip at the bottom of the page forces first-load, refresh-failure, and
 all-healthy states. It is scaffolding, not part of the design.
+
+`fleet.html` — the hidden account-altitude version — has its own equivalent set of
+controls; see the design notes for what differs.
 
 ## Visual language
 
@@ -95,6 +77,7 @@ red/green pair that fails for red-green color blindness.
 ## Deployment
 
 Static site, no build step in CI. `index.html`, `fleet.html`, and `rationale.html` are
-generated from the sources in `../UX/Claude` by a local wrapper script that adds the
-doctype, charset, viewport meta, favicon, and version switcher. Pushes to `main` deploy
+all generated from the sources in `../UX/Claude` by a local wrapper script that adds the
+doctype, charset, viewport meta, favicon, and version switcher — `fleet.html` still
+builds and deploys, it's just left out of the switcher's links. Pushes to `main` deploy
 automatically via the Vercel GitHub integration.

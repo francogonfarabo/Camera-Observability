@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&family=Open+Sans:wght@600&display=swap">
 <style>
 /* ============================================================
-   WatchMeGrow — Camera Health (nested in the camera section)
+   WatchMeGrow — Camera Health (under its own Monitoring rail item)
    Visual language taken from STYLE_GUIDE.md / src/App.jsx.
    Deliberately single-theme (the product is light-only), so
    every color is painted explicitly and nothing is left to
@@ -72,6 +72,7 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .rail-item{width:59px;min-height:51px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:8px;padding:5px 6px;flex-shrink:0}
 .rail-item[aria-current="page"]{background:var(--rail-active)}
 .rail-item span{font-family:'Open Sans',sans-serif;font-weight:600;font-size:9px;color:#fff;line-height:1.2;text-align:center}
+.raildiv{width:37px;height:1px;background:rgba(255,255,255,.28);flex-shrink:0;margin:3px 0 5px}
 .col{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
 .tabbar{height:var(--tabbar-h);flex-shrink:0;display:flex;align-items:stretch;gap:0;padding:0 8px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
 .tabbar::-webkit-scrollbar{display:none}
@@ -394,7 +395,15 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   <div class="shellbody">
     <!-- ===== shell: icon rail ===== -->
     <nav class="rail" aria-label="Main">
+      <!-- Camera health lives here now, at account-wide altitude — not
+           nested under Cameras. Kept first and set apart with a divider
+           so it reads as a different kind of item, not one more section. -->
       <div class="rail-item" aria-current="page">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        <span>Monitoring</span>
+      </div>
+      <div class="raildiv"></div>
+      <div class="rail-item">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
         <span>Cameras</span>
       </div>
@@ -1313,7 +1322,6 @@ document.querySelector(".proto").addEventListener("click", e=>{
 <nav class="vsw" aria-label="Prototype version">
   <b>Version</b>
   <a href="index.html" aria-current="page">Nested</a>
-  <a href="fleet.html">Toggle</a>
   <a class="doc" href="rationale.html">Design notes</a>
 </nav>
 </body>

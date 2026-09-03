@@ -182,6 +182,19 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       defines it against B — was named as the one piece to keep untouched rather than let a global port
       quietly erase it.</p>
     </div></div>
+    <div class="q"><span class="n num">10</span><div>
+      <p><strong>Chose A, and hid B rather than deleting it.</strong> Now that A carries every update B pioneered,
+      B's file still builds and still deploys — it's simply no longer linked from the switcher. Reversible if the
+      account-altitude model turns out to matter later; invisible if it doesn't.</p>
+    </div></div>
+    <div class="q"><span class="n num">11</span><div>
+      <p><strong>Gave camera health its own place in the rail, instead of a sub-tab of Cameras.</strong> A new
+      top-level item, <em>Monitoring</em>, set first and apart from the center-scoped section icons by a divider —
+      because "camera health across every center" is a different kind of question than anything Cameras,
+      Dashboard, or Users answer, and burying it inside one center-scoped section was never quite honest about
+      that. Cameras keeps its icon but stops claiming the page; it now sits inert like the other placeholder
+      sections.</p>
+    </div></div>
   </div>
 </section>
 
@@ -189,9 +202,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <h2>Two versions</h2>
   <div class="cards">
     <div class="card dev">
-      <span class="k">A · Nested — a tab inside the camera section</span>
-      <p>Camera health as the first sub-tab, beside Live, History, Saved Clips, and Admin Display. Cheapest
-      to ship, but the header still names one center while the page reports on fourteen.</p>
+      <span class="k">A · Nested — a sub-nav under its own rail item</span>
+      <p>Camera health as the first sub-tab, beside Live, History, Saved Clips, and Admin Display — originally
+      filed under Cameras, now under a dedicated <em>Monitoring</em> item instead. Cheapest to ship of the two,
+      and the header still names one center while the page can report on fourteen.</p>
     </div>
     <div class="card dev">
       <span class="k">B · Toggle — a scope above center selection</span>
@@ -335,7 +349,6 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 <nav class="vsw" aria-label="Prototype version">
   <b>Version</b>
   <a href="index.html">Nested</a>
-  <a href="fleet.html">Toggle</a>
   <a class="doc" href="rationale.html" aria-current="page">Design notes</a>
 </nav>
 </body>
