@@ -37,13 +37,23 @@ beyond a Google Fonts stylesheet.
 
 **Version A · Nested** — worth exercising:
 
-- **Scope** opens on a single center; switch to **All centers** for the multi-center board.
+- **Scope** opens on a single center; switch to **All centers** for the multi-center board —
+  Nested's own toggle, kept as-is even after the filter/KPI updates below arrived from Toggle.
 - **Auto-refresh** runs a 30s cycle with a visible countdown, pause, and refresh-now, and
   stops on its own when the tab is hidden, a drawer is open, or you are typing a filter.
 - **Deferred reordering** — hover the list and refresh a few times. Rankings are held behind
   a "Ranking changed — reorder" pill rather than moving rows under your cursor.
 - **Keyboard** — each center's grid is one tab stop with arrow-key navigation, not one stop
   per camera.
+- **One filter dropdown**, ported from Toggle — Status, Brand, State, and Sort in a single
+  grouped panel on the far right, with Parent-facing as an audience toggle beneath the
+  columns. Search stays on the left, unchanged. KPI tiles still work as one-click shortcuts
+  into the panel.
+- **KPIs follow the filter**, ported from Toggle, and go calm (grey, not alert red/orange)
+  when Offline or Degraded read zero.
+- **Saved views**, ported from Toggle — name the current status/brand/state/audience/sort/
+  search combination, reapply or delete it from the chip row. A separate `localStorage` key
+  from Toggle's, since the two versions save different fields.
 
 **Version B · Toggle** — worth exercising:
 

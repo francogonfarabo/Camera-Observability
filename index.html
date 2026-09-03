@@ -123,6 +123,8 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:24px;line-he
 .kpi-v{font-size:26px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
 .kpi-s{font-size:11.5px;color:var(--ink-3)}
 .kpi.t-off .kpi-v{color:var(--off)} .kpi.t-deg .kpi-v{color:#c2410c} .kpi.t-ok .kpi-v{color:var(--ok)} .kpi.t-n .kpi-v{color:var(--ink)}
+/* Ported from Toggle: a zero in Offline/Degraded goes calm rather than alert. */
+.kpi.calm .kpi-v{color:var(--ink-3);font-weight:600}
 
 /* filter bar */
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow-card)}
@@ -139,14 +141,65 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .toggle[aria-pressed="true"] .box{background:var(--blue);border-color:var(--blue)}
 .spacer{flex:1;min-width:0}
 
-/* chips + result line */
-.chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.chip{display:inline-flex;align-items:center;gap:7px;background:var(--fill);border:1px solid var(--line);border-radius:20px;padding:4px 5px 4px 11px;font-size:12px;font-weight:600;color:var(--ink-2)}
-.chip b{font-weight:700;color:var(--ink)}
-.chip .x{width:18px;height:18px;border-radius:50%;display:grid;place-items:center}
-.chip .x:hover{background:var(--line-2)}
-.clearall{font-size:12px;font-weight:700;color:var(--blue);text-decoration:underline}
+/* result line (count + legend, below the toolbar) */
 .resultline{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3)}
+
+/* ---------- one consolidated filter dropdown, far right ----------
+   Ported from the Toggle version. Active filters read as chips beside the
+   trigger; count badge on the trigger itself. Chips use the primary blue
+   rather than orange, since orange already means "degraded" on this board. */
+.fwrap{position:relative;margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.fchip{display:inline-flex;align-items:center;gap:1px;background:var(--blue);color:#fff;border-radius:20px;padding:3px 3px 3px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.fchip .x{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;color:#fff}
+.fchip .x:hover{background:rgba(255,255,255,.28)}
+.ftrigger{display:inline-flex;align-items:center;gap:9px;padding:7px 13px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;font-weight:700;color:var(--ink-2);background:var(--surface);white-space:nowrap}
+.ftrigger:hover{background:var(--fill);border-color:var(--ink-4)}
+.ftrigger[aria-expanded="true"]{border-color:var(--blue);color:var(--blue-ink);box-shadow:var(--focus)}
+.ftrigger .cnt{min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:var(--blue);color:#fff;font-size:11px;display:grid;place-items:center}
+
+.fpanel{position:absolute;top:calc(100% + 9px);right:0;z-index:45;background:var(--surface);border:1px solid var(--line);
+  border-radius:14px;box-shadow:var(--shadow-modal);width:min(720px,calc(100vw - 28px));overflow:hidden}
+.fpanel[hidden]{display:none}
+.fgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
+.fcol{padding:16px 16px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;gap:2px;min-width:0}
+.fcol:last-child{border-right:none}
+.fcol h4{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;color:var(--ink);
+  padding-bottom:9px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+.fopt{text-align:left;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:600;color:var(--blue-ink);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fopt:hover{background:var(--blue-tint)}
+.fopt[aria-pressed="true"]{background:var(--blue);color:#fff}
+.faudience{display:flex;align-items:center;padding:12px 16px;border-top:1px solid var(--line-2)}
+.fpanel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;
+  border-top:1px solid var(--line);background:var(--fill-2)}
+.fpanel-foot .clear{font-size:12.5px;font-weight:700;color:var(--ink-3);padding:6px 8px;border-radius:7px}
+.fpanel-foot .clear:hover{background:var(--fill);color:var(--off)}
+.fpanel-foot .done{padding:7px 16px;border-radius:8px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700}
+.fpanel-foot .done:hover{background:var(--blue-ink)}
+
+/* the KPI row follows the filter, so say so when a filter is on */
+.sumnote{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-3)}
+.sumnote svg{flex-shrink:0;color:var(--blue)}
+
+/* saved filter/sort views */
+.saved-views{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 12px;box-shadow:var(--shadow-card)}
+.sv-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);font-family:'Titillium Web',sans-serif;flex-shrink:0}
+.sv-empty{font-size:12.5px;color:var(--ink-4)}
+.view-chip{display:inline-flex;align-items:center;gap:1px;background:var(--fill);border:1px solid var(--line);border-radius:20px;padding:2px 2px 2px 3px}
+.view-chip .apply{padding:5px 6px 5px 9px;font-size:12.5px;font-weight:600;color:var(--ink-2);border-radius:16px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.view-chip .apply:hover{color:var(--blue-ink)}
+.view-chip .del{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:var(--ink-4);flex-shrink:0}
+.view-chip .del:hover{background:var(--off-tint);color:var(--off)}
+.sv-save{position:relative;margin-left:auto;flex-shrink:0}
+.sv-savebtn{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:9999px;border:1px dashed var(--line-3);font-size:12.5px;font-weight:700;color:var(--blue-ink);white-space:nowrap}
+.sv-savebtn:hover{background:var(--blue-tint);border-color:#9fd0f0}
+.sv-pop{position:absolute;top:calc(100% + 8px);right:0;z-index:30;display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px;box-shadow:var(--shadow-pop);width:min(260px,90vw)}
+.sv-pop input{flex:1;min-width:0;border:1px solid var(--line-3);border-radius:7px;padding:7px 9px;font-size:13px}
+.sv-pop input:focus{border-color:var(--blue);box-shadow:var(--focus)}
+.sv-confirm{flex-shrink:0;padding:7px 12px;border-radius:7px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700}
+.sv-confirm:hover{background:var(--blue-ink)}
+.sv-cancel{flex-shrink:0;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--ink-3)}
+.sv-cancel:hover{background:var(--fill)}
 .legend{display:flex;align-items:center;gap:14px}
 .lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink-2)}
 
@@ -181,7 +234,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .c-name{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);display:flex;align-items:baseline;gap:7px}
 .c-rank{font-size:11.5px;color:var(--ink-4);min-width:14px;flex-shrink:0}
 .c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.pf{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:5px;flex-shrink:0;background:var(--blue-tint);color:var(--blue-deep)}
 .c-open{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;flex-shrink:0;align-self:center;color:var(--blue)}
 .c-open:hover{background:var(--blue-tint)}
 .pill{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:2px 8px;font-size:10.5px;font-weight:700;border:1px solid;white-space:nowrap}
@@ -288,6 +340,17 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .field input{width:100%}
   .field{flex:1 1 100%}
   .filters{gap:8px}
+  /* #fwrapSlot is a plain wrapper div (Toggle injects .fwrap without one),
+     so it needs an explicit width here — otherwise .fwrap's width:100%
+     resolves against an undefined auto-sized flex item and the panel
+     renders off-screen. */
+  #fwrapSlot{width:100%}
+  .fwrap{margin-left:0;width:100%;justify-content:flex-start}
+  .fpanel{width:100%;right:0;left:auto}
+  .fgrid{grid-template-columns:1fr}
+  .fcol{border-right:none;border-bottom:1px solid var(--line-2);padding:13px 15px}
+  .fcol:last-child{border-bottom:none}
+  .sv-save{margin-left:0}
   .drawer{top:auto;left:0;right:0;bottom:0;width:auto;max-height:86%;border-left:none;border-top:1px solid var(--line);border-radius:14px 14px 0 0;transform:translateY(102%);box-shadow:0 -14px 40px rgba(17,24,39,.16)}
   .drawer.open{transform:none}
   .pager{justify-content:center}
@@ -418,43 +481,21 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           </div>
 
           <div class="kpis" id="kpis"></div>
+          <div id="sumnoteWrap"></div>
 
           <div class="filters">
             <div class="field">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
               <input id="q" placeholder="Center name or store number" aria-label="Filter by center name or store number">
             </div>
-            <span class="flabel">Status</span>
-            <select id="fStatus" aria-label="Filter by status">
-              <option value="all">All centers</option>
-              <option value="issues">Has any issue</option>
-              <option value="off">Has offline cameras</option>
-              <option value="deg">Has degraded cameras</option>
-              <option value="clean">All reporting</option>
-            </select>
-            <span class="flabel">Brand</span>
-            <select id="fBrand" aria-label="Filter by brand"></select>
-            <span class="flabel">State</span>
-            <select id="fState" aria-label="Filter by state"></select>
-            <button class="toggle" id="fParent" aria-pressed="false">
-              <span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
-              Parent-facing only
-            </button>
-            <span class="spacer"></span>
-            <span class="flabel">Sort</span>
-            <select id="fSort" aria-label="Sort centers">
-              <option value="issues">Most issues first</option>
-              <option value="longest">Longest outage first</option>
-              <option value="name">Center name A–Z</option>
-              <option value="size">Most cameras first</option>
-            </select>
             <button class="btn" id="densityBtn" aria-pressed="false" title="Toggle row density">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
               <span id="densityLbl">Comfortable</span>
             </button>
+            <div id="fwrapSlot"></div>
           </div>
 
-          <div class="chips" id="chips" hidden></div>
+          <div id="savedViewsSlot"></div>
 
           <div class="resultline">
             <span id="count"></span>
@@ -588,9 +629,11 @@ const S = {
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
   pendingOrder:null,    // order held back while the pointer is in the list
-  hover:false, kpi:null
+  hover:false, kpi:null,
+  filtersOpen:false, savedViews:[], savingOpen:false   // ported from the Toggle version
 };
 const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 function pool(){ return S.scope === "one" ? DATA.filter(c=>c.id===HOME) : DATA; }
 
@@ -622,10 +665,162 @@ function sorted(list){
 }
 
 /* =====================================================================
+   Filters, ported from the Toggle version: one consolidated dropdown
+   instead of five separate controls, active filters as chips, and the
+   KPI row totals whatever the filters left behind.
+   ===================================================================== */
+const STAT_LABEL = {all:"All centers", issues:"Has any issue", off:"Has offline cameras", deg:"Has degraded cameras", clean:"All reporting"};
+const activeFilters = () => {
+  const a = [];
+  if (S.status !== "all") a.push({k:"status", label:STAT_LABEL[S.status]});
+  if (S.brand  !== "all") a.push({k:"brand",  label:S.brand});
+  if (S.state  !== "all") a.push({k:"state",  label:S.state});
+  if (S.parent)           a.push({k:"parent", label:"Parent-facing"});
+  return a;
+};
+// Search still narrows the set, so it counts toward the KPI scope note
+// even though — like in Toggle — it gets no chip of its own (the input
+// already shows its own text).
+const hasAnyFilter = () => activeFilters().length > 0 || !!S.q.trim();
+
+function renderFilters(){
+  const brands = ["all", ...new Set(DATA.map(c=>c.brand))];
+  const states = ["all", ...new Set(DATA.map(c=>c.state))];
+  const sorts = [["issues","Most issues first"],["longest","Longest outage first"],
+                 ["name","Center name A–Z"],["size","Most cameras first"]];
+  const opt = (group, value, label, current) =>
+    `<button class="fopt" data-f="${group}" data-v="${esc(value)}" aria-pressed="${current===value}">${esc(label)}</button>`;
+
+  const chips = activeFilters().map(f => `
+    <span class="fchip">${esc(f.label)}
+      <button class="x" data-clear-filter="${f.k}" aria-label="Remove ${esc(f.label)} filter">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button></span>`).join("");
+  const n = activeFilters().length;
+
+  $("fwrapSlot").innerHTML = `<div class="fwrap">
+    ${chips}
+    <button class="ftrigger" id="filterBtn" aria-expanded="${S.filtersOpen}" aria-haspopup="true">
+      Filters${n?`<span class="cnt num">${n}</span>`:""}
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16l-6.5 7.6V20l-3-1.8v-4.6z"/></svg>
+    </button>
+    <div class="fpanel" id="fpanel" ${S.filtersOpen?"":"hidden"} role="dialog" aria-label="Filters and sort">
+      <div class="fgrid">
+        <div class="fcol"><h4>Status</h4>
+          ${["all","issues","off","deg","clean"].map(v=>opt("status", v, STAT_LABEL[v], S.status)).join("")}</div>
+        <div class="fcol"><h4>Brand</h4>
+          ${brands.map(b=>opt("brand", b, b==="all"?"All brands":b, S.brand)).join("")}</div>
+        <div class="fcol"><h4>State</h4>
+          ${states.map(s=>opt("state", s, s==="all"?"All states":s, S.state)).join("")}</div>
+        <div class="fcol"><h4>Sort by</h4>
+          ${sorts.map(([v,l])=>opt("sort", v, l, S.sort)).join("")}</div>
+      </div>
+      <div class="faudience">
+        <button class="toggle" id="fParentOpt" aria-pressed="${S.parent}">
+          <span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
+          Parent-facing only
+        </button>
+      </div>
+      <div class="fpanel-foot">
+        <button class="clear" id="fClear">Clear all filters</button>
+        <button class="done" id="fDone">Done</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   Saved views — ported from Toggle. Nested's own copy carries five
+   dimensions (status, brand, state, parent, sort, q) instead of Toggle's
+   three, and a distinct storage key since the shape differs.
+   ===================================================================== */
+const VIEWS_KEY = "wmg.cameraHealth.savedViews.nested.v1";
+function loadSavedViews(){
+  try { const raw = localStorage.getItem(VIEWS_KEY); return raw ? JSON.parse(raw) : []; }
+  catch(e){ return []; }
+}
+function persistSavedViews(views){
+  try { localStorage.setItem(VIEWS_KEY, JSON.stringify(views)); } catch(e){ /* storage unavailable */ }
+}
+function sortLabel(s){
+  return {issues:"Most issues first", longest:"Longest outage first", name:"Name A–Z", size:"Most cameras"}[s] || s;
+}
+function viewSummary(v){
+  const bits = [];
+  if (v.status !== "all") bits.push(STAT_LABEL[v.status]);
+  if (v.brand  !== "all") bits.push(v.brand);
+  if (v.state  !== "all") bits.push(v.state);
+  if (v.parent) bits.push("Parent-facing");
+  if (v.q) bits.push(`"${v.q}"`);
+  bits.push(sortLabel(v.sort));
+  return bits.join(" · ");
+}
+function commitSaveView(){
+  const inp = $("sv-name");
+  const name = (inp ? inp.value : "").trim();
+  if (!name){ inp && inp.focus(); return; }
+  const existing = S.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
+  const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
+    name, status:S.status, brand:S.brand, state:S.state, parent:S.parent, sort:S.sort, q:S.q };
+  S.savedViews = existing ? S.savedViews.map(v=>v.id===existing.id?payload:v) : [...S.savedViews, payload];
+  persistSavedViews(S.savedViews);
+  S.savingOpen = false; render();
+  $("announce").textContent = `Saved view "${name}".`;
+}
+function applyView(id){
+  const v = S.savedViews.find(x=>x.id===id);
+  if (!v) return;
+  S.status=v.status; S.brand=v.brand; S.state=v.state; S.parent=v.parent; S.sort=v.sort; S.q=v.q;
+  S.page=1; S.kpi=null; S.savingOpen=false; S.filtersOpen=false;
+  render();
+  $("announce").textContent = `Applied saved view "${v.name}".`;
+}
+function deleteView(id){
+  const v = S.savedViews.find(x=>x.id===id);
+  S.savedViews = S.savedViews.filter(x=>x.id!==id);
+  persistSavedViews(S.savedViews);
+  render();
+  if (v) $("announce").textContent = `Removed saved view "${v.name}".`;
+}
+function renderSavedViews(){
+  const chips = S.savedViews.map(v => `
+    <span class="view-chip">
+      <button class="apply" data-apply-view="${v.id}" title="${esc(viewSummary(v))}">${esc(v.name)}</button>
+      <button class="del" data-del-view="${v.id}" aria-label="Remove saved view ${esc(v.name)}">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+    </span>`).join("");
+  $("savedViewsSlot").innerHTML = `<div class="saved-views">
+    <span class="sv-label">Saved views</span>
+    ${chips || `<span class="sv-empty">None yet — filter or sort, then save it</span>`}
+    <div class="sv-save">
+      <button class="sv-savebtn" id="saveViewBtn" aria-expanded="${S.savingOpen}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>
+        Save current view
+      </button>
+      ${S.savingOpen ? `
+        <div class="sv-pop" role="dialog" aria-label="Name this view">
+          <input id="sv-name" placeholder="e.g. Texas, offline only" maxlength="40" autocomplete="off">
+          <button class="sv-confirm" id="sv-confirm">Save</button>
+          <button class="sv-cancel" id="sv-cancel" aria-label="Cancel">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 5l14 14M19 5L5 19"/></svg>
+          </button>
+        </div>` : ""}
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
    Render
    ===================================================================== */
 function renderKpis(){
-  const p = pool();
+  // Ported from Toggle: the KPI row totals whatever the filters left
+  // behind, not just the scope — a summary that ignores the filter under
+  // it is wrong. "p" is the filtered set; "full" is the scope before
+  // filtering, used only for the "of N assigned" note.
+  const full = pool();
+  const p = filtered();
+  const isFiltered = hasAnyFilter();
   const t = p.map(tally);
   const issues = t.filter(x=>x.off||x.deg).length;
   const off = t.reduce((s,x)=>s+x.off,0);
@@ -634,12 +829,15 @@ function renderKpis(){
   const cams = t.reduce((s,x)=>s+x.total,0);
   const tiles = [
     S.scope === "one"
-      ? {k:"clean", cls:"t-ok", l:"Cameras normal", v:`${cams-off-deg} of ${cams}`,
+      ? {k:"clean", cls:"t-ok", l:"Cameras normal", v: cams ? `${cams-off-deg} of ${cams}` : "—",
          s: off||deg ? "the rest need attention" : "every camera reporting"}
-      : {k:"issues", cls:issues?"t-n":"t-ok", l:"Centers with issues", v:`${issues} of ${p.length}`,
-         s: issues ? "sorted to the top" : "everything reporting"},
-    {k:"off", cls:"t-off", l:"Cameras offline", v:off, s:`of ${cams} cameras`},
-    {k:"deg", cls:"t-deg", l:"Degraded", v:deg, s:"reporting, but impaired"},
+      : {k:"issues", cls:issues?"t-n":"t-ok", l: isFiltered?"Centers in view":"Centers with issues",
+         v: isFiltered ? p.length : `${issues} of ${p.length}`,
+         s: isFiltered ? `of ${full.length} assigned` : (issues ? "sorted to the top" : "everything reporting")},
+    // A zero in a bad-news metric is good news: it goes calm rather than
+    // staying alert-red/orange, and the sub-label states the good news.
+    {k:"off", cls: off?"t-off":"calm", l:"Cameras offline", v:off, s: off?`of ${cams} cameras`:"none right now"},
+    {k:"deg", cls: deg?"t-deg":"calm", l:"Degraded", v:deg, s: deg?"reporting, but impaired":"all at full quality"},
     {k:"longest", cls:"t-n", l:"Longest outage", v: worst? dur(worst) : "—", s: worst? "still down now" : "no active outages"}
   ];
   // The tiles double as filters, but only when there is more than one
@@ -654,25 +852,10 @@ function renderKpis(){
            title="Filter to ${x.l.toLowerCase()}">${inner}</button>`
       : `<div class="kpi static ${x.cls}">${inner}</div>`;
   }).join("");
-}
 
-function chipHtml(label, val, key){
-  return `<span class="chip">${label} <b>${val}</b>
-    <button class="x" data-clear="${key}" aria-label="Remove ${label} filter ${val}">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2.8"><path d="M5 5l14 14M19 5L5 19"/></svg>
-    </button></span>`;
-}
-function renderChips(){
-  const out = [];
-  const stat = {issues:"Has any issue", off:"Has offline cameras", deg:"Has degraded cameras", clean:"All reporting"};
-  if (S.q) out.push(chipHtml("Search", S.q, "q"));
-  if (S.status !== "all") out.push(chipHtml("Status", stat[S.status], "status"));
-  if (S.brand !== "all") out.push(chipHtml("Brand", S.brand, "brand"));
-  if (S.state !== "all") out.push(chipHtml("State", S.state, "state"));
-  if (S.parent) out.push(chipHtml("Audience", "Parent-facing", "parent"));
-  const wrap = $("chips");
-  wrap.hidden = !out.length;
-  wrap.innerHTML = out.join("") + (out.length ? `<button class="clearall" id="clearAll">Clear all filters</button>` : "");
+  $("sumnoteWrap").innerHTML = isFiltered ? `<p class="sumnote">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16l-6.5 7.6V20l-3-1.8v-4.6z"/></svg>
+    These totals cover the <span class="num">${p.length}</span> ${p.length===1?"center":"centers"} matching your filters, not all <span class="num">${full.length}</span>.</p>` : "";
 }
 
 function centerHtml(c, absIndex){
@@ -696,9 +879,7 @@ function centerHtml(c, absIndex){
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg>
         </a>
       </div>
-      <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span>
-        ${c.pub?`<span class="pf" role="img" aria-label="Parent-facing center" title="Parent-facing — families can watch these cameras">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg></span>`:""}</div>
+      <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span></div>
     </div>
     <div class="stats">${stats}</div>
     <div class="grid" role="group" aria-label="Cameras at ${c.name}">${blocks}</div>
@@ -745,7 +926,7 @@ function renderList(){
     list.innerHTML = `<div class="empty">
       <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
       <b>No centers match these filters</b>
-      <p>Nothing in the ${S.scope==="one"?"current center":DATA.length+" centers you can see"} matches. Widen the filters or clear them to start over.</p>
+      <p>Nothing in the ${S.scope==="one"?"current center":DATA.length+" centers you can see"} matches. Try widening the filters, or clear them to start over.</p>
       <button class="btn primary" id="emptyClear">Clear all filters</button></div>`;
   } else {
     list.innerHTML = view.map((c,i)=>centerHtml(c, S.sort==="issues"||S.sort==="longest" ? start+i+1 : null)).join("");
@@ -785,8 +966,8 @@ function renderBanner(){
   if (S.error){
     b.innerHTML = `<div class="banner warn">
       <span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2.4"><path d="M12 8v5"/><path d="M12 16.5v.4"/><circle cx="12" cy="12" r="9"/></svg></span>
-      <div><b>Couldn't refresh — showing the last good read</b>
-      <p>The read replica didn't answer. Statuses below are from ${dur(4)} ago, so a camera may have changed since.</p></div>
+      <div><b>Showing the last good read</b>
+      <p>The most recent refresh didn't come back, so these statuses are from ${dur(4)} ago.</p></div>
       <button class="act" id="retry">Try again</button></div>`;
     return;
   }
@@ -817,11 +998,10 @@ function renderLive(){
 }
 
 function render(){
-  renderKpis(); renderChips(); renderBanner(); renderList(); renderLive(); renderDrawer();
+  renderKpis(); renderFilters(); renderSavedViews(); renderBanner(); renderList(); renderLive(); renderDrawer();
   if (S.scope === "all") $("hint").hidden = true;
   $("scopeOne").setAttribute("aria-pressed", String(S.scope==="one"));
   $("scopeAll").setAttribute("aria-pressed", String(S.scope==="all"));
-  $("fParent").setAttribute("aria-pressed", String(S.parent));
   $("densityBtn").setAttribute("aria-pressed", String(S.dense));
   $("densityLbl").textContent = S.dense ? "Compact" : "Comfortable";
   document.body.classList.toggle("dense", S.dense);
@@ -841,8 +1021,7 @@ function renderDrawer(){
 
   const media = cam.status === "off"
     ? `<div class="media"><span class="tag" style="color:#b91c1c;border-color:var(--off-line);background:var(--off-tint)">No signal</span>
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg>
-        <span class="lbl">Last frame ${ago(cam.since)}</span></div>`
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg></div>`
     : cam.status === "deg"
     ? `<div class="media live"><span class="tag" style="color:#c2410c;border-color:var(--deg-line);background:var(--deg-tint)">Impaired</span>
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
@@ -861,19 +1040,16 @@ function renderDrawer(){
       <div><dt>${cam.status==="ok"?"Healthy for":"In this status for"}</dt><dd class="num">${dur(cam.since)}</dd></div>
       <div><dt>Last checked</dt><dd class="num" title="Heartbeat every 30 minutes">${ago(cam.checked)}</dd></div>
       <div><dt>Room</dt><dd>${cam.room}</dd></div>
-      <div><dt>Camera ID</dt><dd class="num">${cam.id}</dd></div>
     </dl>
     <div class="d-actions">
       <a class="btn primary" href="#" onclick="return false" style="justify-content:center">View live on my.wmg
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a>
-      <button class="btn" style="justify-content:center" id="copyId">Copy camera ID</button>
     </div>
     <p class="pgtxt">Verifying on my.wmg is the only way to confirm a camera is truly down — this page reports the heartbeat, not the picture.</p>`;
 
   $("dPos").textContent = `Camera ${S.sel.idx+1} of ${c.cams.length}`;
   $("dPrev").disabled = S.sel.idx === 0;
   $("dNext").disabled = S.sel.idx === c.cams.length - 1;
-  $("copyId").onclick = e => { e.currentTarget.textContent = "Camera ID copied"; };
 }
 
 function openCam(ci, i){ S.sel = {ci, idx:i}; render(); $("dClose").focus(); }
@@ -927,9 +1103,12 @@ function refresh({silent=false}={}){
     S.pendingOrder = null; $("reorder").hidden = true;
     render();
   }
-  const t = pool().map(tally);
-  const off = t.reduce((s,x)=>s+x.off,0), issues = t.filter(x=>x.off||x.deg).length;
-  if (!silent) $("announce").textContent = `Updated. ${issues} of ${t.length} centers have camera issues. ${off} cameras offline.`;
+  // Announce what is actually on screen — the filtered set, not the raw scope.
+  const t = filtered().map(tally);
+  const off = t.reduce((s,x)=>s+x.off,0), deg = t.reduce((s,x)=>s+x.deg,0), issues = t.filter(x=>x.off||x.deg).length;
+  if (!silent) $("announce").textContent = (off || deg)
+    ? `Updated. ${issues} of ${t.length} centers have camera issues. ${off} cameras offline.`
+    : `Updated. All cameras reporting normally.`;
 }
 
 /* One second tick. Polling stops entirely when the tab is hidden, when a
@@ -1009,28 +1188,12 @@ $("pauseBtn").onclick = ()=>{ S.paused = !S.paused; if (!S.paused) S.tick = 30; 
 $("nowBtn").onclick = ()=>{ S.tick = 30; refresh(); };
 
 // filters
-$("q").oninput = e=>{ S.q = e.target.value; S.page=1; renderChips(); renderList(); };
-$("fStatus").onchange = e=>{ S.status = e.target.value; S.kpi=null; S.page=1; render(); };
-$("fBrand").onchange  = e=>{ S.brand  = e.target.value; S.page=1; render(); };
-$("fState").onchange  = e=>{ S.state  = e.target.value; S.page=1; render(); };
-$("fParent").onclick  = ()=>{ S.parent = !S.parent; S.page=1; render(); };
-$("fSort").onchange   = e=>{ S.sort   = e.target.value; S.page=1; render(); };
+$("q").oninput = e=>{ S.q = e.target.value; S.page=1; renderKpis(); renderFilters(); renderList(); };
 $("densityBtn").onclick = ()=>{ S.dense = !S.dense; render(); };
 
-$("chips").addEventListener("click", e=>{
-  const x = e.target.closest("[data-clear]");
-  if (x){
-    const k = x.dataset.clear;
-    if (k==="q"){ S.q=""; $("q").value=""; }
-    else if (k==="parent") S.parent=false;
-    else { S[k]="all"; $(k==="status"?"fStatus":k==="brand"?"fBrand":"fState").value="all"; S.kpi=null; }
-    S.page=1; render();
-  }
-  if (e.target.closest("#clearAll")) clearAll();
-});
 function clearAll(){
   S.q=""; S.status="all"; S.brand="all"; S.state="all"; S.parent=false; S.kpi=null; S.page=1;
-  $("q").value=""; $("fStatus").value="all"; $("fBrand").value="all"; $("fState").value="all";
+  $("q").value="";
   render();
 }
 
@@ -1047,7 +1210,57 @@ $("kpis").addEventListener("click", e=>{
     if (k==="deg"){ S.status="deg"; }
     if (k==="longest"){ S.status="issues"; S.sort="longest"; }
   }
-  $("fStatus").value = S.status; $("fSort").value = S.sort; S.page=1; render();
+  S.page=1; render();
+});
+
+/* =====================================================================
+   Consolidated filter dropdown + saved views — ported from the Toggle
+   version. Delegated from document, same as the tooltip/keyboard-grid
+   handlers below, so re-rendered panel markup keeps working.
+   ===================================================================== */
+document.addEventListener("click", e=>{
+  const t = e.target;
+  const onFilterTrigger = !!t.closest("#filterBtn");
+  const onSaveTrigger   = !!t.closest("#saveViewBtn");
+  // Dismiss-on-outside-click runs AFTER the two triggers, so opening one
+  // popover while the other is open takes a single click, not two.
+  if (S.savingOpen && !onFilterTrigger && !t.closest(".sv-save")){ S.savingOpen=false; render(); return; }
+  if (S.filtersOpen && !onSaveTrigger && !t.closest(".fwrap")){ S.filtersOpen=false; render(); return; }
+
+  if (onFilterTrigger){ S.filtersOpen=!S.filtersOpen; S.savingOpen=false; render(); return; }
+  if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
+  if (t.closest("#fClear")){ S.q=""; S.status="all"; S.brand="all"; S.state="all"; S.parent=false; S.kpi=null; S.page=1; $("q").value=""; render(); return; }
+  if (t.closest("#fParentOpt")){ S.parent=!S.parent; S.page=1; render(); return; }
+  const fo = t.closest(".fopt");
+  if (fo){
+    // The panel stays open so several choices can be made in one visit.
+    S[fo.dataset.f] = fo.dataset.v; if (fo.dataset.f==="status") S.kpi=null; S.page=1; render(); return;
+  }
+  const cf = t.closest("[data-clear-filter]");
+  if (cf){
+    const k = cf.dataset.clearFilter;
+    if (k === "parent") S.parent=false; else S[k]="all";
+    if (k === "status") S.kpi=null;
+    S.page=1; render(); return;
+  }
+
+  if (onSaveTrigger){
+    S.savingOpen = !S.savingOpen; S.filtersOpen=false; render();
+    if (S.savingOpen){ const inp=$("sv-name"); if (inp) inp.focus(); }
+    return;
+  }
+  if (t.closest("#sv-cancel")){ S.savingOpen=false; render(); return; }
+  if (t.closest("#sv-confirm")){ commitSaveView(); return; }
+  const av = t.closest("[data-apply-view]");
+  if (av){ applyView(av.dataset.applyView); return; }
+  const dv = t.closest("[data-del-view]");
+  if (dv){ deleteView(dv.dataset.delView); return; }
+});
+document.addEventListener("keydown", e=>{
+  if (e.key === "Escape" && S.filtersOpen && !S.sel){ S.filtersOpen=false; render(); $("filterBtn")?.focus(); return; }
+  if (!e.target || e.target.id !== "sv-name") return;
+  if (e.key === "Enter"){ e.preventDefault(); commitSaveView(); }
+  if (e.key === "Escape"){ S.savingOpen=false; render(); }
 });
 
 // pagination
@@ -1090,10 +1303,7 @@ document.querySelector(".proto").addEventListener("click", e=>{
 
 /* ---------- boot ---------- */
 (function init(){
-  const brands = [...new Set(DATA.map(c=>c.brand))].sort();
-  const states = [...new Set(DATA.map(c=>c.state))].sort();
-  $("fBrand").innerHTML = `<option value="all">All brands</option>` + brands.map(b=>`<option>${b}</option>`).join("");
-  $("fState").innerHTML = `<option value="all">All states</option>` + states.map(s=>`<option>${s}</option>`).join("");
+  S.savedViews = loadSavedViews();
   $("scopeCount").textContent = `(${DATA.length})`;
   S.loading = true; render();
   setTimeout(()=>{ S.loading = false; render();
