@@ -235,6 +235,17 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .c-name{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);display:flex;align-items:baseline;gap:7px}
 .c-rank{font-size:11.5px;color:var(--ink-4);min-width:14px;flex-shrink:0}
 .c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+
+/* per-center notes — a scratch textbox, not a comment thread */
+.notesBtn{display:inline-flex;align-items:center;gap:4px;padding:2px 7px 2px 6px;border-radius:20px;font-size:11px;font-weight:600;color:var(--ink-4);flex-shrink:0}
+.notesBtn:hover{background:var(--fill);color:var(--ink-2)}
+.notesBtn[aria-pressed="true"]{background:var(--blue-tint);color:var(--blue-deep)}
+.notesBtn .dot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.notesBox{grid-column:1/-1;padding-top:10px;margin-top:2px;border-top:1px solid var(--line-2)}
+.notesBox textarea{width:100%;min-height:56px;padding:8px 10px;border:1px solid var(--line-3);border-radius:8px;
+  font-family:inherit;font-size:12.5px;line-height:1.45;color:var(--ink-2);resize:vertical;background:var(--fill-2)}
+.notesBox textarea:focus{border-color:var(--blue);box-shadow:var(--focus);background:var(--surface)}
+.notesBox textarea::placeholder{color:var(--ink-4)}
 .c-open{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:6px;flex-shrink:0;align-self:center;color:var(--blue)}
 .c-open:hover{background:var(--blue-tint)}
 .pill{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:2px 8px;font-size:10.5px;font-weight:700;border:1px solid;white-space:nowrap}
@@ -639,10 +650,30 @@ const S = {
   sel:null,             // {ci, idx}
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
-  filtersOpen:false, savedViews:[], savingOpen:false   // ported from the Toggle version
+  filtersOpen:false, savedViews:[], savingOpen:false,  // ported from the Toggle version
+  centerNotes:{}, notesOpen:{}         // {centerId: text}, {centerId: true while expanded}
 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* =====================================================================
+   Per-center notes — a scratch textbox, not a comment thread: one string
+   per center, no author, no timestamp, no thread. Browser-local, and
+   left untouched by the "Reset data" control since it's the user's own
+   annotation, not sample data.
+   ===================================================================== */
+const NOTES_KEY = "wmg.cameraHealth.centerNotes.v1";
+function loadNotes(){
+  try { const raw = localStorage.getItem(NOTES_KEY); return raw ? JSON.parse(raw) : {}; }
+  catch(e){ return {}; }
+}
+let notesSaveTimer = null;
+function persistNotesSoon(){
+  clearTimeout(notesSaveTimer);
+  notesSaveTimer = setTimeout(()=>{
+    try { localStorage.setItem(NOTES_KEY, JSON.stringify(S.centerNotes)); } catch(e){ /* storage unavailable */ }
+  }, 400);
+}
 
 function pool(){ return S.scope === "one" ? DATA.filter(c=>c.id===HOME) : DATA; }
 
@@ -888,10 +919,20 @@ function centerHtml(c, absIndex){
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg>
         </a>
       </div>
-      <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span></div>
+      <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span>
+        <button class="notesBtn" data-notes-toggle="${c.id}" aria-pressed="${!!S.notesOpen[c.id]}"
+          aria-label="${(S.centerNotes[c.id]||"").trim()?"Edit note":"Add a note"} for ${c.name}">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/></svg>
+          <span class="notesLbl">${(S.centerNotes[c.id]||"").trim() ? `<span class="dot"></span>` : "Notes"}</span>
+        </button>
+      </div>
     </div>
     <div class="stats">${stats}</div>
     <div class="grid" role="group" aria-label="Cameras at ${c.name}">${blocks}</div>
+    ${S.notesOpen[c.id] ? `<div class="notesBox">
+      <textarea data-notes="${c.id}" placeholder="Add a note about this center — e.g. a work order, a known issue, who to call."
+        aria-label="Note for ${c.name}">${esc(S.centerNotes[c.id]||"")}</textarea>
+    </div>` : ""}
   </section>`;
 }
 
@@ -1125,7 +1166,8 @@ function refresh({silent=false}={}){
    poll is a query the read replica never has to serve. */
 setInterval(()=>{
   S.age++;
-  const blocked = S.paused || document.hidden || !!S.sel || document.activeElement === $("q");
+  const blocked = S.paused || document.hidden || !!S.sel || document.activeElement === $("q")
+    || document.activeElement?.matches?.("[data-notes]");
   if (blocked){ renderLive(); return; }
   S.tick--;
   if (S.tick <= 0){ S.tick = 30; refresh(); } else renderLive();
@@ -1146,6 +1188,24 @@ list.addEventListener("click", e=>{
   const b = e.target.closest(".blk");
   if (b) return openCam(b.dataset.ci, +b.dataset.i);
   if (e.target.closest("#emptyClear")) clearAll();
+  const nt = e.target.closest("[data-notes-toggle]");
+  if (nt){ const id = nt.dataset.notesToggle; S.notesOpen[id] = !S.notesOpen[id]; renderList();
+    if (S.notesOpen[id]){ const ta = list.querySelector(`textarea[data-notes="${id}"]`); if (ta) ta.focus(); }
+    return;
+  }
+});
+// Typing updates state and persists, but never re-renders — re-rendering
+// would replace the textarea's DOM node mid-keystroke and drop focus and
+// cursor position, the same mistake the camera-grid refresh guard avoids.
+list.addEventListener("input", e=>{
+  const ta = e.target.closest("[data-notes]"); if (!ta) return;
+  const id = ta.dataset.notes;
+  S.centerNotes[id] = ta.value;
+  persistNotesSoon();
+  // Update just the dot indicator in place — never touch the textarea
+  // itself here, or a mid-keystroke render would drop focus and cursor.
+  const lbl = list.querySelector(`[data-notes-toggle="${CSS.escape(id)}"] .notesLbl`);
+  if (lbl) lbl.innerHTML = ta.value.trim() ? `<span class="dot"></span>` : "Notes";
 });
 list.addEventListener("keydown", e=>{
   const b = e.target.closest(".blk"); if (!b) return;
@@ -1313,6 +1373,7 @@ document.querySelector(".proto").addEventListener("click", e=>{
 /* ---------- boot ---------- */
 (function init(){
   S.savedViews = loadSavedViews();
+  S.centerNotes = loadNotes();
   $("scopeCount").textContent = `(${DATA.length})`;
   S.loading = true; render();
   setTimeout(()=>{ S.loading = false; render();

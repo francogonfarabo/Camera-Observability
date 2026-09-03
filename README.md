@@ -49,6 +49,9 @@ beyond a Google Fonts stylesheet.
   Degraded read zero.
 - **Saved views** — name the current status/brand/state/audience/sort/search combination,
   reapply or delete it from the chip row. Stored in your browser (`localStorage`) only.
+- **Notes per center** — the small button beside a center's meta line expands a plain
+  textbox in place. A dot on the button is the only sign a note exists; text saves as you
+  type and survives a reload.
 - **Auto-refresh** runs a 30s cycle with a visible countdown, pause, and refresh-now, and
   stops on its own when the tab is hidden, a drawer is open, or you are typing a filter.
 - **Deferred reordering** — hover the list and refresh a few times. Rankings are held behind
