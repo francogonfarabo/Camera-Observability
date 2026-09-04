@@ -209,9 +209,33 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       <p><strong>Called for a centers strip, wired to the search field.</strong> Every center the account can
       see, one block each, in the same encoding the cameras use one level down. The brief was explicit that it
       should <em>feel connected</em> to the toolbar rather than sit above it as one more chart — so the strip
-      and the search/filter row are one card, a click writes that center into the field directly beneath it,
-      and a caret on the seam points at the field it just filled. Also: Monitoring stops advertising four
-      sections it doesn't have yet, and an offline camera's drawer stops looking like a healthy one's.</p>
+      and the search/filter row are one card, and a click writes that center into the field directly beneath
+      it. Also: Monitoring stops advertising four sections it doesn't have yet, and an offline camera's drawer
+      stops looking like a healthy one's.</p>
+    </div></div>
+    <div class="q"><span class="n num">15</span><div>
+      <p><strong>Made the strip the altitude, and cut everything it made redundant.</strong> The
+      <em>This center / All centers</em> toggle is gone — kept as A's defining feature back in step 9, and now
+      unnecessary, because a strip showing all fifty-two centers already says which altitude you are at. In its
+      place a dismissible line states it in words. The platform's center picker stays in the header but
+      disabled: choosing a center happens on the Dashboard, and a control that vanishes when you change section
+      reads as a bug where one that greys out reads as "not applicable here". Also cut in the same pass: the
+      comfortable/compact switch (one density, the smaller one), the arrow that pointed from a picked block to
+      the search field (the highlight and the filled field already say it), the link icon beside every center
+      name, and the "all clear" banner. Filters and sort split into two dropdowns at the far right, because the
+      active sort was invisible while it lived inside a panel called Filters. The search box now holds a draft
+      until you press Search or Enter, instead of querying on every keystroke.</p>
+      <p>Duplicate readouts went too: "N need attention" beside the strip title (the first KPI says it), the
+      camera-level legend above the list (the strip's legend covers the same encoding), the row of counts under
+      the toolbar when nothing is filtered, and the drawer's status/duration/room table — the title carries the
+      room and the headline carries the duration, so only the camera ID was left worth a row.</p>
+    </div></div>
+    <div class="q"><span class="n num">16</span><div>
+      <p><strong>Set the prototype's assignment to 52 centers.</strong> Fourteen was a demo; fifty-two is a
+      regional manager's actual list, and it is what justifies every piece of machinery on the page — the
+      brand-grouped strip, pagination, saved views, the search-then-submit box. It also settles the layout
+      question: at 52 centers the strip is three rows of brand groups, not a wall, and the rail of squares still
+      reads at a glance.</p>
     </div></div>
   </div>
 </section>
@@ -223,8 +247,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       <span class="k">A · Nested — a sub-nav under its own rail item</span>
       <p>Camera health as the only sub-tab of a dedicated <em>Monitoring</em> rail item — originally filed
       under Cameras, and originally shown beside four placeholder sub-tabs that have since gone: a section
-      that holds one thing should say so rather than advertise a roadmap. Cheapest to ship of the two, and the
-      header still names one center while the page can report on fourteen.</p>
+      that holds one thing should say so rather than advertise a roadmap. Cheapest to ship of the two. It no
+      longer carries a scope toggle either: the page is always the whole assignment, the header's center picker
+      greys out while you are in it, and a strip of all 52 centers makes the altitude self-evident.</p>
     </div>
     <div class="card dev">
       <span class="k">B · Toggle — a scope above center selection</span>
@@ -257,20 +282,30 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   that center. Two rules keep that promise honest. A click drops exactly the filters that would have excluded
   the center it just picked, so a pick never lands on an empty list. And the search text is excluded from the
   strip's own dimming — filters dim the blocks they rule out, but letting the search dim them would black out
-  thirteen blocks the moment you clicked the fourteenth, which is the opposite of what an overview is for.</p>
+  fifty-one blocks the moment you clicked the fifty-second, which is the opposite of what an overview is for.</p>
+  <p>The prototype's user is assigned <strong>52 centers</strong> across eight brands. At that size the strip
+  becomes three rows of brand-labelled groups rather than an undifferentiated wall, which is why the grouping
+  exists at all: it bounds the hunt for one site to six or seven squares. Center rows sit at one density —
+  the compact one — since a density switch is a preference the page can simply make well once.</p>
 </section>
 
 <section>
   <h2>What's different between them</h2>
+  <p>Both versions now agree on more than they did: every center is always listed, saved views exist in both,
+  and neither one filters the page down to a single center. What remains different is how each one states its
+  altitude, and where the detail opens.</p>
   <ul>
-    <li><strong>Altitude is stated by one control.</strong> The search field reads "All my centers" with a
-    filled blue chip while camera health is on, and reverts to a center search when it's off.</li>
-    <li><strong>The center-scoped nav hides, it doesn't grey out</strong> — absent reads as a different
-    altitude, greyed reads as broken permissions.</li>
-    <li><strong>Cameras in the rail looks normal but isn't a route</strong> — every path to a camera runs
-    through camera health, so there's one door, not two.</li>
-    <li><strong>Detail opens in a modal, not version A's drawer</strong> — a modal reads as the harder stop
-    that suits triage, and the grid behind it is one center among fourteen rather than the one you chose.</li>
+    <li><strong>B states altitude with a control; A states it with the page.</strong> B's search field reads
+    "All my centers" with a filled blue chip while camera health is on. A dropped its scope toggle entirely —
+    the strip of every center, plus one dismissible line, does that job, and the header's center picker greys
+    out for as long as you are in Monitoring.</li>
+    <li><strong>B hides the center-scoped nav; A leaves it.</strong> In B, absent nav reads as a different
+    altitude. A keeps the rail intact and lets Dashboard lead it, since Dashboard is where a center actually
+    gets picked.</li>
+    <li><strong>Cameras in the rail looks normal but isn't a route</strong> — in both, every path to a camera
+    runs through camera health, so there's one door, not two.</li>
+    <li><strong>Detail opens in a modal in B, a drawer in A</strong> — a modal reads as the harder stop that
+    suits triage; a drawer lets the board stay readable behind it.</li>
     <li><strong>Every center is listed, always.</strong> No problems-first / all-centers switch and no
     collapsed healthy row: the sort decides what floats to the top, so there is one list rather than a mode
     to be in. Problem centers show their whole grid, not just the broken cameras — four red among twenty
@@ -279,11 +314,11 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     and seven on a phone, with no overflow at any width and the keyboard grid still a single tab stop. Squares
     stay one fixed size at every count on purpose: scaling them down for large sites would make a red square
     mean something different from card to card, and comparing centers at a glance is the whole job.</li>
-    <li><strong>Only B can save a view.</strong> Name the current sort, search, and filters; reapply or
-    delete it from a chip row. Browser-local (<code>localStorage</code>), not an account setting — a
-    deliberate asymmetry between the two versions rather than the usual parity.</li>
-    <li><strong>Single-center users see none of this</strong> — the toggle is absent rather than
-    present-and-pointless when there's nothing to aggregate.</li>
+    <li><strong>Both can save a view.</strong> Name the current filters, search and sort; reapply or delete it
+    from a chip row. Browser-local (<code>localStorage</code>), not an account setting. This began as B's alone
+    and was ported to A once A became the version to ship.</li>
+    <li><strong>Single-center users see none of this</strong> — nothing to aggregate, so no altitude to
+    state.</li>
   </ul>
   <p><strong>There is no center view.</strong> B has exactly two screens: the cold-start dashboard and camera
   health. Center names are labels, not links; the camera modal offers my.wmg and nothing else. This is the
