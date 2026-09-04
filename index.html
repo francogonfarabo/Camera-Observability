@@ -133,6 +133,7 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .raildiv{width:38px;height:1px;background:rgba(255,255,255,.28);flex-shrink:0;margin:4px 0 6px}
 .col{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
 .tabbar{height:var(--tabbar-h);flex-shrink:0;display:flex;align-items:stretch;padding:0 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.tabbar[hidden]{display:none}
 .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 18px;white-space:nowrap;border-bottom:3px solid var(--blue)}
 .tab span{font-size:11px;font-weight:700;color:var(--blue)}
 
@@ -658,14 +659,13 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
     <div class="col">
       <!-- ===== shell: sub-nav =====
-           Each section owns one sub-tab here: Dashboard's Overview stands in
-           for the real product's row of them, and Monitoring genuinely holds
-           only Camera Health. Same shell either way, so moving between them
-           changes the content and the header — not the furniture. -->
-      <div class="tabbar" role="tablist" aria-label="Section">
-        <button class="tab" role="tab" aria-current="page" aria-selected="true" id="tabBtn">
-          <span id="tabIcon"></span>
-          <span id="tabLbl">Camera Health</span>
+           Monitoring's only section. The Dashboard has no sub-tabs in the
+           product, so this strip is absent there rather than padded out
+           with an invented "Overview" tab. -->
+      <div class="tabbar" id="tabbar" role="tablist" aria-label="Monitoring sections">
+        <button class="tab" role="tab" aria-current="page" aria-selected="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/><circle cx="8.5" cy="12" r="2.2"/></svg>
+          <span>Camera Health</span>
         </button>
       </div>
 
@@ -1279,16 +1279,12 @@ function goTo(screen){
 }
 const centerById = id => DATA.find(c=>c.id===id);
 
-const TAB_ICON = {
-  health:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/><circle cx="8.5" cy="12" r="2.2"/></svg>`,
-  dashboard:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`
-};
 function renderShell(){
   const onHealth = S.screen === "health";
   $("railMon").setAttribute("aria-current", onHealth ? "page" : "false");
   $("railDash").setAttribute("aria-current", onHealth ? "false" : "page");
-  $("tabIcon").innerHTML = onHealth ? TAB_ICON.health : TAB_ICON.dashboard;
-  $("tabLbl").textContent = onHealth ? "Camera Health" : "Overview";
+  // The sub-tab strip belongs to Monitoring alone; the Dashboard has none.
+  $("tabbar").hidden = !onHealth;
   $("page").hidden = !onHealth;
   $("dashPage").hidden = onHealth;
   renderPicker();
