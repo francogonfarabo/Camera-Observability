@@ -100,21 +100,24 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .dempty{padding:14px;font-size:13px;color:var(--ink-3);text-align:center}
 
 .shellbody{display:flex;flex:1;min-height:0;overflow:hidden}
-.rail{width:73px;flex-shrink:0;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:22px 7px;gap:4px;overflow-y:auto}
-.rail-item{width:59px;min-height:51px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border-radius:8px;padding:5px 6px;flex-shrink:0}
+.rail{width:76px;flex-shrink:0;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:20px 7px;gap:3px;overflow-y:auto}
+.rail-item{width:62px;min-height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:8px;padding:6px;flex-shrink:0;cursor:default}
 .rail-item[aria-current="page"]{background:var(--rail-active)}
+.rail-item.go{cursor:pointer}
+.rail-item.go:hover{background:rgba(255,255,255,.14)}
+.rail-item.go[aria-current="page"]:hover{background:var(--rail-active)}
 .rail-item span{font-family:'Open Sans',sans-serif;font-weight:600;font-size:9px;color:#fff;line-height:1.2;text-align:center}
-.raildiv{width:37px;height:1px;background:rgba(255,255,255,.28);flex-shrink:0;margin:3px 0 5px}
+.raildiv{width:38px;height:1px;background:rgba(255,255,255,.28);flex-shrink:0;margin:4px 0 6px}
 .col{display:flex;flex-direction:column;flex:1;min-width:0;overflow:hidden}
-.tabbar{height:var(--tabbar-h);flex-shrink:0;display:flex;align-items:stretch;padding:0 8px;background:var(--surface);border-bottom:1px solid var(--line)}
-.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 16px;white-space:nowrap;border-bottom:3px solid var(--blue)}
+.tabbar{height:var(--tabbar-h);flex-shrink:0;display:flex;align-items:stretch;padding:0 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:0 18px;white-space:nowrap;border-bottom:3px solid var(--blue)}
 .tab span{font-size:11px;font-weight:700;color:var(--blue)}
 
 /* ---------- page ---------- */
 .page{flex:1;min-height:0;overflow-y:auto;background:var(--fill-2)}
-/* capped: past ~1360px the camera grids stop gaining rows and the cards
-   just grow emptier, so the board stays compact instead of stretching */
-.page-inner{padding:18px 24px 36px;display:flex;flex-direction:column;gap:10px;max-width:1360px}
+/* full width: the camera grids are the thing that benefits from every
+   pixel — a wider row is fewer wrapped rows per center */
+.page-inner{padding:18px 24px 36px;display:flex;flex-direction:column;gap:10px}
 .pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:2px}
 h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-height:1.15;color:var(--ink);text-wrap:balance}
 .subtitle{font-size:12.5px;color:var(--ink-3);margin-top:2px}
@@ -245,6 +248,37 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .fpanel-foot .done{padding:7px 16px;border-radius:8px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700}
 .fpanel-foot .done:hover{background:var(--blue-ink)}
 .sortlist{padding:8px;display:flex;flex-direction:column;gap:2px}
+.sortdir{border-top:1px solid var(--line-2);padding:8px;display:flex;flex-direction:column;gap:2px}
+.sortdir h4{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-4);padding:2px 10px 6px}
+.ftrigger .arrow{display:flex;color:var(--blue-ink)}
+
+/* ---------- dashboard screen ----------
+   Context, not the deliverable: it exists so the change of state on the
+   way into Monitoring is visible — a live center picker and one center's
+   numbers here, no picker and every center's cameras there. */
+.dash{display:flex;flex-direction:column;gap:14px;padding:20px 24px 40px}
+.dash-head h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;color:var(--ink)}
+.dash-head .sub{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.dstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.dcell{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;
+  display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow-card);min-width:0}
+.dcell .l{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-3)}
+.dcell .v{font-size:25px;font-weight:700;line-height:1.15;letter-spacing:-.01em;color:var(--ink)}
+.dcell .s{font-size:11.5px;color:var(--ink-3)}
+.dcell.link{border-color:#a8d5f2;background:linear-gradient(180deg,var(--surface),#f5fbff)}
+.dcell .go{margin-top:6px;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--blue-ink);align-self:flex-start;border-radius:7px;padding:3px 6px;margin-left:-6px}
+.dcell .go:hover{background:var(--blue-tint)}
+.dcold{background:var(--surface);border:1px dashed var(--line-3);border-radius:12px;padding:40px 24px;
+  display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.dcold .ic{width:44px;height:44px;border-radius:50%;background:var(--fill);display:grid;place-items:center}
+.dcold b{font-family:'Titillium Web',sans-serif;font-size:16px;font-weight:700;color:var(--ink)}
+.dcold p{font-size:13px;color:var(--ink-3);max-width:52ch}
+.dcold .row{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+.dnote{font-size:12px;color:var(--ink-4);display:flex;gap:7px;align-items:flex-start;
+  border-top:1px dashed var(--line-3);padding-top:11px;margin-top:2px}
+.dnote svg{flex-shrink:0;margin-top:2px}
 
 /* saved filter/sort views */
 .saved-views{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:7px 12px;box-shadow:var(--shadow-card)}
@@ -283,24 +317,19 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .banner p{font-size:12.5px;opacity:.9}
 .banner .act{margin-left:auto;font-size:12.5px;font-weight:700;text-decoration:underline;white-space:nowrap;color:inherit}
 
-/* reorder pill */
-.reorder{position:sticky;top:0;z-index:5;display:flex;justify-content:center;pointer-events:none;height:0}
-.reorder button{pointer-events:auto;transform:translateY(2px);display:flex;align-items:center;gap:8px;background:var(--ink);color:#fff;border-radius:20px;padding:6px 13px;font-size:12px;font-weight:700;box-shadow:var(--shadow-pop)}
-
 /* ---------- center rows ----------
    Three columns: identity · aligned status counts · camera grid.
    The counts get their own column so digits stack vertically and
-   "which center is worst" is legible without reading a word of it. */
-.list{display:flex;flex-direction:column;gap:7px}
-.center{display:grid;grid-template-columns:minmax(180px,232px) 150px 1fr;gap:14px;align-items:start;
-  background:var(--surface);border:1px solid var(--line);border-left-width:3px;border-radius:10px;
-  padding:9px 14px;box-shadow:var(--shadow-card)}
-.center.has-off{border-left-color:var(--off)}
-.center.has-deg{border-left-color:var(--deg)}
-.center.clean{border-left-color:var(--ok-line)}
-.c-name{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13.5px;line-height:1.25;color:var(--ink);display:flex;align-items:baseline;gap:7px}
-.c-rank{font-size:11px;color:var(--ink-4);min-width:14px;flex-shrink:0}
-.c-meta{font-size:11.5px;color:var(--ink-3);margin-top:2px;display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:0}
+   "which center is worst" is legible without reading a word of it.
+   No coloured left edge: the counts column and the squares already carry
+   the severity, and a third encoding of the same fact was just stripes. */
+.list{display:flex;flex-direction:column;gap:8px}
+.center{display:grid;grid-template-columns:minmax(190px,250px) 172px 1fr;gap:18px;align-items:start;
+  background:var(--surface);border:1px solid var(--line);border-radius:11px;
+  padding:12px 16px;box-shadow:var(--shadow-card)}
+.c-name{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);display:flex;align-items:baseline;gap:7px}
+.c-rank{font-size:11.5px;color:var(--ink-4);min-width:14px;flex-shrink:0}
+.c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:0}
 .c-meta>.num{flex:0 0 auto}
 
 /* per-center notes — a scratch textbox, not a comment thread.
@@ -327,27 +356,27 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .pill.off{background:var(--off-tint);color:#b91c1c;border-color:var(--off-line)}
 .pill.deg{background:var(--deg-tint);color:#c2410c;border-color:var(--deg-line)}
 .pill.ok{background:var(--ok-tint);color:#15803d;border-color:var(--ok-line)}
-.stats{display:flex;flex-direction:column;gap:2px}
-.stat{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--ink-2)}
+.stats{display:flex;flex-direction:column;gap:3px;padding-top:1px}
+.stat{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .stat b{min-width:2ch;text-align:right;font-weight:700}
 .stat.off b{color:#b91c1c} .stat.deg b{color:#c2410c} .stat.ok{color:#15803d}
-.stat.dim{color:var(--ink-3);font-weight:500;font-size:11px;padding-left:20px}
+.stat.dim{color:var(--ink-3);font-weight:500;font-size:11.5px;padding-left:21px}
 .stat.dim b{min-width:0;color:var(--ink-2)}
-.grid{display:flex;flex-wrap:wrap;gap:4px;align-content:flex-start}
-.blk{width:14px;height:14px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%;transition:transform .1s}
-.blk:hover{transform:scale(1.3);z-index:2}
-.blk:focus-visible{box-shadow:var(--focus);transform:scale(1.3)}
+.grid{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
+.blk{width:20px;height:20px;border-radius:5px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%;transition:transform .1s}
+.blk:hover{transform:scale(1.18);z-index:2}
+.blk:focus-visible{box-shadow:var(--focus);transform:scale(1.18)}
 .blk.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-.blk.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 1.5px,transparent 1.5px 4px)}
-.blk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E")}
-.blk.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 3px var(--blue)}
+.blk.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2px,transparent 2px 5px)}
+.blk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E")}
+.blk.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue)}
 
 /* empty / skeleton */
 .empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:var(--surface);border:1px dashed var(--line-3);border-radius:12px;padding:40px 24px}
 .empty .ic{width:42px;height:42px;border-radius:50%;background:var(--fill);display:grid;place-items:center}
 .empty b{font-family:'Titillium Web',sans-serif;font-size:15px;font-weight:700}
 .empty p{font-size:13px;color:var(--ink-3);max-width:44ch}
-.skel{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--line-2);border-radius:10px;padding:9px 14px;display:grid;grid-template-columns:minmax(180px,232px) 150px 1fr;gap:14px}
+.skel{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 16px;display:grid;grid-template-columns:minmax(190px,250px) 172px 1fr;gap:18px}
 .sk{background:linear-gradient(90deg,var(--fill) 25%,#eef0f3 37%,var(--fill) 63%);background-size:400% 100%;border-radius:6px;animation:sh 1.3s infinite linear}
 @keyframes sh{from{background-position:100% 0}to{background-position:0 0}}
 
@@ -428,14 +457,19 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 }
 
 /* ---------- responsive ---------- */
-@media (max-width:1080px){ .kpis{grid-template-columns:repeat(2,minmax(0,1fr))} }
-@media (max-width:1180px){ .center,.skel{grid-template-columns:minmax(170px,220px) 140px 1fr;gap:12px} }
+@media (max-width:1080px){ .kpis,.dstats{grid-template-columns:repeat(2,minmax(0,1fr))} }
+@media (max-width:1180px){ .center,.skel{grid-template-columns:minmax(180px,230px) 158px 1fr;gap:14px} }
 @media (max-width:880px){ .center,.skel{grid-template-columns:1fr;gap:10px} .stats{flex-direction:row;flex-wrap:wrap;gap:14px} .stat.dim{padding-left:0} }
 @media (max-width:640px){
   :root{--topbar-h:46px}
   .rail{display:none}
   .wordmark{padding-left:14px;font-size:20px}
-  .searchbar{display:none}
+  /* the picker stays: it is the platform's way into a center, and on the
+     dashboard it is the control the whole transition hangs on */
+  .searchbar{width:auto;flex:1 1 auto;min-width:0;margin-left:10px;gap:7px;padding:0 8px 0 10px}
+  .topbar{padding-right:12px}
+  .topbar-right{flex:1;min-width:0;gap:9px}
+  .drop{width:min(94vw,420px)}
   .page-inner{padding:14px 14px 32px}
   h1{font-size:20px}
   .field{flex:1 1 100%;max-width:none}
@@ -494,32 +528,38 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
          Dashboard leads the center-scoped group below it: that is where
          someone lands in the platform, and where a center gets picked. -->
     <nav class="rail" aria-label="Main">
-      <div class="rail-item" aria-current="page">
-        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      <button class="rail-item go" id="railMon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         <span>Monitoring</span>
-      </div>
+      </button>
       <div class="raildiv"></div>
-      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></div>
-      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg><span>Cameras</span></div>
-      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 6.5a3 3 0 010 6"/></svg><span>Users</span></div>
-      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg><span>Reports</span></div>
-      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1m0-12.8l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg><span>Settings</span></div>
-      <div class="rail-item"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10z"/><path d="M10 20v-6h4v6"/></svg><span>Center</span></div>
+      <button class="rail-item go" id="railDash"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg><span>Dashboard</span></button>
+      <div class="rail-item"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg><span>Cameras</span></div>
+      <div class="rail-item"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 6.5a3 3 0 010 6"/></svg><span>Users</span></div>
+      <div class="rail-item"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg><span>Reports</span></div>
+      <div class="rail-item"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6l2.1 2.1m0-12.8l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg><span>Settings</span></div>
+      <div class="rail-item"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 20V10l8-6 8 6v10z"/><path d="M10 20v-6h4v6"/></svg><span>Center</span></div>
     </nav>
 
     <div class="col">
       <!-- ===== shell: sub-nav =====
-           Monitoring holds exactly one section today. The strip stays so the
-           page keeps its "you are inside Monitoring" anchor, but nothing
-           speculative is parked next to it. -->
-      <div class="tabbar" role="tablist" aria-label="Monitoring sections">
-        <button class="tab" role="tab" aria-current="page" aria-selected="true">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/><circle cx="8.5" cy="12" r="2.2"/></svg>
-          <span>Camera Health</span>
+           Each section owns one sub-tab here: Dashboard's Overview stands in
+           for the real product's row of them, and Monitoring genuinely holds
+           only Camera Health. Same shell either way, so moving between them
+           changes the content and the header — not the furniture. -->
+      <div class="tabbar" role="tablist" aria-label="Section">
+        <button class="tab" role="tab" aria-current="page" aria-selected="true" id="tabBtn">
+          <span id="tabIcon"></span>
+          <span id="tabLbl">Camera Health</span>
         </button>
       </div>
 
-      <!-- ===== page ===== -->
+      <!-- ===== dashboard screen (context) ===== -->
+      <main class="page" id="dashPage" hidden>
+        <div class="dash" id="dash"></div>
+      </main>
+
+      <!-- ===== camera health screen ===== -->
       <main class="page" id="page">
         <div class="page-inner">
 
@@ -550,7 +590,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
           <div class="notice" id="notice">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg>
-            <p>You're seeing <b>all <span class="num" id="noticeN">52</span> centers assigned to you</b>. Camera health covers your whole assignment, so the center picker up top is off here.</p>
+            <p>You're seeing <b>all <span class="num" id="noticeN">52</span> centers assigned to you</b>. Camera health covers your whole assignment, so the center picker up top is off here.<span id="noticeHeld"></span></p>
             <button class="x" id="noticeX" aria-label="Dismiss"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
           </div>
 
@@ -596,19 +636,11 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <div class="resultline" id="count"></div>
 
           <div id="banner"></div>
-          <div class="reorder" id="reorder" hidden>
-            <button id="reorderBtn">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M7 4v16M7 20l-3-3M17 20V4M17 4l3 3"/></svg>
-              Ranking changed — reorder
-            </button>
-          </div>
-
           <div class="list" id="list"></div>
           <div id="pagerWrap"></div>
 
           <div class="proto">
             <span class="tag">Prototype controls</span>
-            <button data-demo="picker">Show center picker</button>
             <button data-demo="loading">First load</button>
             <button data-demo="fail">Refresh failure</button>
             <button data-demo="healthy">All healthy</button>
@@ -731,8 +763,11 @@ const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
    whole assignment, which is what the notice at the top says out loud.
    ===================================================================== */
 const S = {
+  screen:"dashboard",   // "dashboard" (a center is picked here) | "health"
+  center:null,          // the center selected on the dashboard, if any
+  dropOpen:false,       // the header picker's dropdown
   q:"", qDraft:"", status:"all", brand:"all", state:"all", parent:false,
-  sort:"issues", page:1, per:25,
+  sort:"issues", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
@@ -740,8 +775,7 @@ const S = {
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
   filtersOpen:false, sortOpen:false, savedViews:[], savingOpen:false,
-  centerNotes:{}, notesOpen:{},        // {centerId: text}, {centerId: true while expanded}
-  pickerDemo:false                     // prototype-only: unlock the center picker
+  centerNotes:{}, notesOpen:{}         // {centerId: text}, {centerId: true while expanded}
 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -783,14 +817,23 @@ function matchesFilters(c, {ignoreQ=false}={}){
 }
 function filtered(){ return DATA.filter(c=>matchesFilters(c)); }
 
+/* Every sort is written ascending — smallest, earliest, A-first — and the
+   direction flips it. That way "descending" means the same thing on every
+   field, and the panel can name both ends in the field's own words. */
 function sorted(list){
   const a = [...list];
   const byName = (x,y) => x.name.localeCompare(y.name);
-  if (S.sort === "name") a.sort(byName);
-  else if (S.sort === "size") a.sort((x,y)=> y.cams.length - x.cams.length || byName(x,y));
-  else if (S.sort === "longest") a.sort((x,y)=> tally(y).worst - tally(x).worst || byName(x,y));
-  else a.sort((x,y)=>{ const p=tally(x), q=tally(y);
-    return q.off - p.off || q.deg - p.deg || q.worst - p.worst || byName(x,y); });
+  const primary =
+    S.sort === "name"    ? byName :
+    S.sort === "size"    ? ((x,y)=> x.cams.length - y.cams.length) :
+    S.sort === "longest" ? ((x,y)=> tally(x).worst - tally(y).worst) :
+    /* issues */           ((x,y)=>{ const p=tally(x), q=tally(y);
+                             return p.off - q.off || p.deg - q.deg || p.worst - q.worst; });
+  a.sort((x,y)=>{
+    const r = primary(x,y);
+    // Ties always fall back to A–Z, in both directions.
+    return r ? (S.dir === "asc" ? r : -r) : byName(x,y);
+  });
   return a;
 }
 
@@ -801,9 +844,18 @@ function sorted(list){
    invisible. The sort trigger now states the active sort on its face.
    ===================================================================== */
 const STAT_LABEL = {all:"All centers", issues:"Has any issue", off:"Has offline cameras", deg:"Has degraded cameras", clean:"All reporting"};
-const SORTS = [["issues","Most issues first"],["longest","Longest outage first"],
-               ["name","Center name A–Z"],["size","Most cameras first"]];
-const sortLabel = s => (SORTS.find(x=>x[0]===s) || [,s])[1];
+/* field → [name, what descending means, what ascending means]. Naming both
+   ends in the field's own words beats a bare "asc/desc" that the reader has
+   to translate into "most broken" or "A to Z" every time. */
+const SORTS = [
+  ["issues",  "Issues",        "Most issues first",    "Fewest issues first"],
+  ["longest", "Longest outage","Longest outage first", "Shortest outage first"],
+  ["name",    "Center name",   "Z–A",                  "A–Z"],
+  ["size",    "Cameras",       "Most cameras first",   "Fewest cameras first"],
+];
+const sortRow = s => SORTS.find(x=>x[0]===s) || ["", s, "Descending", "Ascending"];
+const sortLabel = s => sortRow(s)[1];
+const dirLabel = (s, d) => sortRow(s)[d === "asc" ? 3 : 2];
 const activeFilters = () => {
   const a = [];
   if (S.status !== "all") a.push({k:"status", label:STAT_LABEL[S.status]});
@@ -857,13 +909,21 @@ function renderTools(){
       </div>
     </div>
     <div class="pop">
-      <button class="ftrigger" id="sortBtn" aria-expanded="${S.sortOpen}" aria-haspopup="true">
+      <button class="ftrigger" id="sortBtn" aria-expanded="${S.sortOpen}" aria-haspopup="true"
+        title="Sorted by ${esc(sortLabel(S.sort).toLowerCase())} — ${esc(dirLabel(S.sort,S.dir).toLowerCase())}">
         Sort <span class="cur">${esc(sortLabel(S.sort))}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+        <span class="arrow">${S.dir==="asc"
+          ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M6 11l6-6 6 6"/></svg>`
+          : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6"/></svg>`}</span>
       </button>
       <div class="fpanel narrow" id="sortpanel" ${S.sortOpen?"":"hidden"} role="dialog" aria-label="Sort">
         <div class="sortlist">
           ${SORTS.map(([v,l])=>opt("sort", v, l, S.sort)).join("")}
+        </div>
+        <div class="sortdir">
+          <h4>Order</h4>
+          ${[["desc",dirLabel(S.sort,"desc")],["asc",dirLabel(S.sort,"asc")]]
+            .map(([v,l])=>opt("dir", v, l, S.dir)).join("")}
         </div>
       </div>
     </div>`;
@@ -888,7 +948,7 @@ function viewSummary(v){
   if (v.state  !== "all") bits.push(v.state);
   if (v.parent) bits.push("Parent-facing");
   if (v.q) bits.push(`"${v.q}"`);
-  bits.push(sortLabel(v.sort));
+  bits.push(dirLabel(v.sort, v.dir || "desc"));
   return bits.join(" · ");
 }
 function commitSaveView(){
@@ -897,7 +957,7 @@ function commitSaveView(){
   if (!name){ inp && inp.focus(); return; }
   const existing = S.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
   const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
-    name, status:S.status, brand:S.brand, state:S.state, parent:S.parent, sort:S.sort, q:S.q };
+    name, status:S.status, brand:S.brand, state:S.state, parent:S.parent, sort:S.sort, dir:S.dir, q:S.q };
   S.savedViews = existing ? S.savedViews.map(v=>v.id===existing.id?payload:v) : [...S.savedViews, payload];
   persistSavedViews(S.savedViews);
   S.savingOpen = false; render();
@@ -906,7 +966,8 @@ function commitSaveView(){
 function applyView(id){
   const v = S.savedViews.find(x=>x.id===id);
   if (!v) return;
-  S.status=v.status; S.brand=v.brand; S.state=v.state; S.parent=v.parent; S.sort=v.sort;
+  S.status=v.status; S.brand=v.brand; S.state=v.state; S.parent=v.parent;
+  S.sort=v.sort; S.dir=v.dir || "desc";
   S.q=v.q; S.qDraft=v.q; $("q").value=v.q; S.centerPick=null;
   $("qField").classList.remove("linked");
   S.page=1; S.kpi=null; S.savingOpen=false; S.filtersOpen=false; S.sortOpen=false;
@@ -1065,23 +1126,119 @@ function clearCenterPick(){
 }
 
 /* =====================================================================
-   The platform's center picker, disabled here. The prototype control can
-   unlock it so the component itself is reviewable; rows are illustrative
-   in both versions — choosing a center happens on the Dashboard.
+   Screens. The prototype opens on the Dashboard on purpose: Monitoring is
+   a new section, and the only way to judge it is to arrive from somewhere
+   that works the old way. The visible difference on arrival is the header
+   picker — live and center-scoped on the Dashboard, emptied and locked in
+   Monitoring, because camera health is never about one center.
    ===================================================================== */
+function goTo(screen){
+  if (S.screen === screen) return;
+  S.screen = screen;
+  S.dropOpen = false;
+  S.filtersOpen = S.sortOpen = S.savingOpen = false;
+  if (screen === "health"){ S.sel = null; S.tick = 30; }
+  renderShell();
+  if (screen === "health"){ render(); $("page").scrollTop = 0; }
+  else { renderDashboard(); $("dashPage").scrollTop = 0; }
+  $("announce").textContent = screen === "health"
+    ? `Camera health. Showing all ${DATA.length} centers assigned to you; the center picker is off here.`
+    : `Dashboard.${S.center ? " " + centerById(S.center).name + " selected." : " No center selected."}`;
+}
+const centerById = id => DATA.find(c=>c.id===id);
+
+const TAB_ICON = {
+  health:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/><circle cx="8.5" cy="12" r="2.2"/></svg>`,
+  dashboard:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>`
+};
+function renderShell(){
+  const onHealth = S.screen === "health";
+  $("railMon").setAttribute("aria-current", onHealth ? "page" : "false");
+  $("railDash").setAttribute("aria-current", onHealth ? "false" : "page");
+  $("tabIcon").innerHTML = onHealth ? TAB_ICON.health : TAB_ICON.dashboard;
+  $("tabLbl").textContent = onHealth ? "Camera Health" : "Overview";
+  $("page").hidden = !onHealth;
+  $("dashPage").hidden = onHealth;
+  renderPicker();
+}
+
+/* The platform's center picker. Live on the Dashboard; locked in
+   Monitoring, where it also clears — an emptied, greyed field is the
+   clearest possible statement that the page stopped being about one
+   center. */
 function renderPicker(){
   const bar = $("sbar"), inp = $("cq"), d = $("drop");
-  bar.classList.toggle("locked", !S.pickerDemo);
-  inp.disabled = !S.pickerDemo;
-  if (!S.pickerDemo){ d.hidden = true; return; }
+  const live = S.screen === "dashboard";
+  bar.classList.toggle("locked", !live);
+  inp.disabled = !live;
+  inp.title = live ? "" : "Camera health covers every center you're assigned to, so no center is selected here.";
+  if (!live){ inp.value = ""; d.hidden = true; return; }
+  if (document.activeElement !== inp && S.center) inp.value = centerById(S.center).name;
+  if (!S.dropOpen){ d.hidden = true; return; }
   const q = inp.value.trim().toLowerCase();
-  const hits = DATA.filter(c => !q || c.name.toLowerCase().includes(q) || c.store.includes(q)).slice(0, 6);
+  const sel = S.center ? centerById(S.center).name.toLowerCase() : "";
+  // Typing filters; sitting on the selected center's own name does not,
+  // or reopening the picker would show a list of one.
+  const hits = DATA.filter(c => !q || q === sel || c.name.toLowerCase().includes(q) || c.store.includes(q)).slice(0, 7);
   d.hidden = false;
   d.innerHTML = (hits.length
-    ? hits.map((c,i)=>`<button class="drow${i===0?" hl":""}" role="option" aria-selected="${i===0}">
+    ? hits.map((c,i)=>`<button class="drow${c.id===S.center?" hl":""}" role="option" data-pickc="${c.id}"
+        aria-selected="${c.id===S.center}">
         <span class="dn">${esc(c.name)}</span><span class="db">${esc(c.brand)} · Store #${esc(c.store)}</span></button>`).join("")
     : `<div class="dempty">No center matches "${esc(inp.value)}"</div>`)
-    + `<div class="dfoot">Choosing a center happens on the Dashboard — these rows are illustrative.</div>`;
+    + `<div class="dfoot">${DATA.length} centers assigned to you</div>`;
+}
+
+/* =====================================================================
+   Dashboard — context, not the deliverable. It exists so the change of
+   state on the way into Monitoring is visible, and so the trip into
+   camera health starts where it would really start: from one center,
+   noticing its cameras.
+   ===================================================================== */
+function renderDashboard(){
+  const c = S.center ? centerById(S.center) : null;
+  const note = `<p class="dnote">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg>
+    <span>This screen stands in for the existing product. It's here to show what changes when you move into
+    Monitoring — the center picker above goes quiet, and camera health opens on all ${DATA.length} centers.</span></p>`;
+
+  if (!c){
+    $("dash").innerHTML = `
+      <div class="dash-head"><h1>Dashboard</h1>
+        <p class="sub">Pick a center to load its numbers.</p></div>
+      <div class="dcold">
+        <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M4 20V10l8-6 8 6v10z"/><path d="M10 20v-6h4v6"/></svg></span>
+        <b>No center selected</b>
+        <p>The dashboard reports on one center at a time, so nothing loads until you choose one.
+        Camera health doesn't work that way — it always covers all ${DATA.length}.</p>
+        <div class="row">
+          <button class="btn primary" id="dPick">Choose a center</button>
+          <button class="btn" id="dGoHealth">Go to camera health</button>
+        </div>
+      </div>${note}`;
+    return;
+  }
+
+  const t = tally(c);
+  const n = +c.store;
+  const kids = 38 + (n % 61), staff = 5 + (n % 9), reqs = n % 4;
+  const camLine = t.off || t.deg
+    ? `${t.total - t.off - t.deg} of ${t.total} reporting`
+    : `all ${t.total} reporting`;
+  $("dash").innerHTML = `
+    <div class="dash-head"><h1>${esc(c.name)}</h1>
+      <p class="sub num">${c.state} · Store #${c.store} · today, 2:16 PM</p></div>
+    <div class="dstats">
+      <div class="dcell"><span class="l">Checked in</span><span class="v num">${kids}</span><span class="s">children on site now</span></div>
+      <div class="dcell"><span class="l">Staff on site</span><span class="v num">${staff}</span><span class="s">across ${Math.max(2,Math.round(t.total/4))} rooms</span></div>
+      <div class="dcell"><span class="l">Open requests</span><span class="v num">${reqs}</span><span class="s">${reqs?"awaiting a reply":"nothing outstanding"}</span></div>
+      <div class="dcell link"><span class="l">Cameras</span>
+        <span class="v num" style="${t.off?"color:var(--off)":""}">${camLine}</span>
+        <span class="s">${t.off ? plural(t.off,"camera")+" offline here" : t.deg ? plural(t.deg,"camera")+" degraded here" : "this center only"}</span>
+        <button class="go" id="dGoHealth">See camera health across all ${DATA.length}
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>${note}`;
 }
 
 /* =====================================================================
@@ -1101,7 +1258,10 @@ function renderKpis(){
   const tiles = [
     {k:"issues", cls:issues?"t-n":"calm", l: isFiltered?"Centers in view":"Centers with issues",
      v: isFiltered ? p.length : `${issues} of ${p.length}`,
-     s: isFiltered ? `of ${DATA.length} assigned` : (issues ? "sorted to the top" : "everything reporting"),
+     // Don't claim they're sorted to the top unless they actually are.
+     s: isFiltered ? `of ${DATA.length} assigned`
+       : !issues ? "everything reporting"
+       : (S.sort==="issues" && S.dir==="desc") ? "sorted to the top" : "across your assignment",
      t:"Show only centers with an issue"},
     // A zero in a bad-news metric is good news: it goes calm rather than
     // staying alert-red/orange, and the sub-label states the good news.
@@ -1270,8 +1430,13 @@ function renderLive(){
 
 function render(){
   renderKpis(); renderTools(); renderSavedViews(); renderStrip();
-  renderBanner(); renderList(); renderLive(); renderDrawer(); renderPicker();
+  renderBanner(); renderList(); renderLive(); renderDrawer();
   $("qClear").hidden = !$("q").value;
+  // The notice names the center left behind on the Dashboard, so the
+  // change of altitude is stated in terms of what just happened.
+  const held = S.center && centerById(S.center);
+  $("noticeHeld").innerHTML = held
+    ? ` <b>${esc(held.name)}</b> stays selected on the Dashboard.` : "";
 }
 
 /* =====================================================================
@@ -1388,15 +1553,17 @@ function refresh({silent=false}={}){
   const after = sorted(filtered()).map(c=>c.id).join(",");
 
   // Ranking churn under the cursor — or under the keyboard — causes
-  // mis-clicks. Hold the new order until the user is done, and say so.
+  // mis-clicks, so the new order is held until the pointer and focus have
+  // left the list. It used to announce itself with a pill; the pill was
+  // more noise than the wait was worth, so it now just waits quietly.
   const engaged = S.hover || $("list").contains(document.activeElement);
   if (engaged && before !== after && (S.sort==="issues"||S.sort==="longest")){
-    S.pendingOrder = before; $("reorder").hidden = false;
+    S.pendingOrder = before;
     // The strip is patched, not rebuilt, so it can stay current even while
     // the list order is held back.
     renderKpis(); patchStrip(); renderBanner(); renderLive();
   } else {
-    S.pendingOrder = null; $("reorder").hidden = true;
+    S.pendingOrder = null;
     render();
   }
   // Announce what is actually on screen — the filtered set.
@@ -1411,6 +1578,7 @@ function refresh({silent=false}={}){
    camera is open, or while the user is typing a filter — every skipped
    poll is a query the read replica never has to serve. */
 setInterval(()=>{
+  if (S.screen !== "health") return;   // the board isn't open; don't poll for it
   S.age++;
   const blocked = S.paused || document.hidden || !!S.sel || document.activeElement === $("q")
     || document.activeElement?.matches?.("[data-notes]");
@@ -1426,7 +1594,7 @@ const list = $("list");
 list.addEventListener("mouseenter", ()=>{ S.hover = true; });
 list.addEventListener("mouseleave", ()=>{
   S.hover = false;
-  if (S.pendingOrder){ S.pendingOrder = null; $("reorder").hidden = true; render(); }
+  if (S.pendingOrder){ S.pendingOrder = null; render(); }
 });
 
 // camera blocks: click, roving-tabindex keyboard grid, tooltip
@@ -1532,7 +1700,7 @@ list.addEventListener("focusout",  e=>{
   // Once the keyboard user leaves the list, it is safe to apply a held order.
   setTimeout(()=>{
     if (S.pendingOrder && !S.hover && !list.contains(document.activeElement)){
-      S.pendingOrder = null; $("reorder").hidden = true; render();
+      S.pendingOrder = null; render();
     }
   }, 0);
 });
@@ -1649,11 +1817,12 @@ document.addEventListener("click", e=>{
   if (t.closest("#fParentOpt")){ S.parent=!S.parent; S.page=1; render(); return; }
   const fo = t.closest(".fopt");
   if (fo){
-    // The filters panel stays open so several choices can be made in one
-    // visit; picking a sort is a single decision, so that panel closes.
+    // Both panels stay open while you are still choosing — picking a sort
+    // field rewrites the two order labels below it, which is worth seeing.
+    // Choosing the order is the terminal decision, so that closes it.
     S[fo.dataset.f] = fo.dataset.v;
     if (fo.dataset.f==="status") S.kpi=null;
-    if (fo.dataset.f==="sort") S.sortOpen=false;
+    if (fo.dataset.f==="dir") S.sortOpen=false;
     S.page=1; render(); return;
   }
   const cf = t.closest("[data-clear-filter]");
@@ -1675,10 +1844,29 @@ document.addEventListener("click", e=>{
   if (av){ applyView(av.dataset.applyView); return; }
   const dv = t.closest("[data-del-view]");
   if (dv){ deleteView(dv.dataset.delView); return; }
-  // the illustrative center picker
-  if (S.pickerDemo && !t.closest("#sbar") && !t.closest('[data-demo="picker"]')){
-    S.pickerDemo = false; renderPicker(); return;
-  }
+  if (S.dropOpen && !t.closest("#sbar")){ S.dropOpen = false; renderPicker(); }
+});
+
+/* ---------- shell navigation ---------- */
+$("railMon").onclick  = ()=>goTo("health");
+$("railDash").onclick = ()=>goTo("dashboard");
+$("dash").addEventListener("click", e=>{
+  if (e.target.closest("#dGoHealth")) return goTo("health");
+  if (e.target.closest("#dPick")){ S.dropOpen = true; renderPicker(); $("cq").focus(); $("cq").select(); }
+});
+
+/* ---------- the header center picker (Dashboard only) ---------- */
+$("cq").addEventListener("focus", ()=>{ if (S.screen==="dashboard"){ S.dropOpen = true; renderPicker(); } });
+$("cq").addEventListener("input", ()=>{ S.dropOpen = true; renderPicker(); });
+$("cq").addEventListener("keydown", e=>{
+  if (e.key === "Escape"){ S.dropOpen = false; renderPicker(); e.target.blur(); }
+});
+$("drop").addEventListener("click", e=>{
+  const row = e.target.closest("[data-pickc]"); if (!row) return;
+  S.center = row.dataset.pickc; S.dropOpen = false;
+  $("cq").value = centerById(S.center).name; $("cq").blur();
+  renderPicker(); renderDashboard();
+  $("announce").textContent = `${centerById(S.center).name} selected. Dashboard updated.`;
 });
 document.addEventListener("keydown", e=>{
   if (e.key === "Escape" && (S.filtersOpen || S.sortOpen) && !S.sel){
@@ -1701,9 +1889,7 @@ $("pagerWrap").addEventListener("change", e=>{
   if (e.target.id==="perSel"){ S.per = +e.target.value; S.page=1; renderList(); }
 });
 
-$("reorderBtn").onclick = ()=>{ S.pendingOrder=null; $("reorder").hidden=true; render(); };
 $("banner").addEventListener("click", e=>{ if (e.target.closest("#retry")){ S.error=false; refresh(); } });
-$("cq").addEventListener("input", renderPicker);
 
 // drawer
 $("dClose").onclick = closeCam;
@@ -1722,22 +1908,25 @@ document.addEventListener("keydown", e=>{
 document.querySelector(".proto").addEventListener("click", e=>{
   const b = e.target.closest("[data-demo]"); if (!b) return;
   const d = b.dataset.demo;
-  if (d==="picker"){ S.pickerDemo = !S.pickerDemo; renderPicker(); if (S.pickerDemo) $("cq").focus(); }
   if (d==="loading"){ S.loading=true; S.error=false; render(); setTimeout(()=>{ S.loading=false; render(); }, 1400); }
   if (d==="fail"){ S.error=true; S.paused=false; render(); $("announce").textContent="Refresh failed. Showing the last good read."; }
   if (d==="healthy"){ DATA.forEach(c=>c.cams.forEach(cam=>{cam.status="ok"; cam.since=Math.floor(rnd()*4000)+200;})); S.error=false; render(); }
   if (d==="reset"){ DATA = build(); S.error=false; S.sel=null; showNotice(true); clearAll(); }
 });
 
-/* ---------- boot ---------- */
+/* ---------- boot ----------
+   Opens on the Dashboard, with a center already chosen: that is the state
+   someone is actually in when they decide to go look at camera health, and
+   the contrast only lands if you arrive from it rather than start there. */
 (function init(){
   S.savedViews = loadSavedViews();
   S.centerNotes = loadNotes();
   $("noticeN").textContent = DATA.length;
   try { if (localStorage.getItem(NOTICE_KEY)) $("notice").hidden = true; } catch(e){}
-  S.loading = true; render();
-  setTimeout(()=>{ S.loading = false; render();
-    $("announce").textContent = `Camera health loaded. ${DATA.length} centers.`; }, 900);
+  S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
+  S.loading = true;
+  renderShell(); renderDashboard(); render();
+  setTimeout(()=>{ S.loading = false; render(); }, 900);
 })();
 </script>
 <nav class="vsw" aria-label="Prototype version">

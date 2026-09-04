@@ -220,7 +220,7 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       place a dismissible line states it in words. The platform's center picker stays in the header but
       disabled: choosing a center happens on the Dashboard, and a control that vanishes when you change section
       reads as a bug where one that greys out reads as "not applicable here". Also cut in the same pass: the
-      comfortable/compact switch (one density, the smaller one), the arrow that pointed from a picked block to
+      comfortable/compact switch (one density, no control), the arrow that pointed from a picked block to
       the search field (the highlight and the filled field already say it), the link icon beside every center
       name, and the "all clear" banner. Filters and sort split into two dropdowns at the far right, because the
       active sort was invisible while it lived inside a panel called Filters. The search box now holds a draft
@@ -237,6 +237,22 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       question: at 52 centers the strip is three rows of brand groups, not a wall, and the rail of squares still
       reads at a glance.</p>
     </div></div>
+    <div class="q"><span class="n num">17</span><div>
+      <p><strong>Made the prototype open on the Dashboard, not on Monitoring.</strong> The reasoning was the
+      point of the whole exercise: Monitoring is a <em>new</em> section, so the only way to judge it is to
+      arrive from somewhere that works the old way. So the prototype now starts on a center's dashboard with
+      the header picker live and one center's numbers on screen; the Cameras cell there is the door into
+      Monitoring, which is also where someone would really notice cameras. Crossing over, the picker empties
+      and locks — an emptied, greyed field is the clearest available statement that the page stopped being
+      about one center — and the notice names the center still selected behind you on the Dashboard. The
+      dashboard screen is deliberately thin and says so on its face: it stands in for the existing product.</p>
+      <p>In the same pass: sorting gained a direction, with both ends named in the sorted field's own words
+      ("Most issues first" / "Fewest issues first", "A–Z" / "Z–A") rather than a bare asc/desc the reader has
+      to translate; rows went back to the comfortable density (the compact one was too small to read at a
+      glance); the coloured left edge came off the cards; the "Ranking changed — reorder" pill came off
+      entirely, though the wait it announced stays; the board fills the window's width; and the rail and
+      sub-tab icons grew, with their labels pinned at 9px and 11px.</p>
+    </div></div>
   </div>
 </section>
 
@@ -249,7 +265,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       under Cameras, and originally shown beside four placeholder sub-tabs that have since gone: a section
       that holds one thing should say so rather than advertise a roadmap. Cheapest to ship of the two. It no
       longer carries a scope toggle either: the page is always the whole assignment, the header's center picker
-      greys out while you are in it, and a strip of all 52 centers makes the altitude self-evident.</p>
+      empties and greys out while you are in it, and a strip of all 52 centers makes the altitude self-evident.
+      The prototype opens on a center's Dashboard so that change of state is something you watch happen rather
+      than something you read about.</p>
     </div>
     <div class="card dev">
       <span class="k">B · Toggle — a scope above center selection</span>
@@ -273,8 +291,8 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     <span class="sw-item"><span class="sw ok"></span><b>Normal</b><span>flat fill</span></span>
   </div>
   <p>The counts get their own column because sharing it with identity makes them wrap unpredictably; given
-  a column, ten rows becomes one scannable ladder of digits. A 3px left edge carries each row's worst
-  status, so the list reads before any text does.</p>
+  a column, ten rows becomes one scannable ladder of digits. Rows carry no coloured left edge: the counts
+  column and the squares already state the severity twice, and a third encoding of it was just stripes.</p>
   <p>Above the list, version A adds a <strong>centers strip</strong>: the same three-way encoding applied one
   level up, one block per center the account can see, grouped by brand so the hunt for a particular site is
   bounded. It is not a separate card — it shares one card with the search and filter row, because its real job
@@ -286,7 +304,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <p>The prototype's user is assigned <strong>52 centers</strong> across eight brands. At that size the strip
   becomes three rows of brand-labelled groups rather than an undifferentiated wall, which is why the grouping
   exists at all: it bounds the hunt for one site to six or seven squares. Center rows sit at one density —
-  the compact one — since a density switch is a preference the page can simply make well once.</p>
+  the comfortable one, with 20px squares — since a density switch is a preference the page can simply make
+  well once. The board fills the window's full width: the camera grids are what benefits from every pixel,
+  because a wider row is fewer wrapped rows per center.</p>
 </section>
 
 <section>
@@ -333,8 +353,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     <li><strong>Pause is real and labeled:</strong> "showing a frozen view," not a stopped clock.</li>
     <li><strong>It stops on its own</strong> when the tab is hidden, a detail view is open, or someone is
     typing a filter.</li>
-    <li><strong>Ranking never changes under the cursor.</strong> A reorder is held behind a
-    "Ranking changed — reorder" pill until the user leaves the list.</li>
+    <li><strong>Ranking never changes under the cursor.</strong> A reorder waits, silently, until the pointer
+    and the keyboard have both left the list. It used to announce the wait with a pill; the pill turned out to
+    cost more attention than the wait it was explaining.</li>
     <li><strong>Failure is stated, not hidden</strong> — an amber banner names the data's age and offers
     retry; the board never goes blank.</li>
     <li><strong>Nothing focused or hovered gets replaced.</strong> The centers strip is built once and then
