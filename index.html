@@ -127,12 +127,69 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:24px;line-he
 /* Ported from Toggle: a zero in Offline/Degraded goes calm rather than alert. */
 .kpi.calm .kpi-v{color:var(--ink-3);font-weight:600}
 
+/* ---------- board: "Your centers" + the toolbar, as one card ----------
+   The strip and the search/filter row are deliberately not two cards.
+   Clicking a center block writes into the search field one row below it,
+   and a caret sits on the seam between them pointing at that field — the
+   layout carries the causality so no copy has to explain it. */
+.board{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-card)}
+.strip{position:relative;padding:12px 14px 11px}
+.strip-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:11px}
+.strip-title{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+.strip-sub{font-size:12px;color:var(--ink-3)}
+.strip-sub b{font-weight:700;color:var(--ink-2)}
+.strip-head .legend{margin-left:auto}
+.cgroups{display:flex;flex-wrap:wrap;gap:11px 20px}
+.cgroup{display:flex;flex-direction:column;gap:6px;min-width:0}
+.glabel{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:var(--ink-4);font-family:'Titillium Web',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+.glabel .gn{color:var(--ink-3);font-variant-numeric:tabular-nums;letter-spacing:0}
+.crow{display:flex;flex-wrap:wrap;gap:6px}
+/* Same three-way encoding as a camera block — color plus shape — one level up. */
+.cblk{position:relative;width:28px;height:28px;border-radius:7px;flex-shrink:0;background-repeat:no-repeat;background-position:center;
+  background-size:100% 100%;transition:transform .11s,box-shadow .12s,opacity .12s}
+.cblk.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.cblk.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2.5px,transparent 2.5px 6px)}
+.cblk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E")}
+.cblk:hover{transform:translateY(-2px)}
+.cblk:focus-visible{box-shadow:var(--focus);transform:translateY(-2px)}
+.cblk.muted{opacity:.28}
+.cblk.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
+.cblk.picked{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue);transform:translateY(-2px)}
+/* "you are here" — the center the single-center scope is pinned to */
+.cblk.home::after{content:"";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:16px;height:2.5px;border-radius:2px;background:var(--blue-ink)}
+/* a center that already carries a note */
+.cblk.hasnote::before{content:"";position:absolute;top:-3px;right:-3px;width:9px;height:9px;border-radius:50%;
+  background:var(--blue);box-shadow:0 0 0 1.6px var(--surface)}
+.strip-hint{display:flex;align-items:center;gap:7px;margin-top:12px;font-size:12px;color:var(--ink-4)}
+.strip-hint svg{flex-shrink:0}
+.strip-hint b{color:var(--ink-2);font-weight:700}
+.strip-hint .undo{font-size:12px;font-weight:700;color:var(--blue-ink);text-decoration:underline;padding:2px 4px;border-radius:6px}
+.strip-hint .undo:hover{background:var(--blue-tint)}
+/* the caret on the seam: strip → the search field it just filled */
+.tie{position:absolute;bottom:0;z-index:3;display:flex;flex-direction:column;align-items:center;transform:translateX(-50%);
+  pointer-events:none;transition:left .2s cubic-bezier(.4,0,.2,1)}
+.tie[hidden]{display:none}
+.tie .ln{width:2px;height:11px;border-radius:2px;background:linear-gradient(rgba(21,157,235,0),var(--blue))}
+.tie .tri{width:0;height:0;margin-bottom:-6px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:6px solid var(--blue)}
+
 /* filter bar */
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px;box-shadow:var(--shadow-card)}
+.board .filters{border:none;border-top:1px solid var(--line);border-radius:0 0 12px 12px;box-shadow:none;background:var(--fill-2)}
 .field{position:relative;display:flex;align-items:center}
 .field svg{position:absolute;left:10px;pointer-events:none}
-.field input{width:230px;padding:8px 10px 8px 32px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface)}
+.field input{width:230px;padding:8px 28px 8px 32px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface)}
 .field input:focus{border-color:var(--blue);box-shadow:var(--focus)}
+.field .qclear{position:absolute;right:5px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:var(--ink-4)}
+.field .qclear svg{position:static}
+.field .qclear[hidden]{display:none}
+.field .qclear:hover{background:var(--fill);color:var(--ink-2)}
+.field.linked input{border-color:var(--blue);background:var(--surface)}
+@keyframes qpulse{from{box-shadow:0 0 0 0 rgba(21,157,235,.5)} to{box-shadow:0 0 0 10px rgba(21,157,235,0)}}
+.field.pulse input{animation:qpulse .75s ease-out 1}
+/* the matched card, right after a strip click */
+@keyframes cardflash{from{box-shadow:0 0 0 3px rgba(21,157,235,.45),var(--shadow-card)} to{box-shadow:0 0 0 3px rgba(21,157,235,0),var(--shadow-card)}}
+.center.flash{animation:cardflash 1.1s ease-out 1}
 select{padding:8px 10px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface);cursor:pointer}
 select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .flabel{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);font-family:'Titillium Web',sans-serif}
@@ -234,13 +291,23 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .center.clean{border-left-color:var(--ok-line)}
 .c-name{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);display:flex;align-items:baseline;gap:7px}
 .c-rank{font-size:11.5px;color:var(--ink-4);min-width:14px;flex-shrink:0}
-.c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:0}
+.c-meta>.num{flex:0 0 auto}
 
-/* per-center notes — a scratch textbox, not a comment thread */
-.notesBtn{display:inline-flex;align-items:center;gap:4px;padding:2px 7px 2px 6px;border-radius:20px;font-size:11px;font-weight:600;color:var(--ink-4);flex-shrink:0}
+/* per-center notes — a scratch textbox, not a comment thread.
+   Three states worth telling apart: nothing written (quiet), something
+   written (blue-tinted chip that says so), and open for editing (solid). */
+.notesBtn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 6px;border-radius:20px;font-size:11px;font-weight:600;
+  color:var(--ink-4);border:1px solid transparent;flex:0 1 auto;min-width:0}
 .notesBtn:hover{background:var(--fill);color:var(--ink-2)}
-.notesBtn[aria-pressed="true"]{background:var(--blue-tint);color:var(--blue-deep)}
-.notesBtn .dot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex-shrink:0}
+.notesBtn svg{flex-shrink:0}
+.notesBtn .notesLbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+/* color AND shape, same rule the status blocks follow: a written note
+   fills the page glyph in as well as tinting the chip */
+.notesBtn.has-note{background:var(--blue-tint);border-color:#a8d5f2;color:var(--blue-deep);font-weight:700}
+.notesBtn.has-note svg path:first-child{fill:currentColor;fill-opacity:.22}
+.notesBtn.has-note:hover{background:#cbe7fa;color:var(--blue-deep)}
+.notesBtn[aria-pressed="true"],.notesBtn.has-note[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
 .notesBox{grid-column:1/-1;padding-top:10px;margin-top:2px;border-top:1px solid var(--line-2)}
 .notesBox textarea{width:100%;min-height:56px;padding:8px 10px;border:1px solid var(--line-3);border-radius:8px;
   font-family:inherit;font-size:12.5px;line-height:1.45;color:var(--ink-2);resize:vertical;background:var(--fill-2)}
@@ -304,6 +371,33 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .d-head{display:flex;align-items:flex-start;gap:10px;padding:14px 14px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
 .d-head h2{font-family:'Titillium Web',sans-serif;font-size:16px;font-weight:700;line-height:1.2}
 .d-head .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.d-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+/* ---------- the drawer states the camera's condition, loudly for offline ----
+   An offline camera is the one thing on this board that costs someone a
+   drive; the panel that opens on it should not look like the panel for a
+   healthy one. The whole drawer takes the status: red edge, tinted header,
+   a headline duration you can read across a desk. Degraded gets the same
+   structure one notch quieter; normal stays deliberately calm. */
+.drawer.st-off{border-left:4px solid var(--off)}
+.drawer.st-off .d-head{background:var(--off-tint);border-bottom-color:var(--off-line)}
+.drawer.st-deg{border-left:4px solid var(--deg)}
+.drawer.st-deg .d-head{background:var(--deg-tint);border-bottom-color:var(--deg-line)}
+.dstate{display:flex;gap:11px;align-items:flex-start;border-radius:10px;padding:12px 13px;border:1px solid}
+.dstate .ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:rgba(255,255,255,.72)}
+.dstate .txt{min-width:0}
+.dstate b{display:block;font-family:'Titillium Web',sans-serif;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.dstate .big{display:block;font-size:23px;font-weight:700;line-height:1.15;letter-spacing:-.01em;margin:1px 0 2px}
+.dstate p{font-size:12px;opacity:.92}
+.dstate.off{background:var(--off-tint);border-color:var(--off-line);color:#991b1b}
+.dstate.deg{background:var(--deg-tint);border-color:var(--deg-line);color:#9a3412}
+.dstate.ok{background:var(--ok-tint);border-color:var(--ok-line);color:#15803d;padding:10px 13px}
+.dstate.ok .big{font-size:15px;margin:0}
+.media.dead{background:repeating-linear-gradient(45deg,#fff6f6 0 9px,#ffecec 9px 18px);border-color:var(--off-line)}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--off);flex-shrink:0;animation:pl 1.7s infinite}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55)}70%{box-shadow:0 0 0 8px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
+.d-note{font-size:11.5px;color:var(--ink-3);display:flex;gap:6px;align-items:flex-start}
+.d-note svg{flex-shrink:0;margin-top:2px}
 .d-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:14px}
 .media{aspect-ratio:16/10;border-radius:10px;border:1px solid var(--line);background:var(--fill);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
 .media .lbl{font-size:12px;font-weight:600;color:var(--ink-3)}
@@ -352,6 +446,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .field input{width:100%}
   .field{flex:1 1 100%}
   .filters{gap:8px}
+  .strip-head .legend{margin-left:0;width:100%;gap:12px;flex-wrap:wrap}
+  .cgroups{gap:10px 16px}
   /* #fwrapSlot is a plain wrapper div (Toggle injects .fwrap without one),
      so it needs an explicit width here — otherwise .fwrap's width:100%
      resolves against an undefined auto-sized flex item and the panel
@@ -421,29 +517,14 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
     </nav>
 
     <div class="col">
-      <!-- ===== shell: sub-nav ===== -->
-      <div class="tabbar" role="tablist" aria-label="Camera sections">
+      <!-- ===== shell: sub-nav =====
+           Monitoring holds exactly one section today. The strip stays so the
+           page keeps its "you are inside Monitoring" anchor, but nothing
+           speculative is parked next to it. -->
+      <div class="tabbar" role="tablist" aria-label="Monitoring sections">
         <button class="tab" role="tab" aria-current="page" aria-selected="true">
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#159deb" stroke-width="2"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg>
           <span>Camera Health</span>
-        </button>
-        <div class="tabdiv"></div>
-        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
-          <span>Live</span>
-        </button>
-        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M4 19V9m5 10V5m5 14v-7m5 7V8"/></svg>
-          <span>History</span>
-        </button>
-        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><path d="M7 4h10a1 1 0 011 1v14.2a.6.6 0 01-.93.5L12 16.5l-5.07 3.2a.6.6 0 01-.93-.5V5a1 1 0 011-1z"/></svg>
-          <span>Saved Clips</span>
-        </button>
-        <div class="tabdiv"></div>
-        <button class="tab decor" role="tab" tabindex="-1" aria-disabled="true" title="Not built yet">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><rect x="3" y="4.5" width="18" height="12" rx="1.5"/><path d="M8.5 20h7M12 16.5V20"/></svg>
-          <span>Admin Display</span>
         </button>
       </div>
 
@@ -498,27 +579,58 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <div class="kpis" id="kpis"></div>
           <div id="sumnoteWrap"></div>
 
-          <div class="filters">
-            <div class="field">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-              <input id="q" placeholder="Center name or store number" aria-label="Filter by center name or store number">
+          <!-- ===== your centers + toolbar: one connected card =====
+               The strip is every center this account can see, drawn with the
+               same block language as the cameras inside a center — one step
+               up the hierarchy. It shares a card with the search/filter row
+               on purpose: clicking a block writes that center into the search
+               field directly below it, and a caret on the seam points at the
+               field it just filled, so the cause and the effect are one
+               object rather than two coincidences. -->
+          <section class="board" aria-label="Your centers, search and filters">
+            <div class="strip" id="stripWrap">
+              <div class="strip-head">
+                <span class="strip-title">Your centers</span>
+                <span class="strip-sub" id="stripSub"></span>
+                <span class="legend">
+                  <span class="lg"><span class="sw off"></span>Cameras offline</span>
+                  <span class="lg"><span class="sw deg"></span>Degraded only</span>
+                  <span class="lg"><span class="sw ok"></span>All reporting</span>
+                </span>
+              </div>
+              <div class="cgroups" id="strip" role="group" aria-label="All centers you can see"></div>
+              <p class="strip-hint">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 3.5l11.5 7-4.8 1.3 2.6 5-2.3 1.2-2.6-5-3 3.6z"/></svg>
+                <span id="stripHintTxt">Click a center to search for it below.</span>
+                <button class="undo" id="stripClear" hidden>Clear</button>
+              </p>
+              <div class="tie" id="tie" hidden aria-hidden="true"><span class="ln"></span><span class="tri"></span></div>
             </div>
-            <button class="btn" id="densityBtn" aria-pressed="false" title="Toggle row density">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
-              <span id="densityLbl">Comfortable</span>
-            </button>
-            <div id="fwrapSlot"></div>
-          </div>
+
+            <div class="filters">
+              <div class="field" id="qField">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <input id="q" placeholder="Center name or store number" aria-label="Filter by center name or store number">
+                <button class="qclear" id="qClear" hidden aria-label="Clear search">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
+                </button>
+              </div>
+              <button class="btn" id="densityBtn" aria-pressed="false" title="Toggle row density">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <span id="densityLbl">Comfortable</span>
+              </button>
+              <div id="fwrapSlot"></div>
+            </div>
+          </section>
 
           <div id="savedViewsSlot"></div>
 
+          <!-- No legend here: the one in the strip head above covers the
+               same three-way encoding, and two keys 200px apart read as a
+               mistake. The strip is the first colored thing on the page,
+               so the key belongs there. -->
           <div class="resultline">
             <span id="count"></span>
-            <span class="legend">
-              <span class="lg"><span class="sw off"></span>Offline</span>
-              <span class="lg"><span class="sw deg"></span>Degraded</span>
-              <span class="lg"><span class="sw ok"></span>Normal</span>
-            </span>
           </div>
 
           <div id="banner"></div>
@@ -547,9 +659,9 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
   <!-- ===== camera detail drawer ===== -->
   <aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-labelledby="dTitle" aria-hidden="true">
-    <div class="d-head">
+    <div class="d-head" id="dHead">
       <div style="flex:1;min-width:0">
-        <h2 id="dTitle">—</h2>
+        <div class="d-title-row"><h2 id="dTitle">—</h2><span id="dPill"></span></div>
         <div class="sub" id="dSub">—</div>
       </div>
       <button class="ctrlbtn" id="dClose" aria-label="Close camera detail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.4"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
@@ -643,6 +755,7 @@ const S = {
   paused:false, tick:30, loading:false, error:false,
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
+  centerPick:null,      // center id searched for from the "Your centers" strip
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
   filtersOpen:false, savedViews:[], savingOpen:false,  // ported from the Toggle version
@@ -672,21 +785,23 @@ function persistNotesSoon(){
 
 function pool(){ return S.scope === "one" ? DATA.filter(c=>c.id===HOME) : DATA; }
 
-function filtered(){
-  const q = S.q.trim().toLowerCase();
-  return pool().filter(c => {
-    const t = tally(c);
-    if (q && !(c.name.toLowerCase().includes(q) || c.store.includes(q))) return false;
-    if (S.brand !== "all" && c.brand !== S.brand) return false;
-    if (S.state !== "all" && c.state !== S.state) return false;
-    if (S.parent && !c.pub) return false;
-    if (S.status === "issues" && !(t.off || t.deg)) return false;
-    if (S.status === "off"    && !t.off) return false;
-    if (S.status === "deg"    && !t.deg) return false;
-    if (S.status === "clean"  && (t.off || t.deg)) return false;
-    return true;
-  });
+/* Filter test on its own, without the scope test: the centers strip needs
+   to know "would this center survive the current filters" while still
+   drawing every center the account can see. */
+function matchesFilters(c, {ignoreQ=false}={}){
+  const q = ignoreQ ? "" : S.q.trim().toLowerCase();
+  const t = tally(c);
+  if (q && !(c.name.toLowerCase().includes(q) || c.store.includes(q))) return false;
+  if (S.brand !== "all" && c.brand !== S.brand) return false;
+  if (S.state !== "all" && c.state !== S.state) return false;
+  if (S.parent && !c.pub) return false;
+  if (S.status === "issues" && !(t.off || t.deg)) return false;
+  if (S.status === "off"    && !t.off) return false;
+  if (S.status === "deg"    && !t.deg) return false;
+  if (S.status === "clean"  && (t.off || t.deg)) return false;
+  return true;
 }
+function filtered(){ return pool().filter(matchesFilters); }
 
 function sorted(list){
   const a = [...list];
@@ -846,6 +961,155 @@ function renderSavedViews(){
 }
 
 /* =====================================================================
+   "Your centers" strip — every center the account can see, one block each,
+   in the same encoding the camera blocks use one level down (color plus
+   shape: X = has offline cameras, hatch = degraded only, flat = clean).
+
+   It is the account-wide read *and* the way into a single center: a click
+   writes that center's name into the search field directly beneath it, so
+   the strip is a navigation surface rather than one more chart. Filters
+   flow the other way too — a center the current filters exclude is dimmed
+   in place instead of vanishing, since the point of the strip is that it
+   always shows the whole assignment.
+
+   Blocks are built once and then patched in place on every refresh: the
+   nodes are focusable and hoverable, and replacing one under the pointer
+   or the caret is the bug this codebase keeps re-learning.
+   ===================================================================== */
+const centerStatus = c => { const t = tally(c); return t.off ? "off" : t.deg ? "deg" : "ok"; };
+const noteOf = id => (S.centerNotes[id] || "").trim();
+
+function stripGroups(){
+  const m = new Map();
+  DATA.forEach(c => { if (!m.has(c.brand)) m.set(c.brand, []); m.get(c.brand).push(c); });
+  return [...m.entries()].map(([brand, cs]) => ({brand, cs:[...cs].sort((a,b)=>a.name.localeCompare(b.name))}));
+}
+
+let stripSig = "";
+function renderStrip(){
+  const groups = stripGroups();
+  const sig = groups.map(g=>g.brand+":"+g.cs.map(c=>c.id).join("|")).join(";");
+  if (sig !== stripSig){
+    let first = true;
+    $("strip").innerHTML = groups.map(g => `<div class="cgroup">
+      <span class="glabel">${esc(g.brand)}<span class="gn">${g.cs.length}</span></span>
+      <div class="crow">${g.cs.map(c=>{
+        const t = `<button class="cblk" data-cid="${c.id}" tabindex="${first?0:-1}"></button>`;
+        first = false; return t;
+      }).join("")}</div>
+    </div>`).join("");
+    stripSig = sig;
+  }
+  patchStrip();
+}
+
+function patchStrip(){
+  // While the first read is in flight the strip must not claim to know
+  // anything: same blocks, no status, not clickable.
+  if (S.loading){
+    $("strip").querySelectorAll(".cblk").forEach(b=>{
+      b.className = "cblk pending";
+      b.setAttribute("aria-label", "Loading center status");
+      b.setAttribute("aria-pressed", "false");
+    });
+    $("stripSub").textContent = "reading the latest heartbeat…";
+    $("stripHintTxt").textContent = "Click a center to search for it below.";
+    $("stripClear").hidden = true;
+    positionTie();
+    return;
+  }
+  // Dimming answers "which centers did the filters rule out" — and the
+  // search text is deliberately excluded from that, because the search is
+  // usually the strip's own doing. Letting it dim would black out thirteen
+  // blocks the moment you clicked the fourteenth, which is the opposite of
+  // what an overview is for.
+  const pass = new Set(DATA.filter(c=>matchesFilters(c,{ignoreQ:true})).map(c=>c.id));
+  const dropdownFilters = activeFilters().length > 0;
+  $("strip").querySelectorAll(".cblk").forEach(b => {
+    const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
+    const t = tally(c), st = centerStatus(c), noted = !!noteOf(c.id);
+    b.className = ["cblk", st,
+      pass.has(c.id) ? "" : "muted",
+      S.centerPick === c.id ? "picked" : "",
+      c.id === HOME ? "home" : "",
+      noted ? "hasnote" : ""].filter(Boolean).join(" ");
+    b.setAttribute("aria-pressed", String(S.centerPick === c.id));
+    b.setAttribute("aria-label",
+      `${c.name}. ${t.off ? plural(t.off,"camera") + " offline"
+        : t.deg ? plural(t.deg,"camera") + " degraded" : "All " + t.total + " reporting"}.`
+      + `${noted ? " Has a note." : ""}${c.id===HOME ? " Your current center." : ""}`
+      + ` ${S.centerPick===c.id ? "Clear this search." : "Search for this center."}`);
+  });
+
+  const need = DATA.filter(c=>centerStatus(c)!=="ok").length;
+  $("stripSub").innerHTML = `<b class="num">${DATA.length}</b> centers · `
+    + (need ? `<b class="num">${need}</b> need attention` : `all reporting`)
+    + (dropdownFilters ? ` · <b class="num">${pass.size}</b> match your filters` : "");
+
+  const picked = S.centerPick && DATA.find(c=>c.id===S.centerPick);
+  $("stripHintTxt").innerHTML = picked
+    ? `Searching for <b>${esc(picked.name)}</b> in the list below.`
+    : dropdownFilters
+      ? `Click a center to search for it below. Dimmed centers don't match your filters.`
+      : `Click a center to search for it below.`;
+  $("stripClear").hidden = !picked;
+
+  positionTie();
+}
+
+/* The caret that ties a picked block to the search field it filled. */
+function positionTie(){
+  const tie = $("tie"), wrap = $("stripWrap");
+  const b = S.centerPick ? $("strip").querySelector(`.cblk[data-cid="${CSS.escape(S.centerPick)}"]`) : null;
+  if (!b){ tie.hidden = true; return; }
+  const wr = wrap.getBoundingClientRect(), br = b.getBoundingClientRect();
+  tie.hidden = false;
+  tie.style.left = (br.left - wr.left + br.width/2) + "px";
+}
+window.addEventListener("resize", positionTie);
+
+/* Clicking a center is a promise that the list below will show it, so drop
+   exactly the filters that would have excluded it — no more, no less — and
+   never hand back an empty result. */
+function pickCenter(id){
+  const c = DATA.find(x=>x.id===id); if (!c) return;
+  if (S.centerPick === id) return clearCenterPick();
+  const t = tally(c);
+  const dropped = [];
+  if (S.brand !== "all" && c.brand !== S.brand){ S.brand="all"; dropped.push("brand"); }
+  if (S.state !== "all" && c.state !== S.state){ S.state="all"; dropped.push("state"); }
+  if (S.parent && !c.pub){ S.parent=false; dropped.push("parent-facing"); }
+  if ((S.status==="issues" && !(t.off||t.deg)) || (S.status==="off" && !t.off)
+      || (S.status==="deg" && !t.deg) || (S.status==="clean" && (t.off||t.deg))){
+    S.status="all"; S.kpi=null; dropped.push("status");
+  }
+  S.scope = "all"; S.centerPick = id; S.q = c.name; S.page = 1;
+  S.filtersOpen = false; S.savingOpen = false;
+  $("q").value = c.name;
+  render();
+
+  const f = $("qField");
+  f.classList.add("linked","pulse");
+  setTimeout(()=>f.classList.remove("pulse"), 800);
+  const card = $("list").querySelector(`.center[data-cid="${CSS.escape(id)}"]`);
+  if (card){
+    card.classList.add("flash");
+    card.scrollIntoView({block:"nearest", behavior:"smooth"});
+    setTimeout(()=>card.classList.remove("flash"), 1200);
+  }
+  $("announce").textContent = `Searching for ${c.name}. `
+    + `${t.off ? plural(t.off,"camera")+" offline" : t.deg ? plural(t.deg,"camera")+" degraded" : "all "+t.total+" cameras reporting"}.`
+    + (dropped.length ? ` Cleared the ${dropped.join(" and ")} filter.` : "");
+}
+function clearCenterPick(){
+  S.centerPick = null; S.q = ""; S.page = 1;
+  $("q").value = "";
+  $("qField").classList.remove("linked");
+  render();
+  $("announce").textContent = "Center search cleared.";
+}
+
+/* =====================================================================
    Render
    ===================================================================== */
 function renderKpis(){
@@ -907,7 +1171,15 @@ function centerHtml(c, absIndex){
       data-ci="${c.id}" data-i="${i}" tabindex="${i===0?0:-1}"
       aria-label="Camera ${cam.n}, ${cam.room}, ${cam.status==="off"?"offline for "+dur(cam.since):cam.status==="deg"?"degraded for "+dur(cam.since):"normal"}"></button>`).join("");
 
-  return `<section class="center ${cls}" aria-label="${c.name}. ${t.off} offline, ${t.deg} degraded, ${t.total} cameras.">
+  // A note already written should be visible without opening anything: the
+  // chip goes blue and its verb changes, so a center you have annotated
+  // reads differently from one you haven't. The note's text is one hover
+  // (or one click) away rather than inline — there is no room for it on
+  // the meta line at the narrowest column width, and a chip that changes
+  // width with its content makes the whole row jump.
+  const note = noteOf(c.id);
+
+  return `<section class="center ${cls}" data-cid="${c.id}" aria-label="${c.name}. ${t.off} offline, ${t.deg} degraded, ${t.total} cameras.${note?" Has a note.":""}">
     <div>
       <div class="c-name">${absIndex!==null?`<span class="c-rank num">${absIndex}</span>`:""}<span>${c.name}</span>
         <a class="c-open" href="#" onclick="return false" title="Open ${c.name} on my.wmg" aria-label="Open ${c.name} on my.wmg">
@@ -915,10 +1187,11 @@ function centerHtml(c, absIndex){
         </a>
       </div>
       <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span>
-        <button class="notesBtn" data-notes-toggle="${c.id}" aria-pressed="${!!S.notesOpen[c.id]}"
-          aria-label="${(S.centerNotes[c.id]||"").trim()?"Edit note":"Add a note"} for ${c.name}">
+        <button class="notesBtn${note?" has-note":""}" data-notes-toggle="${c.id}" aria-pressed="${!!S.notesOpen[c.id]}"
+          title="${note ? esc(note.slice(0,180)) : "Add a note about this center"}"
+          aria-label="${note?"Edit note":"Add a note"} for ${c.name}">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/></svg>
-          <span class="notesLbl">${(S.centerNotes[c.id]||"").trim() ? `<span class="dot"></span>` : "Notes"}</span>
+          <span class="notesLbl">Note</span>
         </button>
       </div>
     </div>
@@ -977,6 +1250,10 @@ function renderList(){
     list.innerHTML = view.map((c,i)=>centerHtml(c, S.sort==="issues"||S.sort==="longest" ? start+i+1 : null)).join("");
     restore();
   }
+  // mouseout never fires for a node that was removed from under the
+  // pointer, so a re-render used to leave a stale tooltip stranded on the
+  // page. Re-anchor it to the block that took its place, or drop it.
+  reanchorTip();
   document.body.classList.toggle("focusmode", S.scope==="one");
 
   // pagination — hidden when there is nothing to page through
@@ -1043,7 +1320,8 @@ function renderLive(){
 }
 
 function render(){
-  renderKpis(); renderFilters(); renderSavedViews(); renderBanner(); renderList(); renderLive(); renderDrawer();
+  renderKpis(); renderFilters(); renderSavedViews(); renderStrip(); renderBanner(); renderList(); renderLive(); renderDrawer();
+  $("qClear").hidden = !S.q;
   if (S.scope === "all") $("hint").hidden = true;
   $("scopeOne").setAttribute("aria-pressed", String(S.scope==="one"));
   $("scopeAll").setAttribute("aria-pressed", String(S.scope==="all"));
@@ -1061,12 +1339,23 @@ function renderDrawer(){
   const c = DATA.find(x=>x.id===S.sel.ci); if (!c){ S.sel=null; return; }
   const cam = c.cams[S.sel.idx];
   d.classList.add("open"); d.setAttribute("aria-hidden","false");
+  d.classList.toggle("st-off", cam.status === "off");
+  d.classList.toggle("st-deg", cam.status === "deg");
   $("dTitle").textContent = `Cam ${cam.n} — ${cam.room}`;
   $("dSub").textContent = `${c.name} · ${c.state} · Store #${c.store}`;
 
+  // The header pill repeats the status where the eye lands first, and an
+  // offline one carries a live pulse so the panel never reads as a static
+  // record of something that is still happening.
+  $("dPill").innerHTML = cam.status === "off"
+    ? `<span class="pill off"><span class="pulse"></span>Offline now</span>`
+    : cam.status === "deg" ? `<span class="pill deg"><span class="sw deg" style="width:9px;height:9px;border-radius:2px"></span>Degraded</span>`
+    : `<span class="pill ok"><span class="sw ok" style="width:9px;height:9px;border-radius:2px"></span>Normal</span>`;
+
   const media = cam.status === "off"
-    ? `<div class="media"><span class="tag" style="color:#b91c1c;border-color:var(--off-line);background:var(--off-tint)">No signal</span>
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg></div>`
+    ? `<div class="media dead"><span class="tag" style="color:#b91c1c;border-color:var(--off-line);background:var(--off-tint)">No signal</span>
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg>
+        <span class="lbl" style="color:#b91c1c;font-weight:700">Nothing to show — this camera stopped reporting</span></div>`
     : cam.status === "deg"
     ? `<div class="media live"><span class="tag" style="color:#c2410c;border-color:var(--deg-line);background:var(--deg-tint)">Impaired</span>
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
@@ -1075,21 +1364,40 @@ function renderDrawer(){
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
         <span class="lbl">Preview available</span></div>`;
 
-  const pill = cam.status === "off" ? `<span class="pill off"><span class="sw off" style="width:9px;height:9px;border-radius:2px"></span>Offline</span>`
-    : cam.status === "deg" ? `<span class="pill deg"><span class="sw deg" style="width:9px;height:9px;border-radius:2px"></span>Degraded</span>`
-    : `<span class="pill ok"><span class="sw ok" style="width:9px;height:9px;border-radius:2px"></span>Normal</span>`;
+  // One headline block instead of a "Status" row buried in a table: the
+  // duration is the number someone acts on, so it gets the type size.
+  const state = cam.status === "off"
+    ? `<div class="dstate off">
+        <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
+        <div class="txt"><b>Offline — no heartbeat</b>
+          <span class="big num">${dur(cam.since)}</span>
+          <p>Down since the last good heartbeat. Checked again ${ago(cam.checked)}.</p></div>
+      </div>`
+    : cam.status === "deg"
+    ? `<div class="dstate deg">
+        <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2.4"><path d="M12 8v5"/><path d="M12 16.5v.4"/><circle cx="12" cy="12" r="9"/></svg></span>
+        <div class="txt"><b>Degraded — still reporting</b>
+          <span class="big num">${dur(cam.since)}</span>
+          <p>Below target quality, not down. Checked ${ago(cam.checked)}.</p></div>
+      </div>`
+    : `<div class="dstate ok">
+        <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.8"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
+        <div class="txt"><b>Normal</b><span class="big num">Healthy for ${dur(cam.since)}</span></div>
+      </div>`;
 
-  $("dBody").innerHTML = `${media}
+  $("dBody").innerHTML = `${state}${media}
     <dl class="dl">
-      <div><dt>Status</dt><dd>${pill}</dd></div>
-      <div><dt>${cam.status==="ok"?"Healthy for":"In this status for"}</dt><dd class="num">${dur(cam.since)}</dd></div>
-      <div><dt>Last checked</dt><dd class="num" title="Heartbeat every 30 minutes">${ago(cam.checked)}</dd></div>
+      <div><dt>Camera ID</dt><dd class="num">${cam.id}</dd></div>
       <div><dt>Room</dt><dd>${cam.room}</dd></div>
+      <div><dt>Last checked</dt><dd class="num" title="Heartbeat every 30 minutes">${ago(cam.checked)}</dd></div>
     </dl>
     <div class="d-actions">
       <a class="btn primary" href="#" onclick="return false" style="justify-content:center">View live on my.wmg
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a>
     </div>
+    ${noteOf(c.id) ? `<p class="d-note">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/></svg>
+      <span><b style="color:var(--ink-2)">Note on ${esc(c.name)}:</b> ${esc(noteOf(c.id).slice(0,200))}</span></p>` : ""}
     <p class="pgtxt">Verifying on my.wmg is the only way to confirm a camera is truly down — this page reports the heartbeat, not the picture.</p>`;
 
   $("dPos").textContent = `Camera ${S.sel.idx+1} of ${c.cams.length}`;
@@ -1143,7 +1451,9 @@ function refresh({silent=false}={}){
   const engaged = S.hover || $("list").contains(document.activeElement);
   if (engaged && before !== after && (S.sort==="issues"||S.sort==="longest")){
     S.pendingOrder = before; $("reorder").hidden = false;
-    renderKpis(); renderBanner(); renderLive();
+    // The strip is patched, not rebuilt, so it can stay current even while
+    // the list order is held back.
+    renderKpis(); patchStrip(); renderBanner(); renderLive();
   } else {
     S.pendingOrder = null; $("reorder").hidden = true;
     render();
@@ -1197,11 +1507,27 @@ list.addEventListener("input", e=>{
   const id = ta.dataset.notes;
   S.centerNotes[id] = ta.value;
   persistNotesSoon();
-  // Update just the dot indicator in place — never touch the textarea
+  // Update just the two indicators in place — never touch the textarea
   // itself here, or a mid-keystroke render would drop focus and cursor.
-  const lbl = list.querySelector(`[data-notes-toggle="${CSS.escape(id)}"] .notesLbl`);
-  if (lbl) lbl.innerHTML = ta.value.trim() ? `<span class="dot"></span>` : "Notes";
+  syncNoteMarks(id);
 });
+/* The "has a note" highlight lives in two places: the chip on the center
+   card and the corner dot on that center's block in the strip. Both are
+   patched attribute-by-attribute so nothing focusable is replaced. */
+function syncNoteMarks(id){
+  const note = noteOf(id);
+  const btn = list.querySelector(`[data-notes-toggle="${CSS.escape(id)}"]`);
+  if (btn){
+    btn.classList.toggle("has-note", !!note);
+    btn.title = note ? note.slice(0,180) : "Add a note about this center";
+    const c = DATA.find(x=>x.id===id);
+    if (c) btn.setAttribute("aria-label", `${note?"Edit note":"Add a note"} for ${c.name}`);
+    // The label is the same word either way; the chip's color, weight and
+    // filled-in icon are what change, so nothing here resizes the row.
+  }
+  const blk = $("strip").querySelector(`.cblk[data-cid="${CSS.escape(id)}"]`);
+  if (blk) blk.classList.toggle("hasnote", !!note);
+}
 list.addEventListener("keydown", e=>{
   const b = e.target.closest(".blk"); if (!b) return;
   const sibs = [...b.parentElement.querySelectorAll(".blk")];
@@ -1214,6 +1540,13 @@ list.addEventListener("keydown", e=>{
   sibs.forEach(s=>s.tabIndex = -1); sibs[n].tabIndex = 0; sibs[n].focus();
 });
 const tip = $("tip");
+function placeTip(el){
+  const r = el.getBoundingClientRect();
+  tip.classList.add("show");
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, r.left + r.width/2 - w/2)) + "px";
+  tip.style.top  = (r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8) + "px";
+}
 function showTip(b){
   const c = DATA.find(x=>x.id===b.dataset.ci), cam = c.cams[+b.dataset.i];
   const label = cam.status==="off"?"Offline":cam.status==="deg"?"Degraded":"Normal";
@@ -1221,14 +1554,43 @@ function showTip(b){
     <span class="row"><span class="sw ${cam.status}" style="width:10px;height:10px;border-radius:3px"></span>${label}
     ${cam.status!=="ok"?`· <span class="num">${dur(cam.since)}</span>`:""}</span>
     <em class="num" style="margin-top:3px">Checked ${ago(cam.checked)}</em>`;
-  const r = b.getBoundingClientRect();
-  tip.classList.add("show");
-  const w = tip.offsetWidth, h = tip.offsetHeight;
-  tip.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, r.left + r.width/2 - w/2)) + "px";
-  tip.style.top  = (r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8) + "px";
+  placeTip(b);
 }
-list.addEventListener("mouseover", e=>{ const b=e.target.closest(".blk"); if (b) showTip(b); });
-list.addEventListener("mouseout",  e=>{ if (e.target.closest(".blk")) tip.classList.remove("show"); });
+/* Same tooltip, one level up the hierarchy: a center block answers the
+   same question a camera block does — what is wrong, for how long, and
+   what happens if I click. */
+function showCenterTip(b){
+  const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
+  const t = tally(c), st = centerStatus(c), note = noteOf(c.id);
+  const head = t.off ? `${plural(t.off,"camera")} offline`
+    : t.deg ? `${plural(t.deg,"camera")} degraded`
+    : `All ${t.total} reporting`;
+  tip.innerHTML = `<b>${esc(c.name)}</b>
+    <em class="num">${c.state} · Store #${c.store} · ${t.total} cameras</em>
+    <span class="row"><span class="sw ${st}" style="width:10px;height:10px;border-radius:3px"></span>${head}</span>
+    ${t.off && t.deg ? `<em class="num">and ${plural(t.deg,"camera")} degraded</em>` : ""}
+    ${t.worst ? `<em class="num">Longest outage ${dur(t.worst)}</em>` : ""}
+    <em class="num">${t.total - t.off - t.deg} of ${t.total} normal</em>
+    ${c.id === HOME ? `<em style="color:var(--blue-deep)">Your current center</em>` : ""}
+    ${note ? `<em style="color:var(--blue-deep);margin-top:4px">Note: ${esc(note.replace(/\s+/g," ").slice(0,64))}${note.length>64?"…":""}</em>` : ""}
+    <em style="margin-top:5px;color:var(--blue-ink);font-weight:700">${S.centerPick===c.id?"Click to clear this search":"Click to search this center below"}</em>`;
+  placeTip(b);
+}
+/* Which camera block the pointer is on, so a re-render can put the
+   tooltip back where it was instead of orphaning it. */
+let hoverBlk = null;
+function reanchorTip(){
+  if (!hoverBlk){ return; }
+  const b = list.querySelector(`.blk[data-ci="${CSS.escape(hoverBlk.ci)}"][data-i="${hoverBlk.i}"]`);
+  if (b) showTip(b); else { hoverBlk = null; tip.classList.remove("show"); }
+}
+list.addEventListener("mouseover", e=>{
+  const b=e.target.closest(".blk"); if (!b) return;
+  hoverBlk = {ci:b.dataset.ci, i:b.dataset.i}; showTip(b);
+});
+list.addEventListener("mouseout",  e=>{
+  if (e.target.closest(".blk")){ hoverBlk = null; tip.classList.remove("show"); }
+});
 list.addEventListener("focusin",   e=>{ const b=e.target.closest(".blk"); if (b) showTip(b); });
 list.addEventListener("focusout",  e=>{
   if (e.target.closest(".blk")) tip.classList.remove("show");
@@ -1239,6 +1601,30 @@ list.addEventListener("focusout",  e=>{
     }
   }, 0);
 });
+
+/* ---------- the centers strip ---------- */
+const strip = $("strip");
+strip.addEventListener("click", e=>{
+  const b = e.target.closest(".cblk"); if (!b) return;
+  pickCenter(b.dataset.cid);
+});
+strip.addEventListener("mouseover", e=>{ const b=e.target.closest(".cblk"); if (b) showCenterTip(b); });
+strip.addEventListener("mouseout",  e=>{ if (e.target.closest(".cblk")) tip.classList.remove("show"); });
+strip.addEventListener("focusin",   e=>{ const b=e.target.closest(".cblk"); if (b) showCenterTip(b); });
+strip.addEventListener("focusout",  e=>{ if (e.target.closest(".cblk")) tip.classList.remove("show"); });
+// One roving tabindex across the whole strip, so brand groups don't turn
+// into separate tab stops.
+strip.addEventListener("keydown", e=>{
+  const b = e.target.closest(".cblk"); if (!b) return;
+  const all = [...strip.querySelectorAll(".cblk")];
+  const i = all.indexOf(b);
+  const map = {ArrowRight:i+1, ArrowLeft:i-1, Home:0, End:all.length-1};
+  if (!(e.key in map)) return;
+  e.preventDefault();
+  const n = Math.max(0, Math.min(all.length-1, map[e.key]));
+  all.forEach(x=>x.tabIndex = -1); all[n].tabIndex = 0; all[n].focus();
+});
+$("stripClear").onclick = clearCenterPick;
 
 // scope
 $("scopeOne").onclick = ()=>{ S.scope="one"; S.page=1; render(); };
@@ -1251,13 +1637,25 @@ $("pauseBtn").onclick = ()=>{ S.paused = !S.paused; if (!S.paused) S.tick = 30; 
   $("announce").textContent = S.paused ? "Auto-refresh paused." : "Auto-refresh resumed."; };
 $("nowBtn").onclick = ()=>{ S.tick = 30; refresh(); };
 
-// filters
-$("q").oninput = e=>{ S.q = e.target.value; S.page=1; renderKpis(); renderFilters(); renderList(); };
+// filters — typing by hand and picking from the strip write to the same
+// field, so typing releases the strip's pick rather than fighting it.
+$("q").oninput = e=>{
+  S.q = e.target.value; S.page = 1;
+  S.centerPick = null; $("qField").classList.remove("linked");
+  $("qClear").hidden = !S.q;
+  renderKpis(); renderFilters(); patchStrip(); renderList();
+};
+$("qClear").onclick = ()=>{
+  S.q=""; S.centerPick=null; S.page=1;
+  $("q").value=""; $("qField").classList.remove("linked");
+  render(); $("q").focus();
+};
 $("densityBtn").onclick = ()=>{ S.dense = !S.dense; render(); };
 
 function clearAll(){
   S.q=""; S.status="all"; S.brand="all"; S.state="all"; S.parent=false; S.kpi=null; S.page=1;
-  $("q").value="";
+  S.centerPick=null;
+  $("q").value=""; $("qField").classList.remove("linked");
   render();
 }
 
@@ -1293,7 +1691,7 @@ document.addEventListener("click", e=>{
 
   if (onFilterTrigger){ S.filtersOpen=!S.filtersOpen; S.savingOpen=false; render(); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
-  if (t.closest("#fClear")){ S.q=""; S.status="all"; S.brand="all"; S.state="all"; S.parent=false; S.kpi=null; S.page=1; $("q").value=""; render(); return; }
+  if (t.closest("#fClear")){ clearAll(); return; }
   if (t.closest("#fParentOpt")){ S.parent=!S.parent; S.page=1; render(); return; }
   const fo = t.closest(".fopt");
   if (fo){

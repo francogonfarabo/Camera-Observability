@@ -193,9 +193,25 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     <div class="q"><span class="n num">12</span><div>
       <p><strong>Asked for a comments resource — a plain textbox, per center.</strong> Not a comment thread: no
       author, no timestamp, nothing to reply to. A small button beside the center's meta line expands one
-      textarea in place; a dot on the button is the only indicator that a note exists, so 14 quiet buttons don't
-      compete with the things that actually need attention. Browser-local, and outside "Reset data" for the same
-      reason saved views are — it's the user's own annotation, not sample data.</p>
+      textarea in place. Browser-local, and outside "Reset data" for the same reason saved views are — it's the
+      user's own annotation, not sample data.</p>
+    </div></div>
+    <div class="q"><span class="n num">13</span><div>
+      <p><strong>Asked for the note state to be visible, not just discoverable.</strong> A dot on the button
+      turned out to be too quiet to answer "have I already looked at this one?". The chip now goes blue-tinted
+      and bold with its page glyph filled in — colour <em>and</em> shape, the same rule the status blocks
+      follow — and the same mark rides on that center's block in the strip. The note's text stays out of the
+      row (there is no room for it at the narrowest column, and a chip that resizes with its content makes the
+      whole row jump); it surfaces on hover, and again in the camera drawer, where a note about the center is
+      exactly the context you want while diagnosing one of its cameras.</p>
+    </div></div>
+    <div class="q"><span class="n num">14</span><div>
+      <p><strong>Called for a centers strip, wired to the search field.</strong> Every center the account can
+      see, one block each, in the same encoding the cameras use one level down. The brief was explicit that it
+      should <em>feel connected</em> to the toolbar rather than sit above it as one more chart — so the strip
+      and the search/filter row are one card, a click writes that center into the field directly beneath it,
+      and a caret on the seam points at the field it just filled. Also: Monitoring stops advertising four
+      sections it doesn't have yet, and an offline camera's drawer stops looking like a healthy one's.</p>
     </div></div>
   </div>
 </section>
@@ -205,9 +221,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <div class="cards">
     <div class="card dev">
       <span class="k">A · Nested — a sub-nav under its own rail item</span>
-      <p>Camera health as the first sub-tab, beside Live, History, Saved Clips, and Admin Display — originally
-      filed under Cameras, now under a dedicated <em>Monitoring</em> item instead. Cheapest to ship of the two,
-      and the header still names one center while the page can report on fourteen.</p>
+      <p>Camera health as the only sub-tab of a dedicated <em>Monitoring</em> rail item — originally filed
+      under Cameras, and originally shown beside four placeholder sub-tabs that have since gone: a section
+      that holds one thing should say so rather than advertise a roadmap. Cheapest to ship of the two, and the
+      header still names one center while the page can report on fourteen.</p>
     </div>
     <div class="card dev">
       <span class="k">B · Toggle — a scope above center selection</span>
@@ -233,6 +250,14 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <p>The counts get their own column because sharing it with identity makes them wrap unpredictably; given
   a column, ten rows becomes one scannable ladder of digits. A 3px left edge carries each row's worst
   status, so the list reads before any text does.</p>
+  <p>Above the list, version A adds a <strong>centers strip</strong>: the same three-way encoding applied one
+  level up, one block per center the account can see, grouped by brand so the hunt for a particular site is
+  bounded. It is not a separate card — it shares one card with the search and filter row, because its real job
+  is navigational: clicking a block writes that center's name into the field below it and the list narrows to
+  that center. Two rules keep that promise honest. A click drops exactly the filters that would have excluded
+  the center it just picked, so a pick never lands on an empty list. And the search text is excluded from the
+  strip's own dimming — filters dim the blocks they rule out, but letting the search dim them would black out
+  thirteen blocks the moment you clicked the fourteenth, which is the opposite of what an overview is for.</p>
 </section>
 
 <section>
@@ -277,6 +302,9 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     "Ranking changed — reorder" pill until the user leaves the list.</li>
     <li><strong>Failure is stated, not hidden</strong> — an amber banner names the data's age and offers
     retry; the board never goes blank.</li>
+    <li><strong>Nothing focused or hovered gets replaced.</strong> The centers strip is built once and then
+    patched attribute-by-attribute on every read, and a re-render that does replace a camera block re-anchors
+    the hover card to the block that took its place instead of stranding it on the page.</li>
     <li><strong>Screen readers get one polite summary per read</strong>, not per-block noise.</li>
   </ul>
 </section>
