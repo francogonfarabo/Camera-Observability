@@ -270,6 +270,20 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       avatar stepping aside, results filling the screen. The phone also gets the rail back behind a hamburger,
       since without it there was no way between Dashboard and Monitoring at all.</p>
     </div></div>
+    <div class="q"><span class="n num">19</span><div>
+      <p><strong>Specified the real sorts and filters, and asked how the filter funnel should sequence.</strong>
+      Six sorts — Defect Rate, Defect Count, Longest Outage, Center Name, Store Number, Updated Annotations —
+      each with a direction and a natural default, since nobody picks "Defect Rate" wanting the healthiest
+      centers first. Nine filters, including the ones that came from AJ's district managers ("what other
+      schools in my region have issues") and the operational ones nobody asks for until they need them
+      (payment model, timezone for maintenance windows). Fifty states in the data, deliberately, so the
+      filter panel had to survive a list nobody can scan.</p>
+      <p>The sequencing question is answered in <em>Filtering as a funnel</em> below. The panel that came out
+      of it is a facet rail beside one option list: it holds nine dimensions without growing, each rail row
+      states its own current value, long lists get a search box, and every option carries the number of
+      centers it would leave. An ⓘ in both panels opens one page that states every formula — a column called
+      "Defect Rate" is worth nothing if two people read it differently.</p>
+    </div></div>
   </div>
 </section>
 
@@ -361,6 +375,30 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   health. Center names are labels, not links; the camera modal offers my.wmg and nothing else. This is the
   sharper reading of "camera health is the only place to check cameras" — if drilling into a single center's
   camera page were one click away, the board would be a menu rather than the answer.</p>
+</section>
+
+<section>
+  <h2>Filtering as a funnel</h2>
+  <p>The question was whether these filters should sequence — country, then state, then city, then the rest.
+  The answer here is <strong>no, with one exception</strong>, for two reasons.</p>
+  <p><strong>A funnel charges everyone for a narrowing nobody asked for.</strong> The assignment is already a
+  subset: these are the centers this person is responsible for. Making them choose a country and a state
+  before the board will show anything adds three clicks to reach the view they had on arrival. Filters should
+  subtract from a complete board, not assemble one.</p>
+  <p><strong>What genuinely depends on something else is the options, not the order.</strong> Every facet's
+  list is built from the centers that pass your <em>other</em> choices, and each option carries the count it
+  would leave. So choosing Texas reduces the city list to Texas cities without anyone walking a hierarchy,
+  and an option that would empty the board is greyed out rather than offered. The data does the funnelling.</p>
+  <p>The exception is <strong>City, which is gated on a State</strong> — ungated it lists every city in the
+  assignment, which is a wall rather than a filter. The rail says so in place of the value ("after state")
+  instead of hiding the row, so the dependency is discoverable rather than invisible. <strong>Country</strong>
+  is treated as the outermost scope in one respect only: changing it drops any state, city, region or brand it
+  leaves with nothing to match, since those combinations are guaranteed-empty rather than merely narrow.</p>
+  <p>Everything else is a flat facet on purpose. Brand, payment model, parent access and timezone all cut
+  across geography — a brand spans states, a timezone spans half the country — so nesting them under a place
+  would be a lie about the data. Regions group states, which makes region and state two altitudes of the same
+  question rather than two steps of one: a district manager starts at their region, a compliance officer
+  starts at a state, and neither should have to pass through the other.</p>
 </section>
 
 <section>

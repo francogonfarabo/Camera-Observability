@@ -249,33 +249,87 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .ftrigger .cur{font-weight:600;color:var(--ink-3)}
 .fpanel{position:absolute;top:calc(100% + 9px);right:0;z-index:45;background:var(--surface);border:1px solid var(--line);
   border-radius:14px;box-shadow:var(--shadow-modal);width:min(620px,calc(100vw - 28px));overflow:hidden}
-.fpanel.narrow{width:min(250px,calc(100vw - 28px))}
-.fpanel[hidden]{display:none}
-.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
-.fcol{padding:15px 15px;border-right:1px solid var(--line-2);display:flex;flex-direction:column;gap:2px;min-width:0;max-height:290px;overflow-y:auto}
-.fcol:last-child{border-right:none}
-.fcol h4{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;color:var(--ink);
-  padding-bottom:8px;margin-bottom:5px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface)}
-.fopt{text-align:left;padding:7px 10px;border-radius:8px;font-size:13px;font-weight:600;color:var(--blue-ink);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fpanel.wide{width:min(660px,calc(100vw - 28px))}
+.fpanel.narrow{width:min(272px,calc(100vw - 28px))}
+/* !important on purpose: the mobile sheet rules below set display:flex at
+   equal specificity, and a hidden panel must stay hidden regardless. */
+.fpanel[hidden]{display:none !important}
+.fhead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line)}
+.fhead b{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13.5px;color:var(--ink)}
+.finfo{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--blue-ink);
+  padding:4px 8px;border-radius:7px}
+.finfo:hover{background:var(--blue-tint)}
+
+/* ---------- two-pane facet panel ----------
+   Nine dimensions won't fit in a row of columns, and stacking them makes a
+   panel you scroll to read. A rail of facets on the left with one option
+   list on the right stays the same size whatever gets added, and leaves
+   room for the search box a fifty-item list needs. Each rail row shows its
+   own current value, so the whole filter state is legible at a glance. */
+.ftwo{display:grid;grid-template-columns:196px minmax(0,1fr)}
+.frail{border-right:1px solid var(--line-2);padding:8px;display:flex;flex-direction:column;gap:1px;
+  max-height:330px;overflow-y:auto;background:var(--fill-2)}
+.frow{text-align:left;padding:6px 9px;border-radius:8px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.frow:hover{background:var(--surface)}
+.frow.on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.frow .fl{font-size:12.5px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+.frow .fv{font-size:11px;color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.frow .fv.set{color:var(--blue-ink);font-weight:700}
+.frow.dim .fl{color:var(--ink-4)}
+.fbody{display:flex;flex-direction:column;min-width:0}
+.fsearch{position:relative;display:flex;align-items:center;padding:10px 12px 6px}
+.fsearch svg{position:absolute;left:22px;pointer-events:none}
+.fsearch input{width:100%;padding:7px 10px 7px 31px;border:1px solid var(--line-3);border-radius:8px;font-size:13px}
+.fsearch input:focus{border-color:var(--blue);box-shadow:var(--focus);outline:none}
+.foptlist{padding:8px;display:flex;flex-direction:column;gap:1px;max-height:330px;overflow-y:auto}
+.fsearch+.foptlist{max-height:280px}
+.fhint{padding:16px 14px;font-size:12.5px;color:var(--ink-3);line-height:1.5}
+.fhint b{color:var(--ink-2)}
+.fopt{display:flex;align-items:center;gap:10px;text-align:left;padding:7px 10px;border-radius:8px;font-size:13px;
+  font-weight:600;color:var(--blue-ink);min-width:0}
+.fopt .ol{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fopt .oc{font-size:11.5px;font-weight:700;color:var(--ink-4);flex-shrink:0}
+.fopt .oa{display:flex;color:var(--ink-4);flex-shrink:0}
 .fopt:hover{background:var(--blue-tint)}
 .fopt[aria-pressed="true"]{background:var(--blue);color:#fff}
-.faudience{display:flex;align-items:center;padding:11px 15px;border-top:1px solid var(--line-2)}
-.toggle{display:flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid var(--line-3);border-radius:20px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
-.toggle[aria-pressed="true"]{background:var(--blue-tint);border-color:#9fd0f0;color:var(--blue-deep)}
-.box{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--line-3);display:grid;place-items:center;background:var(--surface);flex-shrink:0}
-.toggle[aria-pressed="true"] .box{background:var(--blue);border-color:var(--blue)}
+.fopt[aria-pressed="true"] .oc,.fopt[aria-pressed="true"] .oa{color:rgba(255,255,255,.8)}
+.fopt.zero{color:var(--ink-4);cursor:not-allowed}
+.fopt.zero:hover{background:none}
 .fpanel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;
   border-top:1px solid var(--line);background:var(--fill-2)}
 .fpanel-foot .clear{font-size:12.5px;font-weight:700;color:var(--ink-3);padding:6px 8px;border-radius:7px}
 .fpanel-foot .clear:hover{background:var(--fill);color:var(--off)}
 .fpanel-foot .done{padding:7px 16px;border-radius:8px;background:var(--blue);color:#fff;font-size:12.5px;font-weight:700}
 .fpanel-foot .done:hover{background:var(--blue-ink)}
-.sortlist{padding:8px;display:flex;flex-direction:column;gap:2px}
-.sortdir{border-top:1px solid var(--line-2);padding:8px;display:flex;flex-direction:column;gap:2px}
+.sortlist{padding:8px;display:flex;flex-direction:column;gap:1px}
+.sortdir{border-top:1px solid var(--line-2);padding:8px;display:flex;flex-direction:column;gap:1px}
 .sortdir h4{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.06em;
   text-transform:uppercase;color:var(--ink-4);padding:2px 10px 6px}
 .ftrigger .arrow{display:flex;color:var(--blue-ink)}
+
+/* ---------- "how these work" dialog ----------
+   One place that states every formula, reachable from both panels. A
+   sort called "Defect Rate" has to say what counts as a defect and what
+   it divides by, or two people will read the same column differently. */
+.infoscrim{position:fixed;inset:0;background:rgba(17,24,39,.42);z-index:100;display:grid;place-items:center;padding:20px}
+.infoscrim[hidden]{display:none}
+.infobox{background:var(--surface);border-radius:14px;box-shadow:var(--shadow-modal);width:min(720px,100%);
+  max-height:min(84vh,760px);display:flex;flex-direction:column;overflow:hidden}
+.infobox .ih{display:flex;align-items:flex-start;gap:12px;padding:15px 18px;border-bottom:1px solid var(--line)}
+.infobox .ih h2{font-family:'Titillium Web',sans-serif;font-size:17px;font-weight:700;color:var(--ink)}
+.infobox .ih p{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.infobox .ib{padding:16px 18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:18px}
+.infobox h3{font-family:'Titillium Web',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3);padding-bottom:7px;border-bottom:1px solid var(--line)}
+.ilist{display:flex;flex-direction:column}
+.irow{display:grid;grid-template-columns:170px minmax(0,1fr);gap:14px;padding:9px 0;border-bottom:1px solid var(--line-2);font-size:12.5px}
+.irow:last-child{border-bottom:none}
+.irow dt{font-weight:700;color:var(--ink)}
+.irow dd{color:var(--ink-2);line-height:1.5}
+.irow code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;background:var(--fill);
+  border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--ink)}
+.irow .d{display:block;color:var(--ink-3);margin-top:2px}
+@media (max-width:640px){ .irow{grid-template-columns:1fr;gap:2px} }
 
 /* ---------- dashboard screen ----------
    Context, not the deliverable — but rebuilt to match the real product
@@ -580,10 +634,23 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   h1{font-size:20px}
   .field{flex:1 1 100%;max-width:none}
   .tools{margin-left:0;width:100%;justify-content:flex-start}
-  .fpanel{width:min(92vw,420px);right:auto;left:0}
-  .fgrid{grid-template-columns:1fr}
-  .fcol{border-right:none;border-bottom:1px solid var(--line-2);padding:13px 15px;max-height:none}
-  .fcol:last-child{border-bottom:none}
+  /* A dropdown anchored to the toolbar opens past the bottom of the page
+     and, being absolutely positioned, can't be scrolled to. On a phone it
+     becomes a bottom sheet that owns its own scrolling instead. */
+  .fpanel,.fpanel.wide,.fpanel.narrow{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;
+    border-radius:14px 14px 0 0;border-left:none;border-right:none;border-bottom:none;
+    max-height:88dvh;display:flex;flex-direction:column;z-index:80}
+  .fhead{flex-shrink:0}
+  /* the facet rail becomes a scrolling row of pills above the options */
+  .ftwo{display:flex;flex-direction:column;flex:1;min-height:0}
+  .frail{flex-direction:row;border-right:none;border-bottom:1px solid var(--line-2);max-height:none;
+    overflow-x:auto;gap:6px;padding:8px 10px;flex-shrink:0}
+  .frow{flex-shrink:0;padding:5px 10px;border-radius:20px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+  .frow.on{background:var(--blue-tint);box-shadow:inset 0 0 0 1px #9fd0f0}
+  .fbody{flex:1;min-height:0}
+  .foptlist,.fsearch+.foptlist{max-height:none;flex:1}
+  .sortlist,.sortdir{flex-shrink:0}
+  .fpanel-foot{flex-shrink:0;padding-bottom:14px}
   .crow{max-width:none}
   .strip-head .legend{margin-left:0;width:100%;gap:12px;flex-wrap:wrap}
   .sv-save{margin-left:0}
@@ -784,6 +851,78 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
     </div>
   </aside>
 
+  <!-- ===== how sorting and filtering are calculated ===== -->
+  <div class="infoscrim" id="infoScrim" hidden>
+    <div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
+      <div class="ih">
+        <div style="flex:1;min-width:0">
+          <h2 id="infoTitle">How sorting and filtering work</h2>
+          <p>Every number on this board is derived from one row per camera — its latest heartbeat.</p>
+        </div>
+        <button class="ctrlbtn" id="infoClose" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.4"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+      </div>
+      <div class="ib">
+        <section>
+          <h3>Sorting</h3>
+          <dl class="ilist">
+            <div class="irow"><dt>Defect Rate</dt><dd>
+              <code>(offline + degraded) ÷ total cameras</code>, per center, as a percentage.
+              Highest first by default.
+              <span class="d">Rate, not count: a center with 3 of 8 cameras down is in worse shape than one
+              with 4 of 40, and only the rate says so.</span></dd></div>
+            <div class="irow"><dt>Defect Count</dt><dd>
+              <code>offline + degraded</code> — the absolute number of cameras not fully healthy.
+              Highest first by default.
+              <span class="d">Count, not rate: this is the one that maps to how many visits or work orders
+              the day actually holds.</span></dd></div>
+            <div class="irow"><dt>Longest Outage</dt><dd>
+              The oldest current outage in the center: <code>max(now − last healthy heartbeat)</code> across
+              its <em>offline</em> cameras. Longest first by default.
+              <span class="d">Degraded cameras are excluded — they are still reporting, so they have no
+              outage clock running. Centers with nothing offline sort last.</span></dd></div>
+            <div class="irow"><dt>Center Name</dt><dd>Alphabetical, A–Z by default.</dd></div>
+            <div class="irow"><dt>Store Number</dt><dd>Numeric on the store number, lowest first by default.</dd></div>
+            <div class="irow"><dt>Updated Annotations</dt><dd>
+              The last time this center's note was added or edited. Most recent first by default; flip it to
+              surface notes nobody has touched in a while.
+              <span class="d">Centers with no note have no date, so they sort last in both directions rather
+              than pretending to be the oldest.</span></dd></div>
+          </dl>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Ties fall back to center name A–Z, in
+          both directions. The card shows whichever number you sorted by, so the order is always checkable
+          against something on screen.</p>
+        </section>
+        <section>
+          <h3>Filtering</h3>
+          <dl class="ilist">
+            <div class="irow"><dt>Status</dt><dd>What the center's cameras are doing right now: any issue,
+              offline specifically, degraded specifically, or everything reporting.</dd></div>
+            <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.</dd></div>
+            <div class="irow"><dt>Payment model</dt><dd>Who pays for the camera service —
+              <b>parent-pay</b> (families subscribe) or <b>center-pay</b> (the center covers it).</dd></div>
+            <div class="irow"><dt>Parent access</dt><dd>Whether parents can watch this center's cameras
+              (<b>parent-facing</b>) or the feeds are staff-only (<b>internal</b>). Independent of who
+              pays.</dd></div>
+            <div class="irow"><dt>Region</dt><dd>The district grouping a regional manager owns. Regions
+              group states, so a region can span more than one.</dd></div>
+            <div class="irow"><dt>Country</dt><dd>US or International. It's the outermost scope: changing it
+              drops any state, city, region or brand it leaves with nothing to match.</dd></div>
+            <div class="irow"><dt>State</dt><dd>The state or, outside the US, the province the center sits
+              in.</dd></div>
+            <div class="irow"><dt>City</dt><dd>Available once a state is chosen — an ungated city list is
+              every city you can see, which is a wall rather than a filter.</dd></div>
+            <div class="irow"><dt>Timezone</dt><dd>The center's local timezone, for planning maintenance
+              windows that land outside opening hours.</dd></div>
+          </dl>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Filters don't have to be applied in
+          order. Each list is built from the centers that pass your <em>other</em> choices, and the number
+          beside an option is how many centers you'd be left with — so choosing a state narrows the city
+          list on its own, and an option that would empty the board is greyed out instead of offered.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <!-- the rail, for phones — otherwise there is no way between sections -->
   <div class="scrim" id="navScrim" hidden></div>
   <nav class="navdrawer" id="navDrawer" hidden aria-label="Sections">
@@ -820,32 +959,101 @@ const ROOMS = ["Infant A","Infant B","Toddler A","Toddler B","Twos","Threes","Pr
   "Nap room A","Nap room B","Hallway","Lobby","Playground East","Playground West","Gym","Art room",
   "Music room","Front entry","Back entry","Cubbies","Bus loop","Sink area","Office","Kitchen"];
 
-const BRANDS = [
-  ["Bright Path Academy","TX",["Arlington","Katy","Round Rock","Sugar Land","Waco","Tyler","Abilene"]],
-  ["Cedar Grove","LA",["Shreveport","Baton Rouge","Lafayette","Metairie","Monroe","Kenner"]],
-  ["Harborview Childcare","OK",["Owasso","Bixby","Jenks","Yukon","Ardmore","Enid"]],
-  ["Little Acorns","OK",["Norman","Tulsa","Edmond","Broken Arrow","Moore","Stillwater","Duncan"]],
-  ["Maple Street Kids","AR",["Bentonville","Rogers","Fayetteville","Conway","Jonesboro","Springdale"]],
-  ["Pine Hollow Academy","KS",["Overland Park","Wichita","Olathe","Topeka","Lawrence","Manhattan"]],
-  ["Riverbend Early Learning","MO",["Springfield","Columbia","Joplin","St. Charles","Lee's Summit","Branson"]],
-  ["Sunrise Learning","TX",["Frisco","McKinney","Denton","Plano","Allen","Prosper","Celina","Anna"]],
-];
+const BRANDS = ["Bright Path Academy","Cedar Grove","DoodleBugs","Kiddie Academy",
+  "Little Acorns","Maple Street Kids","Riverbend Early Learning","Sunrise Learning"];
 
-/* One deterministic pass over the brand list: camera count, how many are
-   sick, and whether the center is parent-facing all come from the same
-   seeded stream, so every reload of the prototype tells the same story. */
+/* code | state | region | timezone | cities — all fifty, because the filter
+   panel has to survive a list nobody can scan, not a list of eight. */
+const US = `
+AL|Alabama|Southeast|CT|Birmingham,Huntsville
+AK|Alaska|Pacific|AKT|Anchorage,Fairbanks
+AZ|Arizona|Southwest|MT|Phoenix,Tucson
+AR|Arkansas|Southeast|CT|Little Rock,Fayetteville
+CA|California|Pacific|PT|Sacramento,Fresno
+CO|Colorado|Mountain|MT|Denver,Aurora
+CT|Connecticut|Northeast|ET|Hartford,Stamford
+DE|Delaware|Northeast|ET|Wilmington,Dover
+FL|Florida|Southeast|ET|Orlando,Tampa
+GA|Georgia|Southeast|ET|Atlanta,Savannah
+HI|Hawaii|Pacific|HT|Honolulu,Hilo
+ID|Idaho|Mountain|MT|Boise,Meridian
+IL|Illinois|Midwest|CT|Naperville,Springfield
+IN|Indiana|Midwest|ET|Indianapolis,Fort Wayne
+IA|Iowa|Midwest|CT|Des Moines,Cedar Rapids
+KS|Kansas|Midwest|CT|Overland Park,Wichita
+KY|Kentucky|Southeast|ET|Louisville,Lexington
+LA|Louisiana|Southeast|CT|Baton Rouge,Shreveport
+ME|Maine|Northeast|ET|Portland,Bangor
+MD|Maryland|Northeast|ET|Columbia,Rockville
+MA|Massachusetts|Northeast|ET|Newton,Worcester
+MI|Michigan|Midwest|ET|Ann Arbor,Grand Rapids
+MN|Minnesota|Midwest|CT|Bloomington,Rochester
+MS|Mississippi|Southeast|CT|Jackson,Gulfport
+MO|Missouri|Midwest|CT|Springfield,St. Charles
+MT|Montana|Mountain|MT|Billings,Bozeman
+NE|Nebraska|Midwest|CT|Omaha,Lincoln
+NV|Nevada|Mountain|PT|Henderson,Reno
+NH|New Hampshire|Northeast|ET|Nashua,Concord
+NJ|New Jersey|Northeast|ET|Edison,Princeton
+NM|New Mexico|Southwest|MT|Albuquerque,Las Cruces
+NY|New York|Northeast|ET|Rochester,Syracuse
+NC|North Carolina|Southeast|ET|Cary,Charlotte
+ND|North Dakota|Midwest|CT|Fargo,Bismarck
+OH|Ohio|Midwest|ET|Dublin,Columbus
+OK|Oklahoma|Southwest|CT|Edmond,Tulsa
+OR|Oregon|Pacific|PT|Beaverton,Bend
+PA|Pennsylvania|Northeast|ET|Wexford,Lancaster
+RI|Rhode Island|Northeast|ET|Warwick,Cranston
+SC|South Carolina|Southeast|ET|Greenville,Mount Pleasant
+SD|South Dakota|Midwest|CT|Sioux Falls,Rapid City
+TN|Tennessee|Southeast|CT|Franklin,Knoxville
+TX|Texas|Southwest|CT|Frisco,Katy
+UT|Utah|Mountain|MT|Lehi,Provo
+VT|Vermont|Northeast|ET|Burlington,Essex
+VA|Virginia|Southeast|ET|Ashburn,Richmond
+WA|Washington|Pacific|PT|Redmond,Spokane
+WV|West Virginia|Southeast|ET|Charleston,Morgantown
+WI|Wisconsin|Midwest|CT|Waukesha,Madison
+WY|Wyoming|Mountain|MT|Cheyenne,Casper`.trim().split("\n").map(r=>{
+  const [code,state,region,tz,cities] = r.split("|");
+  return {code, state, region, tz, country:"US", cities:cities.split(",")};
+});
+
+/* Country is a two-way switch — US or International — so the overseas
+   centers just need a plausible subdivision to sit in. */
+const INTL = `
+ON|Ontario|Canada|ET|Toronto
+BC|British Columbia|Canada|PT|Vancouver
+LDN|Greater London|United Kingdom|GMT|London
+DUB|Dublin|Ireland|GMT|Dublin
+NSW|New South Wales|Australia|AEST|Sydney
+SGP|Singapore|Singapore|SGT|Singapore`.trim().split("\n").map(r=>{
+  const [code,state,region,tz,cities] = r.split("|");
+  return {code, state, region, tz, country:"INT", cities:cities.split(",")};
+});
+
+/* One deterministic pass: camera count, how many are sick, who pays and
+   whether parents can watch all come from the same seeded stream, so every
+   reload of the prototype tells the same story. */
 function seeds(){
   seed = 771103;
   const out = [];
-  BRANDS.forEach(([brand, st, cities], bi) => {
-    cities.forEach((city, ci) => {
-      const n = 10 + Math.floor(rnd()*15);          // 10–24 cameras
+  let store = 101;
+  [...US, ...INTL].forEach((geo, gi) => {
+    // Every state gets a center; every third gets a second one.
+    const many = geo.country === "US" && gi % 3 === 0;
+    geo.cities.slice(0, many ? 2 : 1).forEach((city, ci) => {
+      const brand = BRANDS[(gi*3 + ci) % BRANDS.length];
+      const n = 8 + Math.floor(rnd()*19);            // 8–26 cameras
       const roll = rnd();
-      const off = roll < .24 ? 1 + Math.floor(rnd()*4) : 0;
+      const off = roll < .26 ? 1 + Math.floor(rnd()*4) : 0;
       const deg = off ? (rnd() < .35 ? 1 + Math.floor(rnd()*2) : 0)
-                      : (roll < .38 ? 1 + Math.floor(rnd()*2) : 0);
-      out.push({ name:`${brand} — ${city}`, brand, st,
-        store:String(101 + bi*37 + ci*5), n, off:Math.min(off,n), deg:Math.min(deg, n-off),
+                      : (roll < .40 ? 1 + Math.floor(rnd()*2) : 0);
+      out.push({ name:`${brand} — ${city}`, brand, city,
+        st:geo.code, stateName:geo.state, region:geo.country==="INT"?"International":geo.region,
+        countryName:geo.country==="INT"?geo.region:"United States", country:geo.country, tz:geo.tz,
+        store:String(store += 3), n, off:Math.min(off,n), deg:Math.min(deg, n-off),
+        pay: rnd() < .58 ? "parent" : "center",
         pub: rnd() < .78 });
     });
   });
@@ -863,7 +1071,9 @@ function build(){
     slots.slice(0, s.off).forEach(i => marks[i]="off");
     slots.slice(s.off, s.off+s.deg).forEach(i => marks[i]="deg");
     return {
-      id:"c"+ci, name:s.name, brand:s.brand, state:s.st, store:s.store, pub:s.pub,
+      id:"c"+ci, name:s.name, brand:s.brand, state:s.st, stateName:s.stateName, city:s.city,
+      region:s.region, country:s.country, countryName:s.countryName, tz:s.tz,
+      store:s.store, pay:s.pay, pub:s.pub,
       cams: marks.map((status, i) => ({
         id:`${s.store}-CAM${String(i+1).padStart(2,"0")}`,
         n:i+1, room:rooms[i], status,
@@ -880,8 +1090,13 @@ const tally = c => {
   const off = c.cams.filter(x=>x.status==="off").length;
   const deg = c.cams.filter(x=>x.status==="deg").length;
   const worst = Math.max(0, ...c.cams.filter(x=>x.status!=="ok").map(x=>x.since));
-  return {off, deg, worst, total:c.cams.length};
+  // The three sort metrics, computed once beside the counts that feed them.
+  const bad = off + deg;                                        // defect count
+  const rate = c.cams.length ? bad / c.cams.length : 0;         // defect rate
+  const outage = Math.max(0, ...c.cams.filter(x=>x.status==="off").map(x=>x.since));
+  return {off, deg, worst, bad, rate, outage, total:c.cams.length};
 };
+const pct = r => Math.round(r*100) + "%";
 const dur = m => {
   if (m < 60) return m + "m";
   if (m < 1440) return Math.floor(m/60) + "h " + String(m%60).padStart(2,"0") + "m";
@@ -898,8 +1113,12 @@ const S = {
   screen:"dashboard",   // "dashboard" (a center is picked here) | "health"
   center:null,          // the center selected on the dashboard, if any
   dropOpen:false,       // the header picker's dropdown
-  q:"", qDraft:"", status:"all", brand:"all", state:"all", parent:false,
-  sort:"issues", dir:"desc", page:1, per:25,
+  q:"", qDraft:"",
+  // one key per facet; "all" means "not filtering on this"
+  status:"all", brand:"all", pay:"all", access:"all",
+  region:"all", country:"all", state:"all", city:"all", tz:"all",
+  facet:"status", fsearch:"",          // which facet's options are open, and its search box
+  sort:"rate", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
@@ -907,7 +1126,7 @@ const S = {
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
   filtersOpen:false, sortOpen:false, savedViews:[], savingOpen:false,
-  centerNotes:{}, notesOpen:{}         // {centerId: text}, {centerId: true while expanded}
+  centerNotes:{}, noteStamps:{}, notesOpen:{}   // text, last-edited, expanded
 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -918,53 +1137,178 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
    left untouched by the "Reset data" control since it's the user's own
    annotation, not sample data.
    ===================================================================== */
-const NOTES_KEY = "wmg.cameraHealth.centerNotes.v1";
-function loadNotes(){
-  try { const raw = localStorage.getItem(NOTES_KEY); return raw ? JSON.parse(raw) : {}; }
-  catch(e){ return {}; }
+const NOTES_KEY  = "wmg.cameraHealth.centerNotes.v1";
+const STAMPS_KEY = "wmg.cameraHealth.noteStamps.v1";   // {centerId: epoch ms}
+const SEEDED_KEY = "wmg.cameraHealth.notesSeeded.v1";
+function loadJSON(key, fallback){
+  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
+  catch(e){ return fallback; }
 }
 let notesSaveTimer = null;
 function persistNotesSoon(){
   clearTimeout(notesSaveTimer);
   notesSaveTimer = setTimeout(()=>{
-    try { localStorage.setItem(NOTES_KEY, JSON.stringify(S.centerNotes)); } catch(e){ /* storage unavailable */ }
+    try {
+      localStorage.setItem(NOTES_KEY, JSON.stringify(S.centerNotes));
+      localStorage.setItem(STAMPS_KEY, JSON.stringify(S.noteStamps));
+    } catch(e){ /* storage unavailable */ }
   }, 400);
 }
 const noteOf = id => (S.centerNotes[id] || "").trim();
+const noteStamp = id => noteOf(id) ? (S.noteStamps[id] || 0) : 0;
+const stampAgo = id => {
+  const t = noteStamp(id); if (!t) return "";
+  return ago(Math.max(0, Math.round((Date.now() - t)/60000)));
+};
+/* A handful of sample annotations, once, so the "Updated Annotations" sort
+   has something to sort on the first time anyone opens the prototype.
+   Anything typed afterwards is the user's own and is never overwritten. */
+function seedNotes(){
+  // Storage can be unavailable (private windows, embedded previews). That
+  // must not cost the prototype its sample annotations, so the check is
+  // guarded on its own rather than taking the whole function with it.
+  let already = false;
+  try { already = !!localStorage.getItem(SEEDED_KEY); } catch(e){ /* no storage */ }
+  if (already) return;
+  const picks = DATA.filter(c=>tally(c).off).slice(0,4).concat(DATA.filter(c=>!tally(c).off).slice(0,2));
+  const texts = ["Vendor ticket #4821 — Aztec on site Thursday AM",
+    "Switch replaced 3/12; watching the two by the playground",
+    "Director asked us to hold the lobby camera until the remodel is done",
+    "PoE injector on order, ETA next week",
+    "New build — cameras commissioned last month, nothing outstanding",
+    "Annual compliance walk done; no camera findings"];
+  const ages = [8, 90, 60*26, 60*24*4, 60*24*11, 60*24*40];   // minutes ago
+  picks.forEach((c,i)=>{
+    if (noteOf(c.id)) return;
+    S.centerNotes[c.id] = texts[i % texts.length];
+    S.noteStamps[c.id] = Date.now() - ages[i % ages.length]*60000;
+  });
+  try { localStorage.setItem(SEEDED_KEY, "1"); } catch(e){}
+  persistNotesSoon();
+}
+
+/* =====================================================================
+   Facets. One table drives the filter panel, the chips, the counts and
+   the matching, so adding a dimension means adding a row here.
+
+   `test` answers "does this center match this value", `options` lists the
+   values worth offering. Dynamic option lists are built from the centers
+   that pass every *other* facet, which is what makes the geography
+   cascade without anyone having to walk it in order: choose Texas and the
+   city list is Texas cities. `needs` is the one real dependency — an
+   ungated list of ninety cities is a wall, not a filter.
+   ===================================================================== */
+const FKEYS = ["status","brand","pay","access","region","country","state","city","tz"];
+const uniqOpts = (get, label) => {
+  const vals = [...new Set(DATA.filter(c=>passExcept(c, label)).map(get))].sort((a,b)=>String(a).localeCompare(String(b)));
+  return vals.map(v=>[v, String(v)]);
+};
+const F = {
+  status:{ label:"Status", all:"All centers",
+    test:(c,v)=>{ if (v==="all") return true; const t=tally(c);
+      return v==="issues" ? !!(t.off||t.deg) : v==="off" ? !!t.off : v==="deg" ? !!t.deg : !(t.off||t.deg); },
+    options:()=>[["all","All centers"],["issues","Has any issue"],["off","Has offline cameras"],
+                 ["deg","Has degraded cameras"],["clean","All reporting"]] },
+  brand:{ label:"Brand", all:"All brands",
+    test:(c,v)=>v==="all"||c.brand===v,
+    options:()=>[["all","All brands"], ...uniqOpts(c=>c.brand,"brand")] },
+  pay:{ label:"Payment model", all:"Any payment model",
+    test:(c,v)=>v==="all"||c.pay===v,
+    options:()=>[["all","Any payment model"],["parent","Parent-pay"],["center","Center-pay"]] },
+  access:{ label:"Parent access", all:"Any parent access",
+    test:(c,v)=>v==="all"||(v==="parent"?c.pub:!c.pub),
+    options:()=>[["all","Any parent access"],["parent","Parent-facing"],["internal","Internal only"]] },
+  region:{ label:"Region", all:"All regions",
+    test:(c,v)=>v==="all"||c.region===v,
+    options:()=>[["all","All regions"], ...uniqOpts(c=>c.region,"region")] },
+  country:{ label:"Country", all:"US and International",
+    test:(c,v)=>v==="all"||c.country===v,
+    options:()=>[["all","US and International"],["US","United States"],["INT","International"]] },
+  state:{ label:"State", all:"All states", search:true,
+    test:(c,v)=>v==="all"||c.stateName===v,
+    options:()=>[["all","All states"], ...uniqOpts(c=>c.stateName,"state")] },
+  city:{ label:"City", all:"All cities", search:true, needs:"state",
+    test:(c,v)=>v==="all"||c.city===v,
+    options:()=>[["all","All cities"], ...uniqOpts(c=>c.city,"city")] },
+  tz:{ label:"Timezone", all:"All timezones",
+    test:(c,v)=>v==="all"||c.tz===v,
+    options:()=>[["all","All timezones"], ...uniqOpts(c=>c.tz,"tz")] },
+};
+const optLabel = (k, v) => (F[k].options().find(o=>o[0]===v) || [v, String(v)])[1];
+
+/* Does this center pass every facet except one? Both the option lists and
+   their counts are built on this — the standard facet-count trick. */
+function passExcept(c, skip){
+  return FKEYS.every(k => k === skip || F[k].test(c, S[k]));
+}
+function facetCount(k, v){
+  return DATA.filter(c => passExcept(c, k) && F[k].test(c, v)).length;
+}
 
 /* Filter test on its own: the centers strip needs to know "would this
    center survive the current filters" while still drawing every center. */
 function matchesFilters(c, {ignoreQ=false}={}){
-  const q = ignoreQ ? "" : S.q.trim().toLowerCase();
-  const t = tally(c);
-  if (q && !(c.name.toLowerCase().includes(q) || c.store.includes(q))) return false;
-  if (S.brand !== "all" && c.brand !== S.brand) return false;
-  if (S.state !== "all" && c.state !== S.state) return false;
-  if (S.parent && !c.pub) return false;
-  if (S.status === "issues" && !(t.off || t.deg)) return false;
-  if (S.status === "off"    && !t.off) return false;
-  if (S.status === "deg"    && !t.deg) return false;
-  if (S.status === "clean"  && (t.off || t.deg)) return false;
-  return true;
+  if (!ignoreQ){
+    const q = S.q.trim().toLowerCase();
+    if (q && !(c.name.toLowerCase().includes(q) || c.store.includes(q))) return false;
+  }
+  return FKEYS.every(k => F[k].test(c, S[k]));
 }
 function filtered(){ return DATA.filter(c=>matchesFilters(c)); }
 
-/* Every sort is written ascending — smallest, earliest, A-first — and the
-   direction flips it. That way "descending" means the same thing on every
-   field, and the panel can name both ends in the field's own words. */
+/* A deeper choice can be orphaned by a shallower one — pick International
+   while a Texas city is selected and that city no longer exists in scope.
+   Clear what can no longer match rather than showing an empty board. */
+function reconcileFilters(){
+  const inCountry = c => F.country.test(c, S.country);
+  // Country is the outermost scope; anything it orphans is dropped.
+  ["region","state","tz","brand"].forEach(k=>{
+    if (S[k] !== "all" && !DATA.some(c => inCountry(c) && F[k].test(c, S[k]))) S[k] = "all";
+  });
+  if (S.city !== "all" && (S.state === "all" ||
+      !DATA.some(c => inCountry(c) && F.state.test(c, S.state) && c.city === S.city))) S.city = "all";
+}
+
+/* =====================================================================
+   Sorting. Every comparator is written ascending — smallest, earliest,
+   A-first — and the direction flips it, so "descending" means the same
+   thing on every field. Each field carries its own natural default, since
+   nobody asks for the *lowest* defect rate first.
+   ===================================================================== */
+const SORTS = [
+  { k:"rate",   label:"Defect Rate",         def:"desc", hi:"Highest rate first",     lo:"Lowest rate first",
+    val:c=>tally(c).rate },
+  { k:"count",  label:"Defect Count",        def:"desc", hi:"Most defects first",     lo:"Fewest defects first",
+    val:c=>tally(c).bad },
+  { k:"outage", label:"Longest Outage",      def:"desc", hi:"Longest first",          lo:"Shortest first",
+    val:c=>tally(c).outage },
+  { k:"name",   label:"Center Name",         def:"asc",  hi:"Z–A",                    lo:"A–Z",
+    val:null },
+  { k:"store",  label:"Store Number",        def:"asc",  hi:"Highest first",          lo:"Lowest first",
+    val:c=>+c.store },
+  { k:"notes",  label:"Updated Annotations", def:"desc", hi:"Most recent first",      lo:"Longest untouched first",
+    val:c=>noteStamp(c.id) },
+];
+const sortRow = k => SORTS.find(s=>s.k===k) || SORTS[0];
+const sortLabel = k => sortRow(k).label;
+const dirLabel = (k, d) => d === "asc" ? sortRow(k).lo : sortRow(k).hi;
+
 function sorted(list){
   const a = [...list];
   const byName = (x,y) => x.name.localeCompare(y.name);
-  const primary =
-    S.sort === "name"    ? byName :
-    S.sort === "size"    ? ((x,y)=> x.cams.length - y.cams.length) :
-    S.sort === "longest" ? ((x,y)=> tally(x).worst - tally(y).worst) :
-    /* issues */           ((x,y)=>{ const p=tally(x), q=tally(y);
-                             return p.off - q.off || p.deg - q.deg || p.worst - q.worst; });
+  const row = sortRow(S.sort);
+  const flip = S.dir === "asc" ? 1 : -1;
   a.sort((x,y)=>{
-    const r = primary(x,y);
-    // Ties always fall back to A–Z, in both directions.
-    return r ? (S.dir === "asc" ? r : -r) : byName(x,y);
+    if (row.k === "name") return flip * byName(x,y);
+    const vx = row.val(x), vy = row.val(y);
+    // A center with no annotation has no date: it sorts last either way
+    // rather than pretending to be the oldest.
+    if (row.k === "notes"){
+      if (!vx && !vy) return byName(x,y);
+      if (!vx) return 1;
+      if (!vy) return -1;
+    }
+    return (vx === vy) ? byName(x,y) : flip * (vx - vy);
   });
   return a;
 }
@@ -975,36 +1319,43 @@ function sorted(list){
    burying the sort inside a panel called "Filters" made the current sort
    invisible. The sort trigger now states the active sort on its face.
    ===================================================================== */
-const STAT_LABEL = {all:"All centers", issues:"Has any issue", off:"Has offline cameras", deg:"Has degraded cameras", clean:"All reporting"};
-/* field → [name, what descending means, what ascending means]. Naming both
-   ends in the field's own words beats a bare "asc/desc" that the reader has
-   to translate into "most broken" or "A to Z" every time. */
-const SORTS = [
-  ["issues",  "Issues",        "Most issues first",    "Fewest issues first"],
-  ["longest", "Longest outage","Longest outage first", "Shortest outage first"],
-  ["name",    "Center name",   "Z–A",                  "A–Z"],
-  ["size",    "Cameras",       "Most cameras first",   "Fewest cameras first"],
-];
-const sortRow = s => SORTS.find(x=>x[0]===s) || ["", s, "Descending", "Ascending"];
-const sortLabel = s => sortRow(s)[1];
-const dirLabel = (s, d) => sortRow(s)[d === "asc" ? 3 : 2];
-const activeFilters = () => {
-  const a = [];
-  if (S.status !== "all") a.push({k:"status", label:STAT_LABEL[S.status]});
-  if (S.brand  !== "all") a.push({k:"brand",  label:S.brand});
-  if (S.state  !== "all") a.push({k:"state",  label:S.state});
-  if (S.parent)           a.push({k:"parent", label:"Parent-facing"});
-  return a;
-};
+const activeFilters = () =>
+  FKEYS.filter(k=>S[k]!=="all").map(k=>({k, label:optLabel(k, S[k])}));
 // The search box shows its own text, so it gets no chip — but it still
 // narrows the set, so it counts toward the KPI scope line.
 const hasAnyFilter = () => activeFilters().length > 0 || !!S.q.trim();
 
+const ARROW = d => d === "asc"
+  ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M6 11l6-6 6 6"/></svg>`
+  : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6"/></svg>`;
+const INFO_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg>`;
+
+/* The open facet's options, with live counts. Kept separate from the panel
+   so typing in the search box repaints the list without replacing the box
+   the user is typing into. */
+function facetOptionsHtml(){
+  const fk = S.facet;
+  const q = S.fsearch.trim().toLowerCase();
+  const opts = F[fk].options()
+    .map(([v,l])=>({v, l, n: v==="all" ? null : facetCount(fk, v)}))
+    .filter(o=>!q || o.l.toLowerCase().includes(q) || o.v==="all");
+  if (opts.length <= 1) return `<div class="fhint">Nothing matches “${esc(S.fsearch)}”.</div>`;
+  return opts.map(o=>{
+    const zero = o.n === 0 && S[fk] !== o.v;
+    return `<button class="fopt${zero?" zero":""}" data-f="${fk}" data-v="${esc(o.v)}"
+      aria-pressed="${S[fk]===o.v}" ${zero?"disabled":""}>
+      <span class="ol">${esc(o.l)}</span>${o.n===null?"":`<span class="oc num">${o.n}</span>`}</button>`;
+  }).join("");
+}
+function renderFacetOptions(){
+  const wrap = document.querySelector("#fpanel .foptlist");
+  if (wrap) wrap.innerHTML = facetOptionsHtml();
+}
+
 function renderTools(){
-  const brands = ["all", ...new Set(DATA.map(c=>c.brand))];
-  const states = ["all", ...new Set(DATA.map(c=>c.state))].sort((a,b)=>a==="all"?-1:b==="all"?1:a.localeCompare(b));
-  const opt = (group, value, label, current) =>
-    `<button class="fopt" data-f="${group}" data-v="${esc(value)}" aria-pressed="${current===value}">${esc(label)}</button>`;
+  const opt = (group, value, label, current, extra="") =>
+    `<button class="fopt" data-f="${group}" data-v="${esc(value)}" aria-pressed="${current===value}">
+      <span class="ol">${esc(label)}</span>${extra}</button>`;
 
   const chips = activeFilters().map(f => `
     <span class="fchip">${esc(f.label)}
@@ -1013,26 +1364,42 @@ function renderTools(){
       </button></span>`).join("");
   const n = activeFilters().length;
 
+  const fk = S.facet, fdef = F[fk];
+  const gated = fdef.needs && S[fdef.needs] === "all";
+  const body = gated
+    ? `<div class="fhint">Pick a <b>${esc(F[fdef.needs].label.toLowerCase())}</b> first —
+        ${esc(fdef.label.toLowerCase())} would otherwise list every city you can see, which is a wall
+        rather than a filter.</div>`
+    : `<div class="foptlist">${facetOptionsHtml()}</div>`;
+
   $("toolsSlot").innerHTML = `${chips}
     <div class="pop">
       <button class="ftrigger" id="filterBtn" aria-expanded="${S.filtersOpen}" aria-haspopup="true">
         Filters${n?`<span class="cnt num">${n}</span>`:""}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6h16l-6.5 7.6V20l-3-1.8v-4.6z"/></svg>
       </button>
-      <div class="fpanel" id="fpanel" ${S.filtersOpen?"":"hidden"} role="dialog" aria-label="Filters">
-        <div class="fgrid">
-          <div class="fcol"><h4>Status</h4>
-            ${["all","issues","off","deg","clean"].map(v=>opt("status", v, STAT_LABEL[v], S.status)).join("")}</div>
-          <div class="fcol"><h4>Brand</h4>
-            ${brands.map(b=>opt("brand", b, b==="all"?"All brands":b, S.brand)).join("")}</div>
-          <div class="fcol"><h4>State</h4>
-            ${states.map(s=>opt("state", s, s==="all"?"All states":s, S.state)).join("")}</div>
-        </div>
-        <div class="faudience">
-          <button class="toggle" id="fParentOpt" aria-pressed="${S.parent}">
-            <span class="box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
-            Parent-facing only
-          </button>
+      <div class="fpanel wide" id="fpanel" ${S.filtersOpen?"":"hidden"} role="dialog" aria-label="Filters">
+        <div class="fhead"><b>Filters</b>
+          <button class="finfo" data-info="1">${INFO_ICON} How these work</button></div>
+        <div class="ftwo">
+          <div class="frail" role="tablist" aria-label="Filter by">
+            ${FKEYS.map(k=>{
+              const on = S[k] !== "all";
+              const dim = F[k].needs && S[F[k].needs] === "all";
+              return `<button class="frow${S.facet===k?" on":""}${dim?" dim":""}" data-facet="${k}"
+                role="tab" aria-selected="${S.facet===k}">
+                <span class="fl">${esc(F[k].label)}</span>
+                <span class="fv${on?" set":""}">${on ? esc(optLabel(k,S[k])) : (dim ? "after "+esc(F[F[k].needs].label.toLowerCase()) : "any")}</span>
+              </button>`;
+            }).join("")}
+          </div>
+          <div class="fbody">
+            ${fdef.search && !gated ? `<div class="fsearch">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+              <input id="fsearch" placeholder="Search ${esc(fdef.label.toLowerCase())}" value="${esc(S.fsearch)}" autocomplete="off">
+            </div>` : ""}
+            ${body}
+          </div>
         </div>
         <div class="fpanel-foot">
           <button class="clear" id="fClear">Clear all filters</button>
@@ -1044,18 +1411,18 @@ function renderTools(){
       <button class="ftrigger" id="sortBtn" aria-expanded="${S.sortOpen}" aria-haspopup="true"
         title="Sorted by ${esc(sortLabel(S.sort).toLowerCase())} — ${esc(dirLabel(S.sort,S.dir).toLowerCase())}">
         Sort <span class="cur">${esc(sortLabel(S.sort))}</span>
-        <span class="arrow">${S.dir==="asc"
-          ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M6 11l6-6 6 6"/></svg>`
-          : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6"/></svg>`}</span>
+        <span class="arrow">${ARROW(S.dir)}</span>
       </button>
       <div class="fpanel narrow" id="sortpanel" ${S.sortOpen?"":"hidden"} role="dialog" aria-label="Sort">
+        <div class="fhead"><b>Sort by</b>
+          <button class="finfo" data-info="1">${INFO_ICON}</button></div>
         <div class="sortlist">
-          ${SORTS.map(([v,l])=>opt("sort", v, l, S.sort)).join("")}
+          ${SORTS.map(s=>opt("sort", s.k, s.label, S.sort)).join("")}
         </div>
         <div class="sortdir">
           <h4>Order</h4>
-          ${[["desc",dirLabel(S.sort,"desc")],["asc",dirLabel(S.sort,"asc")]]
-            .map(([v,l])=>opt("dir", v, l, S.dir)).join("")}
+          ${["desc","asc"].map(v=>opt("dir", v, dirLabel(S.sort,v), S.dir,
+            `<span class="oa">${ARROW(v)}</span>`)).join("")}
         </div>
       </div>
     </div>`;
@@ -1065,7 +1432,7 @@ function renderTools(){
    Saved views — name the current filters, search and sort; reapply later.
    Browser-local, and deliberately outside "Reset data".
    ===================================================================== */
-const VIEWS_KEY = "wmg.cameraHealth.savedViews.nested.v1";
+const VIEWS_KEY = "wmg.cameraHealth.savedViews.nested.v2";
 function loadSavedViews(){
   try { const raw = localStorage.getItem(VIEWS_KEY); return raw ? JSON.parse(raw) : []; }
   catch(e){ return []; }
@@ -1074,11 +1441,7 @@ function persistSavedViews(views){
   try { localStorage.setItem(VIEWS_KEY, JSON.stringify(views)); } catch(e){ /* storage unavailable */ }
 }
 function viewSummary(v){
-  const bits = [];
-  if (v.status !== "all") bits.push(STAT_LABEL[v.status]);
-  if (v.brand  !== "all") bits.push(v.brand);
-  if (v.state  !== "all") bits.push(v.state);
-  if (v.parent) bits.push("Parent-facing");
+  const bits = FKEYS.filter(k=>v[k] && v[k]!=="all").map(k=>optLabel(k, v[k]));
   if (v.q) bits.push(`"${v.q}"`);
   bits.push(dirLabel(v.sort, v.dir || "desc"));
   return bits.join(" · ");
@@ -1089,7 +1452,8 @@ function commitSaveView(){
   if (!name){ inp && inp.focus(); return; }
   const existing = S.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
   const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
-    name, status:S.status, brand:S.brand, state:S.state, parent:S.parent, sort:S.sort, dir:S.dir, q:S.q };
+    name, sort:S.sort, dir:S.dir, q:S.q };
+  FKEYS.forEach(k=>payload[k]=S[k]);
   S.savedViews = existing ? S.savedViews.map(v=>v.id===existing.id?payload:v) : [...S.savedViews, payload];
   persistSavedViews(S.savedViews);
   S.savingOpen = false; render();
@@ -1098,8 +1462,8 @@ function commitSaveView(){
 function applyView(id){
   const v = S.savedViews.find(x=>x.id===id);
   if (!v) return;
-  S.status=v.status; S.brand=v.brand; S.state=v.state; S.parent=v.parent;
-  S.sort=v.sort; S.dir=v.dir || "desc";
+  FKEYS.forEach(k=>S[k] = v[k] || "all");
+  S.sort=v.sort; S.dir=v.dir || sortRow(v.sort).def;
   S.q=v.q; S.qDraft=v.q; $("q").value=v.q; S.centerPick=null;
   $("qField").classList.remove("linked");
   S.page=1; S.kpi=null; S.savingOpen=false; S.filtersOpen=false; S.sortOpen=false;
@@ -1226,7 +1590,7 @@ function pickCenter(id){
   const dropped = [];
   if (S.brand !== "all" && c.brand !== S.brand){ S.brand="all"; dropped.push("brand"); }
   if (S.state !== "all" && c.state !== S.state){ S.state="all"; dropped.push("state"); }
-  if (S.parent && !c.pub){ S.parent=false; dropped.push("parent-facing"); }
+  if (S.access !== "all" && !F.access.test(c, S.access)){ S.access="all"; dropped.push("parent access"); }
   if ((S.status==="issues" && !(t.off||t.deg)) || (S.status==="off" && !t.off)
       || (S.status==="deg" && !t.deg) || (S.status==="clean" && (t.off||t.deg))){
     S.status="all"; S.kpi=null; dropped.push("status");
@@ -1456,7 +1820,7 @@ function renderKpis(){
      // Don't claim they're sorted to the top unless they actually are.
      s: isFiltered ? `of ${DATA.length} assigned`
        : !issues ? "everything reporting"
-       : (S.sort==="issues" && S.dir==="desc") ? "sorted to the top" : "across your assignment",
+       : ((S.sort==="rate"||S.sort==="count") && S.dir==="desc") ? "worst first" : "across your assignment",
      t:"Show only centers with an issue"},
     // A zero in a bad-news metric is good news: it goes calm rather than
     // staying alert-red/orange, and the sub-label states the good news.
@@ -1479,11 +1843,21 @@ function centerHtml(c, absIndex){
   const t = tally(c);
   const cls = t.off ? "has-off" : t.deg ? "has-deg" : "clean";
 
+  // The third line always shows the number the list is sorted by, so the
+  // order can be checked against something visible on the card.
+  const key =
+    S.sort === "rate"   ? `Defect rate <b class="num">${pct(t.rate)}</b>` :
+    S.sort === "count"  ? `<b class="num">${t.bad}</b> of ${t.total} cameras` :
+    S.sort === "store"  ? `Store <b class="num">#${c.store}</b>` :
+    S.sort === "notes"  ? (noteStamp(c.id) ? `Note edited <b>${stampAgo(c.id)}</b>` : `<b>No note yet</b>`) :
+    S.sort === "outage" ? (t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : `<b>Nothing offline</b>`) :
+    t.worst ? `Longest <b class="num">${dur(t.worst)}</b>` : "";
   const stats = t.off || t.deg ? [
     t.off ? `<span class="stat off"><span class="sw off"></span><b class="num">${t.off}</b> offline</span>` : "",
     t.deg ? `<span class="stat deg"><span class="sw deg"></span><b class="num">${t.deg}</b> degraded</span>` : "",
-    t.worst ? `<span class="stat dim">Longest <b class="num">${dur(t.worst)}</b></span>` : ""
-  ].join("") : `<span class="stat ok"><span class="sw ok"></span>All <b class="num">${t.total}</b> reporting</span>`;
+    key ? `<span class="stat dim">${key}</span>` : ""
+  ].join("") : `<span class="stat ok"><span class="sw ok"></span>All <b class="num">${t.total}</b> reporting</span>`
+    + (key && (S.sort==="notes"||S.sort==="store") ? `<span class="stat dim">${key}</span>` : "");
 
   const blocks = c.cams.map((cam,i)=>`<button class="blk ${cam.status}${S.sel&&S.sel.ci===c.id&&S.sel.idx===i?" sel":""}"
       data-ci="${c.id}" data-i="${i}" tabindex="${i===0?0:-1}"
@@ -1560,7 +1934,8 @@ function renderList(){
       <p>Nothing in the ${DATA.length} centers you can see matches. Try widening the filters, or clear them to start over.</p>
       <button class="btn primary" id="emptyClear">Clear all filters</button></div>`;
   } else {
-    list.innerHTML = view.map((c,i)=>centerHtml(c, S.sort==="issues"||S.sort==="longest" ? start+i+1 : null)).join("");
+    const ranked = ["rate","count","outage"].includes(S.sort) && S.dir === "desc";
+    list.innerHTML = view.map((c,i)=>centerHtml(c, ranked ? start+i+1 : null)).join("");
     restore();
   }
   // mouseout never fires for a node that was removed from under the
@@ -1752,7 +2127,7 @@ function refresh({silent=false}={}){
   // left the list. It used to announce itself with a pill; the pill was
   // more noise than the wait was worth, so it now just waits quietly.
   const engaged = S.hover || $("list").contains(document.activeElement);
-  if (engaged && before !== after && (S.sort==="issues"||S.sort==="longest")){
+  if (engaged && before !== after && ["rate","count","outage"].includes(S.sort)){
     S.pendingOrder = before;
     // The strip is patched, not rebuilt, so it can stay current even while
     // the list order is held back.
@@ -1808,6 +2183,9 @@ list.addEventListener("click", e=>{
 list.addEventListener("input", e=>{
   const ta = e.target.closest("[data-notes]"); if (!ta) return;
   S.centerNotes[ta.dataset.notes] = ta.value;
+  // The edit time is what "Updated Annotations" sorts on, so it is stamped
+  // here, on the keystroke, not on some later save.
+  S.noteStamps[ta.dataset.notes] = Date.now();
   persistNotesSoon();
   syncNoteMarks(ta.dataset.notes);
 });
@@ -1962,6 +2340,13 @@ $("q").addEventListener("keydown", e=>{
   if (e.key === "Escape"){ $("q").value = S.q; S.qDraft = S.q; $("qClear").hidden = !S.q; }
 });
 $("qGo").onclick = submitSearch;
+/* The facet search repaints only the option list — the box the user is
+   typing into is never replaced. Delegated, since the panel is re-rendered. */
+document.addEventListener("input", e=>{
+  if (e.target.id !== "fsearch") return;
+  S.fsearch = e.target.value;
+  renderFacetOptions();
+});
 $("qClear").onclick = ()=>{
   $("q").value = ""; S.qDraft = ""; $("qClear").hidden = true;
   if (S.q || S.centerPick){ S.q=""; S.centerPick=null; S.page=1; $("qField").classList.remove("linked"); render(); }
@@ -1969,8 +2354,8 @@ $("qClear").onclick = ()=>{
 };
 
 function clearAll(){
-  S.q=""; S.qDraft=""; S.status="all"; S.brand="all"; S.state="all"; S.parent=false;
-  S.kpi=null; S.page=1; S.centerPick=null;
+  S.q=""; S.qDraft=""; FKEYS.forEach(k=>S[k]="all");
+  S.kpi=null; S.page=1; S.centerPick=null; S.fsearch="";
   $("q").value=""; $("qField").classList.remove("linked");
   render();
 }
@@ -1979,13 +2364,13 @@ function clearAll(){
 $("kpis").addEventListener("click", e=>{
   const b = e.target.closest("[data-kpi]"); if (!b) return;
   const k = b.dataset.kpi;
-  if (S.kpi === k){ S.kpi=null; S.status="all"; S.sort="issues"; }
+  if (S.kpi === k){ S.kpi=null; S.status="all"; S.sort="rate"; S.dir="desc"; }
   else {
     S.kpi = k;
     if (k==="issues"){ S.status="issues"; }
     if (k==="off"){ S.status="off"; }
     if (k==="deg"){ S.status="deg"; }
-    if (k==="longest"){ S.status="issues"; S.sort="longest"; }
+    if (k==="longest"){ S.status="off"; S.sort="outage"; S.dir="desc"; }
   }
   S.page=1; render();
 });
@@ -2009,23 +2394,30 @@ document.addEventListener("click", e=>{
   if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
   if (t.closest("#fClear")){ clearAll(); return; }
-  if (t.closest("#fParentOpt")){ S.parent=!S.parent; S.page=1; render(); return; }
+  if (t.closest("[data-info]")){ $("infoScrim").hidden=false; $("infoClose").focus(); return; }
+  const fr = t.closest("[data-facet]");
+  if (fr){ S.facet = fr.dataset.facet; S.fsearch = ""; renderTools(); return; }
   const fo = t.closest(".fopt");
   if (fo){
     // Both panels stay open while you are still choosing — picking a sort
     // field rewrites the two order labels below it, which is worth seeing.
     // Choosing the order is the terminal decision, so that closes it.
-    S[fo.dataset.f] = fo.dataset.v;
-    if (fo.dataset.f==="status") S.kpi=null;
-    if (fo.dataset.f==="dir") S.sortOpen=false;
+    const f = fo.dataset.f;
+    S[f] = fo.dataset.v;
+    if (f === "status") S.kpi = null;
+    // A field's natural direction comes with it: nobody picks "Defect Rate"
+    // wanting the healthiest centers first, or "Center Name" wanting Z–A.
+    if (f === "sort") S.dir = sortRow(S.sort).def;
+    if (f === "dir") S.sortOpen = false;
+    if (FKEYS.includes(f)) reconcileFilters();
     S.page=1; render(); return;
   }
   const cf = t.closest("[data-clear-filter]");
   if (cf){
     const k = cf.dataset.clearFilter;
-    if (k === "parent") S.parent=false; else S[k]="all";
+    S[k]="all";
     if (k === "status") S.kpi=null;
-    S.page=1; render(); return;
+    reconcileFilters(); S.page=1; render(); return;
   }
 
   if (onSaveTrigger){
@@ -2087,6 +2479,7 @@ $("drop").addEventListener("click", e=>{
   $("announce").textContent = `${centerById(S.center).name} selected. Dashboard updated.`;
 });
 document.addEventListener("keydown", e=>{
+  if (e.key === "Escape" && !$("infoScrim").hidden){ $("infoScrim").hidden=true; $("filterBtn")?.focus(); return; }
   if (e.key === "Escape" && (S.filtersOpen || S.sortOpen) && !S.sel){
     S.filtersOpen=false; S.sortOpen=false; render(); $("filterBtn")?.focus(); return;
   }
@@ -2138,7 +2531,9 @@ document.querySelector(".proto").addEventListener("click", e=>{
    the contrast only lands if you arrive from it rather than start there. */
 (function init(){
   S.savedViews = loadSavedViews();
-  S.centerNotes = loadNotes();
+  S.centerNotes = loadJSON(NOTES_KEY, {});
+  S.noteStamps  = loadJSON(STAMPS_KEY, {});
+  try { seedNotes(); } catch(e){ /* storage unavailable */ }
   $("noticeN").textContent = DATA.length;
   try { if (localStorage.getItem(NOTICE_KEY)) $("notice").hidden = true; } catch(e){}
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
