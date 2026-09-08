@@ -247,8 +247,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .ftrigger[aria-expanded="true"]{border-color:var(--blue);color:var(--blue-ink);box-shadow:var(--focus)}
 .ftrigger .cnt{min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:var(--blue);color:#fff;font-size:11px;display:grid;place-items:center}
 .ftrigger .cur{font-weight:600;color:var(--ink-3)}
+/* Capped to the window so it never opens past the fold: the inner lists
+   take the squeeze rather than the panel running off the bottom. */
 .fpanel{position:absolute;top:calc(100% + 9px);right:0;z-index:45;background:var(--surface);border:1px solid var(--line);
-  border-radius:14px;box-shadow:var(--shadow-modal);width:min(620px,calc(100vw - 28px));overflow:hidden}
+  border-radius:14px;box-shadow:var(--shadow-modal);width:min(620px,calc(100vw - 28px));overflow:hidden;
+  display:flex;flex-direction:column;max-height:calc(100dvh - 150px)}
 .fpanel.wide{width:min(660px,calc(100vw - 28px))}
 .fpanel.narrow{width:min(272px,calc(100vw - 28px))}
 /* !important on purpose: the mobile sheet rules below set display:flex at
@@ -266,9 +269,9 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    list on the right stays the same size whatever gets added, and leaves
    room for the search box a fifty-item list needs. Each rail row shows its
    own current value, so the whole filter state is legible at a glance. */
-.ftwo{display:grid;grid-template-columns:196px minmax(0,1fr)}
+.ftwo{display:grid;grid-template-columns:196px minmax(0,1fr);min-height:0;flex:1}
 .frail{border-right:1px solid var(--line-2);padding:8px;display:flex;flex-direction:column;gap:1px;
-  max-height:330px;overflow-y:auto;background:var(--fill-2)}
+  max-height:100%;overflow-y:auto;background:var(--fill-2)}
 .frow{text-align:left;padding:6px 9px;border-radius:8px;display:flex;flex-direction:column;gap:1px;min-width:0}
 .frow:hover{background:var(--surface)}
 .frow.on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
@@ -276,12 +279,12 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .frow .fv{font-size:11px;color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frow .fv.set{color:var(--blue-ink);font-weight:700}
 .frow.dim .fl{color:var(--ink-4)}
-.fbody{display:flex;flex-direction:column;min-width:0}
+.fbody{display:flex;flex-direction:column;min-width:0;min-height:0}
 .fsearch{position:relative;display:flex;align-items:center;padding:10px 12px 6px}
 .fsearch svg{position:absolute;left:22px;pointer-events:none}
 .fsearch input{width:100%;padding:7px 10px 7px 31px;border:1px solid var(--line-3);border-radius:8px;font-size:13px}
 .fsearch input:focus{border-color:var(--blue);box-shadow:var(--focus);outline:none}
-.foptlist{padding:8px;display:flex;flex-direction:column;gap:1px;max-height:330px;overflow-y:auto}
+.foptlist{padding:8px;display:flex;flex-direction:column;gap:1px;flex:1;min-height:0;max-height:330px;overflow-y:auto}
 .fsearch+.foptlist{max-height:280px}
 .fhint{padding:16px 14px;font-size:12.5px;color:var(--ink-3);line-height:1.5}
 .fhint b{color:var(--ink-2)}
@@ -295,6 +298,22 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .fopt[aria-pressed="true"] .oc,.fopt[aria-pressed="true"] .oa{color:rgba(255,255,255,.8)}
 .fopt.zero{color:var(--ink-4);cursor:not-allowed}
 .fopt.zero:hover{background:none}
+/* multi-select: a checkbox says "more than one" before anyone clicks,
+   which a highlighted row does not */
+.fopt .cbx{width:15px;height:15px;border-radius:4px;border:1.5px solid var(--line-3);background:var(--surface);
+  flex-shrink:0;display:grid;place-items:center;color:#fff}
+.fopt .cbx svg{width:10px;height:10px}
+.fopt[aria-pressed="true"] .cbx{background:var(--blue-ink);border-color:var(--blue-ink)}
+.fopt[aria-pressed="true"]{background:var(--blue-tint);color:var(--blue-deep)}
+.fopt[aria-pressed="true"] .oc{color:var(--blue-ink)}
+.fopt.clearrow{font-weight:700;color:var(--ink-2)}
+.fopt.clearrow.on{background:var(--fill);color:var(--ink-2)}
+.fopt.clearrow[aria-pressed="true"]{background:var(--fill);color:var(--ink-2)}
+.fopt.clearrow[aria-pressed="true"] .oc{color:var(--ink-4)}
+.fopt.zero .cbx{opacity:.5}
+.fmulti{font-size:11.5px;color:var(--ink-4);margin-right:auto}
+.fscope{padding:8px 14px;font-size:12px;color:var(--blue-deep);background:var(--blue-tint);border-bottom:1px solid var(--line)}
+.fscope b{font-weight:700}
 .fpanel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;
   border-top:1px solid var(--line);background:var(--fill-2)}
 .fpanel-foot .clear{font-size:12.5px;font-weight:700;color:var(--ink-3);padding:6px 8px;border-radius:7px}
@@ -530,9 +549,15 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 select{padding:6px 9px;border:1px solid var(--line-3);border-radius:8px;font-size:12.5px;background:var(--surface);cursor:pointer}
 select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
-/* ---------- camera detail drawer ---------- */
-.drawer{position:absolute;top:calc(var(--topbar-h) + var(--tabbar-h));right:0;bottom:0;width:390px;background:var(--surface);border-left:1px solid var(--line);box-shadow:-14px 0 40px rgba(17,24,39,.10);display:flex;flex-direction:column;transform:translateX(102%);transition:transform .22s cubic-bezier(.4,0,.2,1);z-index:20}
-.drawer.open{transform:none}
+/* ---------- camera detail: a modal, centred ----------
+   Back from the side drawer. A camera you clicked into is a stop, not a
+   sidebar — the modal says "deal with this, then go back to the board"
+   where the drawer let the board keep churning beside it. */
+.camscrim{position:fixed;inset:0;background:rgba(17,24,39,.45);backdrop-filter:blur(2px);
+  display:grid;place-items:center;padding:20px;z-index:70}
+.camscrim[hidden]{display:none}
+.drawer{width:min(430px,100%);max-height:92dvh;background:var(--surface);border-radius:14px;
+  box-shadow:var(--shadow-modal);overflow:hidden;display:flex;flex-direction:column}
 .d-head{display:flex;align-items:flex-start;gap:10px;padding:14px 14px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
 .d-head h2{font-family:'Titillium Web',sans-serif;font-size:16px;font-weight:700;line-height:1.2}
 .d-head .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px}
@@ -544,9 +569,9 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
    healthy one. The whole drawer takes the status: red edge, tinted header,
    a headline duration you can read across a desk. Degraded gets the same
    structure one notch quieter; normal stays deliberately calm. */
-.drawer.st-off{border-left:4px solid var(--off)}
+.drawer.st-off{border-top:4px solid var(--off)}
 .drawer.st-off .d-head{background:var(--off-tint);border-bottom-color:var(--off-line)}
-.drawer.st-deg{border-left:4px solid var(--deg)}
+.drawer.st-deg{border-top:4px solid var(--deg)}
 .drawer.st-deg .d-head{background:var(--deg-tint);border-bottom-color:var(--deg-line)}
 .d-body{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:13px}
 .dstate{display:flex;gap:11px;align-items:flex-start;border-radius:10px;padding:12px 13px;border:1px solid}
@@ -654,8 +679,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .crow{max-width:none}
   .strip-head .legend{margin-left:0;width:100%;gap:12px;flex-wrap:wrap}
   .sv-save{margin-left:0}
-  .drawer{top:auto;left:0;right:0;bottom:0;width:auto;max-height:86%;border-left:none;border-top:1px solid var(--line);border-radius:14px 14px 0 0;transform:translateY(102%);box-shadow:0 -14px 40px rgba(17,24,39,.16)}
-  .drawer.open{transform:none}
+  .camscrim{padding:0;place-items:end stretch}
+  .drawer{width:auto;max-height:88dvh;border-radius:14px 14px 0 0}
   .pager{justify-content:center}
 }
 </style>
@@ -835,7 +860,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   </div>
 
   <!-- ===== camera detail drawer ===== -->
-  <aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-labelledby="dTitle" aria-hidden="true">
+  <div class="camscrim" id="camScrim" hidden>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
     <div class="d-head" id="dHead">
       <div style="flex:1;min-width:0">
         <div class="d-title-row"><h2 id="dTitle">—</h2><span id="dPill"></span></div>
@@ -850,6 +876,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
       <button class="navbtn" id="dNext">Next<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M10 6l6 6-6 6"/></svg></button>
     </div>
   </aside>
+  </div>
 
   <!-- ===== how sorting and filtering are calculated ===== -->
   <div class="infoscrim" id="infoScrim" hidden>
@@ -897,6 +924,9 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <dl class="ilist">
             <div class="irow"><dt>Status</dt><dd>What the center's cameras are doing right now: any issue,
               offline specifically, degraded specifically, or everything reporting.</dd></div>
+            <div class="irow"><dt>Annotations</dt><dd>Whether anyone has written a note on the center —
+              presence only, never the text. It answers "which of these has someone already picked up?",
+              which is the one thing a filter can honestly say about a free-text note.</dd></div>
             <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.</dd></div>
             <div class="irow"><dt>Payment model</dt><dd>Who pays for the camera service —
               <b>parent-pay</b> (families subscribe) or <b>center-pay</b> (the center covers it).</dd></div>
@@ -905,9 +935,9 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               pays.</dd></div>
             <div class="irow"><dt>Region</dt><dd>The district grouping a regional manager owns. Regions
               group states, so a region can span more than one.</dd></div>
-            <div class="irow"><dt>Country</dt><dd>US or International. It's the outermost scope: changing it
-              drops any state, city, region or brand it leaves with nothing to match.</dd></div>
-            <div class="irow"><dt>State</dt><dd>The state or, outside the US, the province the center sits
+            <div class="irow"><dt>Country</dt><dd>United States or Canada. It's the outermost scope: changing
+              it drops any state, city, region or brand it leaves with nothing to match.</dd></div>
+            <div class="irow"><dt>State</dt><dd>The state or, in Canada, the province the center sits
               in.</dd></div>
             <div class="irow"><dt>City</dt><dd>Available once a state is chosen — an ungated city list is
               every city you can see, which is a wall rather than a filter.</dd></div>
@@ -917,7 +947,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Filters don't have to be applied in
           order. Each list is built from the centers that pass your <em>other</em> choices, and the number
           beside an option is how many centers you'd be left with — so choosing a state narrows the city
-          list on its own, and an option that would empty the board is greyed out instead of offered.</p>
+          list on its own, and an option that would empty the board is greyed out instead of offered.
+          <b>Within one category you can pick as many values as you like</b> and they're ORed together
+          (Texas <em>or</em> Oklahoma); separate categories are ANDed (Texas, and parent-pay). The counts
+          also respect whatever is in the search box.</p>
         </section>
       </div>
     </div>
@@ -1019,17 +1052,19 @@ WY|Wyoming|Mountain|MT|Cheyenne,Casper`.trim().split("\n").map(r=>{
   return {code, state, region, tz, country:"US", cities:cities.split(",")};
 });
 
-/* Country is a two-way switch — US or International — so the overseas
-   centers just need a plausible subdivision to sit in. */
-const INTL = `
-ON|Ontario|Canada|ET|Toronto
+/* Country is a two-way switch — US or Canada. The six centers that used to
+   sit under a vague "International" are the same six; their provinces are
+   Canadian now, because a State list offering Greater London underneath
+   Country: Canada is a demo that argues against itself. */
+const CA = `
+AB|Alberta|Canada|MT|Calgary
 BC|British Columbia|Canada|PT|Vancouver
-LDN|Greater London|United Kingdom|GMT|London
-DUB|Dublin|Ireland|GMT|Dublin
-NSW|New South Wales|Australia|AEST|Sydney
-SGP|Singapore|Singapore|SGT|Singapore`.trim().split("\n").map(r=>{
+MB|Manitoba|Canada|CT|Winnipeg
+NS|Nova Scotia|Canada|AT|Halifax
+ON|Ontario|Canada|ET|Toronto
+QC|Quebec|Canada|ET|Montréal`.trim().split("\n").map(r=>{
   const [code,state,region,tz,cities] = r.split("|");
-  return {code, state, region, tz, country:"INT", cities:cities.split(",")};
+  return {code, state, region, tz, country:"CA", cities:cities.split(",")};
 });
 
 /* One deterministic pass: camera count, how many are sick, who pays and
@@ -1039,7 +1074,7 @@ function seeds(){
   seed = 771103;
   const out = [];
   let store = 101;
-  [...US, ...INTL].forEach((geo, gi) => {
+  [...US, ...CA].forEach((geo, gi) => {
     // Every state gets a center; every third gets a second one.
     const many = geo.country === "US" && gi % 3 === 0;
     geo.cities.slice(0, many ? 2 : 1).forEach((city, ci) => {
@@ -1050,8 +1085,8 @@ function seeds(){
       const deg = off ? (rnd() < .35 ? 1 + Math.floor(rnd()*2) : 0)
                       : (roll < .40 ? 1 + Math.floor(rnd()*2) : 0);
       out.push({ name:`${brand} — ${city}`, brand, city,
-        st:geo.code, stateName:geo.state, region:geo.country==="INT"?"International":geo.region,
-        countryName:geo.country==="INT"?geo.region:"United States", country:geo.country, tz:geo.tz,
+        st:geo.code, stateName:geo.state, region:geo.region,
+        countryName:geo.country==="CA"?"Canada":"United States", country:geo.country, tz:geo.tz,
         store:String(store += 3), n, off:Math.min(off,n), deg:Math.min(deg, n-off),
         pay: rnd() < .58 ? "parent" : "center",
         pub: rnd() < .78 });
@@ -1114,9 +1149,9 @@ const S = {
   center:null,          // the center selected on the dashboard, if any
   dropOpen:false,       // the header picker's dropdown
   q:"", qDraft:"",
-  // one key per facet; "all" means "not filtering on this"
-  status:"all", brand:"all", pay:"all", access:"all",
-  region:"all", country:"all", state:"all", city:"all", tz:"all",
+  // one key per facet, each an array of chosen values; empty = not filtering
+  status:[], notes:[], brand:[], pay:[], access:[],
+  region:[], country:[], state:[], city:[], tz:[],
   facet:"status", fsearch:"",          // which facet's options are open, and its search box
   sort:"rate", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
@@ -1198,51 +1233,63 @@ function seedNotes(){
    city list is Texas cities. `needs` is the one real dependency — an
    ungated list of ninety cities is a wall, not a filter.
    ===================================================================== */
-const FKEYS = ["status","brand","pay","access","region","country","state","city","tz"];
-const uniqOpts = (get, label) => {
-  const vals = [...new Set(DATA.filter(c=>passExcept(c, label)).map(get))].sort((a,b)=>String(a).localeCompare(String(b)));
-  return vals.map(v=>[v, String(v)]);
-};
+const FKEYS = ["status","notes","brand","pay","access","region","country","state","city","tz"];
+
+/* Every facet holds an array of chosen values. Empty means "not filtering
+   on this"; two or more are ORed together, which is how people actually
+   think about a category — "Texas and Oklahoma", never "Texas AND
+   Oklahoma", which would be nothing. Facets are still ANDed with each
+   other. `one` tests a single value, and `test` folds it over the
+   selection, so option counts and matching share one definition. */
+const facet = (label, all, one, options, extra={}) => ({
+  label, all, one, options,
+  test:(c,sel)=>!sel.length || sel.some(v=>one(c,v)),
+  ...extra
+});
+const uniqOpts = (get, key) => [...new Set(DATA.filter(c=>passExcept(c, key)).map(get))]
+  .sort((a,b)=>String(a).localeCompare(String(b))).map(v=>[v, String(v)]);
+
 const F = {
-  status:{ label:"Status", all:"All centers",
-    test:(c,v)=>{ if (v==="all") return true; const t=tally(c);
+  status: facet("Status", "Any status",
+    (c,v)=>{ const t=tally(c);
       return v==="issues" ? !!(t.off||t.deg) : v==="off" ? !!t.off : v==="deg" ? !!t.deg : !(t.off||t.deg); },
-    options:()=>[["all","All centers"],["issues","Has any issue"],["off","Has offline cameras"],
-                 ["deg","Has degraded cameras"],["clean","All reporting"]] },
-  brand:{ label:"Brand", all:"All brands",
-    test:(c,v)=>v==="all"||c.brand===v,
-    options:()=>[["all","All brands"], ...uniqOpts(c=>c.brand,"brand")] },
-  pay:{ label:"Payment model", all:"Any payment model",
-    test:(c,v)=>v==="all"||c.pay===v,
-    options:()=>[["all","Any payment model"],["parent","Parent-pay"],["center","Center-pay"]] },
-  access:{ label:"Parent access", all:"Any parent access",
-    test:(c,v)=>v==="all"||(v==="parent"?c.pub:!c.pub),
-    options:()=>[["all","Any parent access"],["parent","Parent-facing"],["internal","Internal only"]] },
-  region:{ label:"Region", all:"All regions",
-    test:(c,v)=>v==="all"||c.region===v,
-    options:()=>[["all","All regions"], ...uniqOpts(c=>c.region,"region")] },
-  country:{ label:"Country", all:"US and International",
-    test:(c,v)=>v==="all"||c.country===v,
-    options:()=>[["all","US and International"],["US","United States"],["INT","International"]] },
-  state:{ label:"State", all:"All states", search:true,
-    test:(c,v)=>v==="all"||c.stateName===v,
-    options:()=>[["all","All states"], ...uniqOpts(c=>c.stateName,"state")] },
-  city:{ label:"City", all:"All cities", search:true, needs:"state",
-    test:(c,v)=>v==="all"||c.city===v,
-    options:()=>[["all","All cities"], ...uniqOpts(c=>c.city,"city")] },
-  tz:{ label:"Timezone", all:"All timezones",
-    test:(c,v)=>v==="all"||c.tz===v,
-    options:()=>[["all","All timezones"], ...uniqOpts(c=>c.tz,"tz")] },
+    ()=>[["issues","Has any issue"],["off","Has offline cameras"],
+         ["deg","Has degraded cameras"],["clean","All reporting"]]),
+  // Presence only. "Which of these has someone already looked at?" is a
+  // different question from what the note says, and the only one a filter
+  // can answer honestly.
+  notes: facet("Annotations", "Any annotation",
+    (c,v)=> v==="yes" ? !!noteOf(c.id) : !noteOf(c.id),
+    ()=>[["yes","Has an annotation"],["no","No annotation"]]),
+  brand: facet("Brand", "All brands", (c,v)=>c.brand===v, ()=>uniqOpts(c=>c.brand,"brand")),
+  pay: facet("Payment model", "Any payment model", (c,v)=>c.pay===v,
+    ()=>[["parent","Parent-pay"],["center","Center-pay"]]),
+  access: facet("Parent access", "Any parent access", (c,v)=>v==="parent"?c.pub:!c.pub,
+    ()=>[["parent","Parent-facing"],["internal","Internal only"]]),
+  region: facet("Region", "All regions", (c,v)=>c.region===v, ()=>uniqOpts(c=>c.region,"region")),
+  country: facet("Country", "US and Canada", (c,v)=>c.country===v,
+    ()=>[["US","United States"],["CA","Canada"]]),
+  state: facet("State", "All states", (c,v)=>c.stateName===v,
+    ()=>uniqOpts(c=>c.stateName,"state"), {search:true}),
+  city: facet("City", "All cities", (c,v)=>c.city===v,
+    ()=>uniqOpts(c=>c.city,"city"), {search:true, needs:"state"}),
+  tz: facet("Timezone", "All timezones", (c,v)=>c.tz===v, ()=>uniqOpts(c=>c.tz,"tz")),
 };
 const optLabel = (k, v) => (F[k].options().find(o=>o[0]===v) || [v, String(v)])[1];
+const facetSummary = k => S[k].length === 1 ? optLabel(k, S[k][0])
+  : `${optLabel(k, S[k][0])} +${S[k].length-1}`;
 
 /* Does this center pass every facet except one? Both the option lists and
-   their counts are built on this — the standard facet-count trick. */
+   their counts are built on this — the standard facet-count trick. The
+   search text counts as a filter here too: a count that ignores the box
+   the user just typed in is a count that lies about what they'd get. */
 function passExcept(c, skip){
+  const q = S.q.trim().toLowerCase();
+  if (q && !(c.name.toLowerCase().includes(q) || c.store.includes(q))) return false;
   return FKEYS.every(k => k === skip || F[k].test(c, S[k]));
 }
 function facetCount(k, v){
-  return DATA.filter(c => passExcept(c, k) && F[k].test(c, v)).length;
+  return DATA.filter(c => passExcept(c, k) && F[k].one(c, v)).length;
 }
 
 /* Filter test on its own: the centers strip needs to know "would this
@@ -1256,17 +1303,19 @@ function matchesFilters(c, {ignoreQ=false}={}){
 }
 function filtered(){ return DATA.filter(c=>matchesFilters(c)); }
 
-/* A deeper choice can be orphaned by a shallower one — pick International
+/* A deeper choice can be orphaned by a shallower one — pick Canada
    while a Texas city is selected and that city no longer exists in scope.
    Clear what can no longer match rather than showing an empty board. */
 function reconcileFilters(){
   const inCountry = c => F.country.test(c, S.country);
-  // Country is the outermost scope; anything it orphans is dropped.
+  // Country is the outermost scope; any value it orphans is dropped, one
+  // value at a time rather than clearing the whole facet.
   ["region","state","tz","brand"].forEach(k=>{
-    if (S[k] !== "all" && !DATA.some(c => inCountry(c) && F[k].test(c, S[k]))) S[k] = "all";
+    S[k] = S[k].filter(v => DATA.some(c => inCountry(c) && F[k].one(c, v)));
   });
-  if (S.city !== "all" && (S.state === "all" ||
-      !DATA.some(c => inCountry(c) && F.state.test(c, S.state) && c.city === S.city))) S.city = "all";
+  S.city = S.state.length
+    ? S.city.filter(v => DATA.some(c => inCountry(c) && F.state.test(c, S.state) && c.city === v))
+    : [];
 }
 
 /* =====================================================================
@@ -1319,8 +1368,13 @@ function sorted(list){
    burying the sort inside a panel called "Filters" made the current sort
    invisible. The sort trigger now states the active sort on its face.
    ===================================================================== */
-const activeFilters = () =>
-  FKEYS.filter(k=>S[k]!=="all").map(k=>({k, label:optLabel(k, S[k])}));
+const activeFilters = () => FKEYS.filter(k=>S[k].length).map(k=>({
+  k,
+  // One chip per facet, not per value: nine facets times several values
+  // each would bury the toolbar in chips.
+  label: S[k].length === 1 ? optLabel(k, S[k][0]) : `${F[k].label}: ${S[k].length}`,
+  title: S[k].map(v=>optLabel(k,v)).join(", ")
+}));
 // The search box shows its own text, so it gets no chip — but it still
 // narrows the set, so it counts toward the KPI scope line.
 const hasAnyFilter = () => activeFilters().length > 0 || !!S.q.trim();
@@ -1333,18 +1387,27 @@ const INFO_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" s
 /* The open facet's options, with live counts. Kept separate from the panel
    so typing in the search box repaints the list without replacing the box
    the user is typing into. */
+const CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 13l4.5 4.5L19 7"/></svg>`;
 function facetOptionsHtml(){
   const fk = S.facet;
   const q = S.fsearch.trim().toLowerCase();
   const opts = F[fk].options()
-    .map(([v,l])=>({v, l, n: v==="all" ? null : facetCount(fk, v)}))
-    .filter(o=>!q || o.l.toLowerCase().includes(q) || o.v==="all");
-  if (opts.length <= 1) return `<div class="fhint">Nothing matches “${esc(S.fsearch)}”.</div>`;
-  return opts.map(o=>{
-    const zero = o.n === 0 && S[fk] !== o.v;
-    return `<button class="fopt${zero?" zero":""}" data-f="${fk}" data-v="${esc(o.v)}"
-      aria-pressed="${S[fk]===o.v}" ${zero?"disabled":""}>
-      <span class="ol">${esc(o.l)}</span>${o.n===null?"":`<span class="oc num">${o.n}</span>`}</button>`;
+    .map(([v,l])=>({v, l, n: facetCount(fk, v)}))
+    .filter(o=>!q || o.l.toLowerCase().includes(q));
+  // The clear row stays put while a search filters the rest, so there is
+  // always a way out of a selection you can no longer see.
+  const clear = `<button class="fopt clearrow${S[fk].length?"":" on"}" data-f="${fk}" data-v="__all"
+      aria-pressed="${!S[fk].length}">
+      <span class="ol">${esc(F[fk].all)}</span>
+      <span class="oc num">${DATA.filter(c=>passExcept(c,fk)).length}</span></button>`;
+  if (!opts.length) return clear + `<div class="fhint">Nothing matches “${esc(S.fsearch)}”.</div>`;
+  return clear + opts.map(o=>{
+    const on = S[fk].includes(o.v);
+    const zero = o.n === 0 && !on;
+    return `<button class="fopt multi${zero?" zero":""}" data-f="${fk}" data-v="${esc(o.v)}"
+      aria-pressed="${on}" ${zero?"disabled":""}>
+      <span class="cbx">${on?CHECK:""}</span>
+      <span class="ol">${esc(o.l)}</span><span class="oc num">${o.n}</span></button>`;
   }).join("");
 }
 function renderFacetOptions(){
@@ -1358,14 +1421,14 @@ function renderTools(){
       <span class="ol">${esc(label)}</span>${extra}</button>`;
 
   const chips = activeFilters().map(f => `
-    <span class="fchip">${esc(f.label)}
-      <button class="x" data-clear-filter="${f.k}" aria-label="Remove ${esc(f.label)} filter">
+    <span class="fchip" title="${esc(f.title)}">${esc(f.label)}
+      <button class="x" data-clear-filter="${f.k}" aria-label="Remove ${esc(F[f.k].label)} filter">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
       </button></span>`).join("");
   const n = activeFilters().length;
 
   const fk = S.facet, fdef = F[fk];
-  const gated = fdef.needs && S[fdef.needs] === "all";
+  const gated = fdef.needs && !S[fdef.needs].length;
   const body = gated
     ? `<div class="fhint">Pick a <b>${esc(F[fdef.needs].label.toLowerCase())}</b> first —
         ${esc(fdef.label.toLowerCase())} would otherwise list every city you can see, which is a wall
@@ -1380,16 +1443,20 @@ function renderTools(){
       </button>
       <div class="fpanel wide" id="fpanel" ${S.filtersOpen?"":"hidden"} role="dialog" aria-label="Filters">
         <div class="fhead"><b>Filters</b>
+          <span class="fmulti">Pick as many as you like in a category</span>
           <button class="finfo" data-info="1">${INFO_ICON} How these work</button></div>
+        ${S.q.trim() ? `<div class="fscope">Counts and options are within the search
+          <b>“${esc(S.q.trim())}”</b>.</div>` : ""}
         <div class="ftwo">
           <div class="frail" role="tablist" aria-label="Filter by">
             ${FKEYS.map(k=>{
-              const on = S[k] !== "all";
-              const dim = F[k].needs && S[F[k].needs] === "all";
+              const on = S[k].length > 0;
+              const dim = F[k].needs && !S[F[k].needs].length;
               return `<button class="frow${S.facet===k?" on":""}${dim?" dim":""}" data-facet="${k}"
-                role="tab" aria-selected="${S.facet===k}">
+                role="tab" aria-selected="${S.facet===k}"
+                title="${on ? esc(S[k].map(v=>optLabel(k,v)).join(", ")) : ""}">
                 <span class="fl">${esc(F[k].label)}</span>
-                <span class="fv${on?" set":""}">${on ? esc(optLabel(k,S[k])) : (dim ? "after "+esc(F[F[k].needs].label.toLowerCase()) : "any")}</span>
+                <span class="fv${on?" set":""}">${on ? esc(facetSummary(k)) : (dim ? "after "+esc(F[F[k].needs].label.toLowerCase()) : "any")}</span>
               </button>`;
             }).join("")}
           </div>
@@ -1441,7 +1508,9 @@ function persistSavedViews(views){
   try { localStorage.setItem(VIEWS_KEY, JSON.stringify(views)); } catch(e){ /* storage unavailable */ }
 }
 function viewSummary(v){
-  const bits = FKEYS.filter(k=>v[k] && v[k]!=="all").map(k=>optLabel(k, v[k]));
+  const bits = FKEYS.filter(k=>Array.isArray(v[k]) ? v[k].length : (v[k] && v[k]!=="all"))
+    .map(k=>{ const s=v[k]; const arr = Array.isArray(s)?s:[s];
+      return arr.length===1 ? optLabel(k,arr[0]) : `${F[k].label}: ${arr.length}`; });
   if (v.q) bits.push(`"${v.q}"`);
   bits.push(dirLabel(v.sort, v.dir || "desc"));
   return bits.join(" · ");
@@ -1453,7 +1522,7 @@ function commitSaveView(){
   const existing = S.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
   const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
     name, sort:S.sort, dir:S.dir, q:S.q };
-  FKEYS.forEach(k=>payload[k]=S[k]);
+  FKEYS.forEach(k=>payload[k]=[...S[k]]);
   S.savedViews = existing ? S.savedViews.map(v=>v.id===existing.id?payload:v) : [...S.savedViews, payload];
   persistSavedViews(S.savedViews);
   S.savingOpen = false; render();
@@ -1462,7 +1531,9 @@ function commitSaveView(){
 function applyView(id){
   const v = S.savedViews.find(x=>x.id===id);
   if (!v) return;
-  FKEYS.forEach(k=>S[k] = v[k] || "all");
+  // Views saved before categories went multi hold a single string.
+  FKEYS.forEach(k=>{ const s=v[k];
+    S[k] = Array.isArray(s) ? [...s] : (s && s!=="all" ? [s] : []); });
   S.sort=v.sort; S.dir=v.dir || sortRow(v.sort).def;
   S.q=v.q; S.qDraft=v.q; $("q").value=v.q; S.centerPick=null;
   $("qField").classList.remove("linked");
@@ -2014,10 +2085,10 @@ function render(){
    ===================================================================== */
 function renderDrawer(){
   const d = $("drawer");
-  if (!S.sel){ d.classList.remove("open"); d.setAttribute("aria-hidden","true"); return; }
+  if (!S.sel){ $("camScrim").hidden = true; return; }
   const c = DATA.find(x=>x.id===S.sel.ci); if (!c){ S.sel=null; return; }
   const cam = c.cams[S.sel.idx];
-  d.classList.add("open"); d.setAttribute("aria-hidden","false");
+  $("camScrim").hidden = false;
   d.classList.toggle("st-off", cam.status === "off");
   d.classList.toggle("st-deg", cam.status === "deg");
   $("dTitle").textContent = `Cam ${cam.n} — ${cam.room}`;
@@ -2354,7 +2425,7 @@ $("qClear").onclick = ()=>{
 };
 
 function clearAll(){
-  S.q=""; S.qDraft=""; FKEYS.forEach(k=>S[k]="all");
+  S.q=""; S.qDraft=""; FKEYS.forEach(k=>S[k]=[]);
   S.kpi=null; S.page=1; S.centerPick=null; S.fsearch="";
   $("q").value=""; $("qField").classList.remove("linked");
   render();
@@ -2364,13 +2435,13 @@ function clearAll(){
 $("kpis").addEventListener("click", e=>{
   const b = e.target.closest("[data-kpi]"); if (!b) return;
   const k = b.dataset.kpi;
-  if (S.kpi === k){ S.kpi=null; S.status="all"; S.sort="rate"; S.dir="desc"; }
+  if (S.kpi === k){ S.kpi=null; S.status=[]; S.sort="rate"; S.dir="desc"; }
   else {
     S.kpi = k;
-    if (k==="issues"){ S.status="issues"; }
-    if (k==="off"){ S.status="off"; }
-    if (k==="deg"){ S.status="deg"; }
-    if (k==="longest"){ S.status="off"; S.sort="outage"; S.dir="desc"; }
+    if (k==="issues"){ S.status=["issues"]; }
+    if (k==="off"){ S.status=["off"]; }
+    if (k==="deg"){ S.status=["deg"]; }
+    if (k==="longest"){ S.status=["off"]; S.sort="outage"; S.dir="desc"; }
   }
   S.page=1; render();
 });
@@ -2385,7 +2456,7 @@ document.addEventListener("click", e=>{
   // included. Without this, a click inside it fell through to the
   // dismiss-on-outside-click branches below, which swallowed the close
   // button entirely; and a click on the scrim closed two layers at once.
-  if (t.closest("#infoScrim")) return;
+  if (t.closest("#infoScrim") || t.closest("#camScrim")) return;
   const onFilterTrigger = !!t.closest("#filterBtn");
   const onSortTrigger   = !!t.closest("#sortBtn");
   const onSaveTrigger   = !!t.closest("#saveViewBtn");
@@ -2395,8 +2466,8 @@ document.addEventListener("click", e=>{
   if (S.savingOpen && !onFilterTrigger && !onSortTrigger && !t.closest(".sv-save")){ S.savingOpen=false; render(); return; }
   if ((S.filtersOpen || S.sortOpen) && !onSaveTrigger && !inTools){ S.filtersOpen=false; S.sortOpen=false; render(); return; }
 
-  if (onFilterTrigger){ S.filtersOpen=!S.filtersOpen; S.sortOpen=false; S.savingOpen=false; render(); return; }
-  if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); return; }
+  if (onFilterTrigger){ S.filtersOpen=!S.filtersOpen; S.sortOpen=false; S.savingOpen=false; render(); revealPanel("fpanel"); return; }
+  if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); revealPanel("sortpanel"); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
   if (t.closest("#fClear")){ clearAll(); return; }
   if (t.closest("[data-info]")){ openInfo(); return; }
@@ -2407,8 +2478,13 @@ document.addEventListener("click", e=>{
     // Both panels stay open while you are still choosing — picking a sort
     // field rewrites the two order labels below it, which is worth seeing.
     // Choosing the order is the terminal decision, so that closes it.
-    const f = fo.dataset.f;
-    S[f] = fo.dataset.v;
+    const f = fo.dataset.f, v = fo.dataset.v;
+    if (FKEYS.includes(f)){
+      // Toggle within the category; the clear row empties it.
+      S[f] = v === "__all" ? [] : S[f].includes(v) ? S[f].filter(x=>x!==v) : [...S[f], v];
+    } else {
+      S[f] = v;
+    }
     if (f === "status") S.kpi = null;
     // A field's natural direction comes with it: nobody picks "Defect Rate"
     // wanting the healthiest centers first, or "Center Name" wanting Z–A.
@@ -2420,7 +2496,7 @@ document.addEventListener("click", e=>{
   const cf = t.closest("[data-clear-filter]");
   if (cf){
     const k = cf.dataset.clearFilter;
-    S[k]="all";
+    S[k]=[];
     if (k === "status") S.kpi=null;
     reconcileFilters(); S.page=1; render(); return;
   }
@@ -2438,6 +2514,18 @@ document.addEventListener("click", e=>{
   if (dv){ deleteView(dv.dataset.delView); return; }
   if (S.dropOpen && !t.closest("#sbar")) closePicker();
 });
+
+/* The toolbar sits low enough on a laptop that a panel dropping from it
+   can open below the fold. Rather than flipping it upward — which moves a
+   thing the user just aimed at — scroll it into view. */
+function revealPanel(id){
+  const el = $(id);
+  if (!el || el.hidden) return;
+  requestAnimationFrame(()=>{
+    const r = el.getBoundingClientRect();
+    if (r.bottom > window.innerHeight - 8) el.scrollIntoView({block:"nearest", behavior:"smooth"});
+  });
+}
 
 /* ---------- the "how these work" dialog ----------
    Three ways out, because being stuck in a reference panel is worse than
@@ -2520,6 +2608,7 @@ $("banner").addEventListener("click", e=>{ if (e.target.closest("#retry")){ S.er
 
 // drawer
 $("dClose").onclick = closeCam;
+$("camScrim").addEventListener("click", e=>{ if (e.target === $("camScrim")) closeCam(); });
 $("dPrev").onclick = ()=>stepCam(-1);
 $("dNext").onclick = ()=>stepCam(1);
 document.addEventListener("keydown", e=>{

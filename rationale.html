@@ -284,6 +284,23 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       centers it would leave. An ⓘ in both panels opens one page that states every formula — a column called
       "Defect Rate" is worth nothing if two people read it differently.</p>
     </div></div>
+    <div class="q"><span class="n num">20</span><div>
+      <p><strong>Made categories multi-select, added annotations as a filter, and brought the camera modal
+      back.</strong> Within one category values are now ORed — Texas <em>or</em> Oklahoma, which is how anyone
+      says it out loud; separate categories stay ANDed. Options became checkboxes, because a highlighted row
+      says "one of these" before you touch it and a checkbox says "as many as you like". Chips stay one per
+      category ("State: 2", the values on hover) rather than one per value, or nine categories would bury the
+      toolbar.</p>
+      <p>Annotations joined the filters as <em>presence only</em> — has a note, has none. It answers "which of
+      these has someone already picked up?", which is the only thing a filter can honestly say about free
+      text. Camera detail went back to a centred modal from the side drawer: a camera you clicked into is a
+      stop, not a sidebar. And the country filter now says Canada rather than "International" — with the six
+      centers underneath moved to Canadian provinces, since a State list offering Greater London underneath
+      Country: Canada is a demo that argues against itself.</p>
+      <p>One thing the question exposed: the option counts were ignoring the search box, so a panel opened
+      after searching quoted totals for centers the search had already excluded. Search is a filter like any
+      other now — counts, option lists and results all agree, and the panel says so when a search is active.</p>
+    </div></div>
   </div>
 </section>
 
@@ -355,8 +372,8 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     gets picked.</li>
     <li><strong>Cameras in the rail looks normal but isn't a route</strong> — in both, every path to a camera
     runs through camera health, so there's one door, not two.</li>
-    <li><strong>Detail opens in a modal in B, a drawer in A</strong> — a modal reads as the harder stop that
-    suits triage; a drawer lets the board stay readable behind it.</li>
+    <li><strong>Both open camera detail in a centred modal</strong> — A tried a side drawer for a while and
+    went back: a camera you clicked into is a stop, not a sidebar.</li>
     <li><strong>Every center is listed, always.</strong> No problems-first / all-centers switch and no
     collapsed healthy row: the sort decides what floats to the top, so there is one list rather than a mode
     to be in. Problem centers show their whole grid, not just the broken cameras — four red among twenty
