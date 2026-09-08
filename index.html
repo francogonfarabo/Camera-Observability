@@ -2381,6 +2381,11 @@ $("kpis").addEventListener("click", e=>{
    ===================================================================== */
 document.addEventListener("click", e=>{
   const t = e.target;
+  // While the reference dialog is up it owns every click — its own scrim
+  // included. Without this, a click inside it fell through to the
+  // dismiss-on-outside-click branches below, which swallowed the close
+  // button entirely; and a click on the scrim closed two layers at once.
+  if (t.closest("#infoScrim")) return;
   const onFilterTrigger = !!t.closest("#filterBtn");
   const onSortTrigger   = !!t.closest("#sortBtn");
   const onSaveTrigger   = !!t.closest("#saveViewBtn");
@@ -2394,7 +2399,7 @@ document.addEventListener("click", e=>{
   if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
   if (t.closest("#fClear")){ clearAll(); return; }
-  if (t.closest("[data-info]")){ $("infoScrim").hidden=false; $("infoClose").focus(); return; }
+  if (t.closest("[data-info]")){ openInfo(); return; }
   const fr = t.closest("[data-facet]");
   if (fr){ S.facet = fr.dataset.facet; S.fsearch = ""; renderTools(); return; }
   const fo = t.closest(".fopt");
@@ -2433,6 +2438,17 @@ document.addEventListener("click", e=>{
   if (dv){ deleteView(dv.dataset.delView); return; }
   if (S.dropOpen && !t.closest("#sbar")) closePicker();
 });
+
+/* ---------- the "how these work" dialog ----------
+   Three ways out, because being stuck in a reference panel is worse than
+   never opening it: the close button, the scrim, and Escape. */
+function openInfo(){ $("infoScrim").hidden = false; $("infoClose").focus(); }
+function closeInfo(){
+  $("infoScrim").hidden = true;
+  ($("filterBtn") || $("sortBtn"))?.focus();
+}
+$("infoClose").onclick = closeInfo;
+$("infoScrim").addEventListener("click", e=>{ if (e.target === $("infoScrim")) closeInfo(); });
 
 /* ---------- shell navigation ---------- */
 function closeNav(){ $("navDrawer").hidden = true; $("navScrim").hidden = true; }
@@ -2479,7 +2495,7 @@ $("drop").addEventListener("click", e=>{
   $("announce").textContent = `${centerById(S.center).name} selected. Dashboard updated.`;
 });
 document.addEventListener("keydown", e=>{
-  if (e.key === "Escape" && !$("infoScrim").hidden){ $("infoScrim").hidden=true; $("filterBtn")?.focus(); return; }
+  if (e.key === "Escape" && !$("infoScrim").hidden){ closeInfo(); return; }
   if (e.key === "Escape" && (S.filtersOpen || S.sortOpen) && !S.sel){
     S.filtersOpen=false; S.sortOpen=false; render(); $("filterBtn")?.focus(); return;
   }
