@@ -217,6 +217,13 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 /* ---------- toolbar ---------- */
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;
   border-top:1px solid var(--line);border-radius:0 0 12px 12px;background:var(--fill-2)}
+/* overview off: the card is just the toolbar, so it loses the seam and the
+   tinted "second half" look that only made sense under the strip */
+.strip[hidden]{display:none}
+.board.nostrip .filters{border-top:none;border-radius:12px;background:var(--surface)}
+/* the view toggle sits with the other view controls and shows its state */
+.ftrigger.vtoggle[aria-pressed="true"]{background:var(--blue-tint);border-color:#9fd0f0;color:var(--blue-deep)}
+.ftrigger.vtoggle[aria-pressed="false"]{color:var(--ink-3);font-weight:600}
 .field{position:relative;display:flex;align-items:center;flex:1 1 330px;max-width:460px}
 .field>svg{position:absolute;left:11px;pointer-events:none}
 .field input{width:100%;padding:9px 30px 9px 33px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface)}
@@ -459,7 +466,10 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .sv-cancel:hover{background:var(--fill)}
 
 /* result line — the count only; the KPI row above owns the diagnosis */
-.resultline{font-size:12.5px;color:var(--ink-3);padding:0 2px}
+.resultline{font-size:12.5px;color:var(--ink-3);padding:0 2px;display:flex;align-items:baseline;
+  justify-content:space-between;gap:16px;flex-wrap:wrap}
+.resultline[hidden]{display:none}
+.resultline .legend{margin-left:auto}
 
 /* status swatch — color + texture, never color alone */
 .sw{width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
@@ -810,7 +820,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
                on purpose: clicking a block writes that center into the search
                field directly below it, so the cause and the effect are one
                object rather than two coincidences. -->
-          <section class="board" aria-label="Your centers, search and filters">
+          <section class="board" id="board" aria-label="Your centers, search and filters">
             <div class="strip" id="stripWrap">
               <div class="strip-head">
                 <span class="strip-title">Your centers</span>
@@ -1152,6 +1162,7 @@ const S = {
   // one key per facet, each an array of chosen values; empty = not filtering
   status:[], notes:[], brand:[], pay:[], access:[],
   region:[], country:[], state:[], city:[], tz:[],
+  strip:true,                          // the "Your centers" overview, on or off
   facet:"status", fsearch:"",          // which facet's options are open, and its search box
   sort:"rate", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
@@ -1436,6 +1447,11 @@ function renderTools(){
     : `<div class="foptlist">${facetOptionsHtml()}</div>`;
 
   $("toolsSlot").innerHTML = `${chips}
+    <button class="ftrigger vtoggle" id="stripBtn" aria-pressed="${S.strip}"
+      title="${S.strip?"Hide":"Show"} the centers overview">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      Overview
+    </button>
     <div class="pop">
       <button class="ftrigger" id="filterBtn" aria-expanded="${S.filtersOpen}" aria-haspopup="true">
         Filters${n?`<span class="cnt num">${n}</span>`:""}
@@ -1603,6 +1619,12 @@ function stripGroups(){
 
 let stripSig = "";
 function renderStrip(){
+  // Switched off, the strip stops costing anything: no rebuild, no patch on
+  // every read. Switching it back on rebuilds from scratch, since what it
+  // was showing is however many refreshes out of date by then.
+  $("stripWrap").hidden = !S.strip;
+  $("board").classList.toggle("nostrip", !S.strip);
+  if (!S.strip){ stripSig = ""; return; }
   const groups = stripGroups();
   const sig = groups.map(g=>g.brand+":"+g.cs.map(c=>c.id).join("|")).join(";");
   if (sig !== stripSig){
@@ -1620,6 +1642,7 @@ function renderStrip(){
 }
 
 function patchStrip(){
+  if (!S.strip) return;
   // While the first read is in flight the strip must not claim to know
   // anything: same blocks, no status, not clickable.
   if (S.loading){
@@ -2035,11 +2058,18 @@ function renderList(){
 
   // Only worth a line when the view is narrower than the assignment: with
   // nothing filtered, every number here is already in the KPI row above.
+  // The legend moves here when the overview is off, because that is where
+  // the key lived — hiding the strip shouldn't leave the squares unexplained.
   const cams = all.reduce((s,c)=>s+c.cams.length,0);
-  $("count").innerHTML = hasAnyFilter()
+  const count = hasAnyFilter()
     ? `<span class="num">${all.length}</span> of <span class="num">${DATA.length}</span> centers ·
        <span class="num">${cams}</span> cameras in view`
     : "";
+  $("count").innerHTML = count + (S.strip ? "" : `<span class="legend">
+      <span class="lg"><span class="sw off"></span>Offline</span>
+      <span class="lg"><span class="sw deg"></span>Degraded</span>
+      <span class="lg"><span class="sw ok"></span>Normal</span></span>`);
+  $("count").hidden = !count && S.strip;
 }
 
 function renderBanner(){
@@ -2466,6 +2496,7 @@ document.addEventListener("click", e=>{
   if (S.savingOpen && !onFilterTrigger && !onSortTrigger && !t.closest(".sv-save")){ S.savingOpen=false; render(); return; }
   if ((S.filtersOpen || S.sortOpen) && !onSaveTrigger && !inTools){ S.filtersOpen=false; S.sortOpen=false; render(); return; }
 
+  if (t.closest("#stripBtn")){ toggleStrip(); return; }
   if (onFilterTrigger){ S.filtersOpen=!S.filtersOpen; S.sortOpen=false; S.savingOpen=false; render(); revealPanel("fpanel"); return; }
   if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); revealPanel("sortpanel"); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
@@ -2514,6 +2545,20 @@ document.addEventListener("click", e=>{
   if (dv){ deleteView(dv.dataset.delView); return; }
   if (S.dropOpen && !t.closest("#sbar")) closePicker();
 });
+
+/* Showing the overview or not is a display preference, not part of a view:
+   it says how you like to work, where a saved view says what you're looking
+   at. So it persists on its own and saved views leave it alone. */
+const STRIP_KEY = "wmg.cameraHealth.overview.v1";
+function toggleStrip(){
+  S.strip = !S.strip;
+  try { localStorage.setItem(STRIP_KEY, S.strip ? "1" : "0"); } catch(e){ /* storage unavailable */ }
+  S.filtersOpen = S.sortOpen = S.savingOpen = false;
+  render();
+  $("announce").textContent = S.strip
+    ? `Centers overview shown. ${DATA.length} centers.`
+    : "Centers overview hidden. The list below is unchanged.";
+}
 
 /* The toolbar sits low enough on a laptop that a panel dropping from it
    can open below the fold. Rather than flipping it upward — which moves a
@@ -2641,6 +2686,7 @@ document.querySelector(".proto").addEventListener("click", e=>{
   try { seedNotes(); } catch(e){ /* storage unavailable */ }
   $("noticeN").textContent = DATA.length;
   try { if (localStorage.getItem(NOTICE_KEY)) $("notice").hidden = true; } catch(e){}
+  try { if (localStorage.getItem(STRIP_KEY) === "0") S.strip = false; } catch(e){}
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   S.loading = true;
   renderShell(); renderDashboard(); render();
