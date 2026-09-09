@@ -1149,6 +1149,7 @@ const dur = m => {
 };
 const ago = m => m < 1 ? "just now" : dur(m) + " ago";
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
+const listWords = a => a.length < 3 ? a.join(" and ") : a.slice(0,-1).join(", ") + " and " + a.at(-1);
 
 /* =====================================================================
    View state. There is no center scope any more: this page is always the
@@ -1681,14 +1682,18 @@ function pickCenter(id){
   const c = DATA.find(x=>x.id===id); if (!c) return;
   if (S.centerPick === id) return clearCenterPick();
   const t = tally(c);
+  // Drop exactly the categories that would have excluded this center, and
+  // no others. Asking each facet its own question keeps this honest when
+  // the facet list changes: the hand-written version rotted silently the
+  // moment categories went multi-select and started holding arrays, and
+  // wrote the string "all" back into them.
   const dropped = [];
-  if (S.brand !== "all" && c.brand !== S.brand){ S.brand="all"; dropped.push("brand"); }
-  if (S.state !== "all" && c.state !== S.state){ S.state="all"; dropped.push("state"); }
-  if (S.access !== "all" && !F.access.test(c, S.access)){ S.access="all"; dropped.push("parent access"); }
-  if ((S.status==="issues" && !(t.off||t.deg)) || (S.status==="off" && !t.off)
-      || (S.status==="deg" && !t.deg) || (S.status==="clean" && (t.off||t.deg))){
-    S.status="all"; S.kpi=null; dropped.push("status");
-  }
+  FKEYS.forEach(k=>{
+    if (!S[k].length || F[k].test(c, S[k])) return;
+    S[k] = [];
+    if (k === "status") S.kpi = null;
+    dropped.push(F[k].label.toLowerCase());
+  });
   S.centerPick = id; S.q = c.name; S.qDraft = c.name; S.page = 1;
   S.filtersOpen = false; S.sortOpen = false; S.savingOpen = false;
   $("q").value = c.name;
@@ -1705,7 +1710,7 @@ function pickCenter(id){
   }
   $("announce").textContent = `Searching for ${c.name}. `
     + `${t.off ? plural(t.off,"camera")+" offline" : t.deg ? plural(t.deg,"camera")+" degraded" : "all "+t.total+" cameras reporting"}.`
-    + (dropped.length ? ` Cleared the ${dropped.join(" and ")} filter.` : "");
+    + (dropped.length ? ` Cleared the ${listWords(dropped)} filter${dropped.length>1?"s":""}.` : "");
 }
 function clearCenterPick(){
   S.centerPick = null; S.q = ""; S.qDraft = ""; S.page = 1;
@@ -2061,9 +2066,11 @@ function renderList(){
   // The legend moves here when the overview is off, because that is where
   // the key lived — hiding the strip shouldn't leave the squares unexplained.
   const cams = all.reduce((s,c)=>s+c.cams.length,0);
+  // One element per side: the row is a flex container, so loose text nodes
+  // would each become a flex item and get spread across the whole width.
   const count = hasAnyFilter()
-    ? `<span class="num">${all.length}</span> of <span class="num">${DATA.length}</span> centers ·
-       <span class="num">${cams}</span> cameras in view`
+    ? `<span><span class="num">${all.length}</span> of <span class="num">${DATA.length}</span> centers ·
+       <span class="num">${cams}</span> cameras in view</span>`
     : "";
   $("count").innerHTML = count + (S.strip ? "" : `<span class="legend">
       <span class="lg"><span class="sw off"></span>Offline</span>
