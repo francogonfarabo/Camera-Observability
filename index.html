@@ -231,10 +231,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .field:focus-within{border-color:var(--blue);box-shadow:var(--focus)}
 .field>svg{flex-shrink:0;pointer-events:none}
 .field input{flex:1;min-width:0;border:none;background:none;outline:none;padding:9px 0;font-size:13px}
-/* states which set of centers the box is searching, and keeps saying it
-   while you type — a placeholder stops explaining the moment it matters */
-.qscope{flex-shrink:0;font-size:11px;font-weight:700;color:var(--blue-deep);background:var(--blue-tint);
-  border:1px solid #a8d5f2;border-radius:20px;padding:2px 8px;white-space:nowrap}
+/* States which set of centers the box is searching, and keeps saying it
+   while you type — a placeholder stops explaining the moment it matters.
+   Parked at the right edge so it never crowds the text being typed. */
+.qscope{flex-shrink:0;margin-left:2px;font-size:11px;font-weight:700;color:var(--blue-deep);
+  background:var(--blue-tint);border:1px solid #a8d5f2;border-radius:20px;padding:2px 8px;white-space:nowrap}
 .qscope[hidden]{display:none}
 .field .qclear{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:var(--ink-4);flex-shrink:0}
 .field .qclear[hidden]{display:none}
@@ -843,11 +844,13 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <div class="filters">
               <div class="field" id="qField">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                <span class="qscope" id="qScope" hidden></span>
                 <input id="q" placeholder="Center name or store number" aria-label="Search centers by name or store number">
                 <button class="qclear" id="qClear" hidden aria-label="Clear search">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
                 </button>
+                <!-- last, so it holds the right edge and never shifts when
+                     the clear button appears mid-typing -->
+                <span class="qscope" id="qScope" hidden></span>
               </div>
               <button class="btn primary" id="qGo">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
