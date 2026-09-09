@@ -226,7 +226,9 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .ftrigger.vtoggle[aria-pressed="false"]{color:var(--ink-3);font-weight:600}
 /* The border belongs to the wrapper, not the input, so the scope badge can
    sit inside the field alongside the text rather than floating over it. */
-.field{position:relative;display:flex;align-items:center;gap:8px;flex:1 1 340px;max-width:520px;
+/* min-width so a crowded toolbar wraps its controls to a second row
+   instead of squeezing the typing area down to a couple of words */
+.field{position:relative;display:flex;align-items:center;gap:8px;flex:1 1 340px;max-width:520px;min-width:250px;
   padding:0 5px 0 11px;border:1px solid var(--line-3);border-radius:8px;background:var(--surface)}
 .field:focus-within{border-color:var(--blue);box-shadow:var(--focus)}
 .field>svg{flex-shrink:0;pointer-events:none}
@@ -242,7 +244,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .field .qclear:hover{background:var(--fill);color:var(--ink-2)}
 .field.linked{border-color:var(--blue)}
 @keyframes qpulse{from{box-shadow:0 0 0 0 rgba(21,157,235,.5)} to{box-shadow:0 0 0 10px rgba(21,157,235,0)}}
-.field.pulse{animation:qpulse .75s ease-out 1}
+.field.qflash{animation:qpulse .75s ease-out 1}
 .btn{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;border:1px solid var(--line-3);background:var(--surface);color:var(--ink-2);white-space:nowrap}
 .btn:hover{background:var(--fill)}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -541,6 +543,10 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .grid{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
 .blk{width:20px;height:20px;border-radius:5px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%;transition:transform .1s}
 .blk:hover{transform:scale(1.18);z-index:2}
+/* The modal appears under a stationary cursor, so the square beneath it
+   keeps a stale :hover until the mouse moves — an enlarged block sitting
+   behind the scrim. Freeze the board's hover growth while it's up. */
+.modalopen .blk:hover,.modalopen .cblk:hover{transform:none;z-index:auto}
 .blk:focus-visible{box-shadow:var(--focus);transform:scale(1.18)}
 .blk.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
 .blk.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2px,transparent 2px 5px)}
@@ -572,7 +578,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
    sidebar — the modal says "deal with this, then go back to the board"
    where the drawer let the board keep churning beside it. */
 .camscrim{position:fixed;inset:0;background:rgba(17,24,39,.45);backdrop-filter:blur(2px);
-  display:grid;place-items:center;padding:20px;z-index:70}
+  display:grid;place-items:center;padding:20px;z-index:75}
 .camscrim[hidden]{display:none}
 .drawer{width:min(430px,100%);max-height:92dvh;background:var(--surface);border-radius:14px;
   box-shadow:var(--shadow-modal);overflow:hidden;display:flex;flex-direction:column}
@@ -602,11 +608,13 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .dstate.deg{background:var(--deg-tint);border-color:var(--deg-line);color:#9a3412}
 .dstate.ok{background:var(--ok-tint);border-color:var(--ok-line);color:#15803d;padding:10px 13px}
 .dstate.ok .big{font-size:15px;margin:0}
-.pulse{width:7px;height:7px;border-radius:50%;background:var(--off);flex-shrink:0;animation:pl 1.7s infinite}
+/* scoped to the pill on purpose: as a bare .pulse this rule was captured
+   by anything else that wanted a class called "pulse" — which is exactly
+   how the search field ended up a red 7px lens */
+.pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--off);flex-shrink:0;animation:pl 1.7s infinite}
 @keyframes pl{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55)}70%{box-shadow:0 0 0 8px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
 .media{aspect-ratio:16/10;border-radius:10px;border:1px solid var(--line);background:var(--fill);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
 .media .lbl{font-size:12px;font-weight:600;color:var(--ink-3);text-align:center;padding:0 14px}
-.media .tag{position:absolute;top:9px;left:9px;display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:3px 9px;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-2)}
 .media.live{background:linear-gradient(160deg,#eef4f8,#e4ecf2)}
 .media.dead{background:repeating-linear-gradient(45deg,#fff6f6 0 9px,#ffecec 9px 18px);border-color:var(--off-line)}
 .dmeta{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12.5px;
@@ -1711,8 +1719,8 @@ function pickCenter(id){
   render();
 
   const f = $("qField");
-  f.classList.add("linked","pulse");
-  setTimeout(()=>f.classList.remove("pulse"), 800);
+  f.classList.add("linked","qflash");
+  setTimeout(()=>f.classList.remove("qflash"), 800);
   const card = $("list").querySelector(`.center[data-cid="${CSS.escape(id)}"]`);
   if (card){
     card.classList.add("flash");
@@ -2133,10 +2141,10 @@ function render(){
    ===================================================================== */
 function renderDrawer(){
   const d = $("drawer");
-  if (!S.sel){ $("camScrim").hidden = true; return; }
+  if (!S.sel){ $("camScrim").hidden = true; document.body.classList.remove("modalopen"); return; }
   const c = DATA.find(x=>x.id===S.sel.ci); if (!c){ S.sel=null; return; }
   const cam = c.cams[S.sel.idx];
-  $("camScrim").hidden = false;
+  $("camScrim").hidden = false; document.body.classList.add("modalopen");
   d.classList.toggle("st-off", cam.status === "off");
   d.classList.toggle("st-deg", cam.status === "deg");
   $("dTitle").textContent = `Cam ${cam.n} — ${cam.room}`;
@@ -2150,24 +2158,27 @@ function renderDrawer(){
     : cam.status === "deg" ? `<span class="pill deg"><span class="sw deg" style="width:9px;height:9px;border-radius:2px"></span>Degraded</span>`
     : `<span class="pill ok"><span class="sw ok" style="width:9px;height:9px;border-radius:2px"></span>Normal</span>`;
 
+  // No status tag on the panel: the block above already states the
+  // condition, and a corner badge reading LIVE promised something this
+  // panel never shows. It's a thumbnail, so it says so.
   const media = cam.status === "off"
-    ? `<div class="media dead"><span class="tag" style="color:#b91c1c;border-color:var(--off-line);background:var(--off-tint)">No signal</span>
+    ? `<div class="media dead">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.7"><path d="M3 7.5h8.5M3 7.5v9h11v-4"/><path d="M14 11l6-3v8l-3-1.5"/><path d="M3 3l18 18"/></svg>
         <span class="lbl" style="color:#b91c1c;font-weight:700">Nothing to show — this camera stopped reporting</span></div>`
     : cam.status === "deg"
-    ? `<div class="media live"><span class="tag" style="color:#c2410c;border-color:var(--deg-line);background:var(--deg-tint)">Impaired</span>
+    ? `<div class="media live">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
-        <span class="lbl">Streaming below target quality</span></div>`
-    : `<div class="media live"><span class="tag" style="color:#15803d;border-color:var(--ok-line);background:var(--ok-tint)">Live</span>
+        <span class="lbl">Latest thumbnail · below target quality</span></div>`
+    : `<div class="media live">
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
-        <span class="lbl">Preview available</span></div>`;
+        <span class="lbl">Latest thumbnail</span></div>`;
 
   // One headline block instead of a "Status" row buried in a table: the
   // duration is the number someone acts on, so it gets the type size.
   const state = cam.status === "off"
     ? `<div class="dstate off">
         <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
-        <div class="txt"><b>Offline — no heartbeat</b>
+        <div class="txt"><b>Offline</b>
           <span class="big num">${dur(cam.since)}</span>
           <p>Down since the last good heartbeat. Checked again ${ago(cam.checked)}.</p></div>
       </div>`
@@ -2200,7 +2211,11 @@ function renderDrawer(){
   $("dNext").disabled = S.sel.idx === c.cams.length - 1;
 }
 
-function openCam(ci, i){ S.sel = {ci, idx:i}; render(); $("dClose").focus(); }
+function openCam(ci, i){
+  S.sel = {ci, idx:i};
+  tip.classList.remove("show");
+  render(); $("dClose").focus();
+}
 function closeCam(){
   const s = S.sel; S.sel = null; render();
   if (s){ const b = document.querySelector(`.blk[data-ci="${s.ci}"][data-i="${s.idx}"]`); if (b) b.focus(); }
@@ -2345,6 +2360,7 @@ function placeTip(el){
   tip.style.top  = (r.top - h - 8 < 8 ? r.bottom + 8 : r.top - h - 8) + "px";
 }
 function showTip(b){
+  if (S.sel) return;
   const c = DATA.find(x=>x.id===b.dataset.ci), cam = c.cams[+b.dataset.i];
   const label = cam.status==="off"?"Offline":cam.status==="deg"?"Degraded":"Normal";
   tip.innerHTML = `<b>Cam ${cam.n} — ${cam.room}</b><em class="num">${c.name}</em>
@@ -2357,6 +2373,7 @@ function showTip(b){
    same question a camera block does — what is wrong, for how long, and
    what happens if I click. */
 function showCenterTip(b){
+  if (S.sel) return;
   const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
   const t = tally(c), st = centerStatus(c), note = noteOf(c.id);
   const head = t.off ? `${plural(t.off,"camera")} offline`
@@ -2375,6 +2392,7 @@ function showCenterTip(b){
    tooltip back where it was instead of orphaning it. */
 let hoverBlk = null;
 function reanchorTip(){
+  if (S.sel){ tip.classList.remove("show"); return; }
   if (!hoverBlk) return;
   const b = list.querySelector(`.blk[data-ci="${CSS.escape(hoverBlk.ci)}"][data-i="${hoverBlk.i}"]`);
   if (b) showTip(b); else { hoverBlk = null; tip.classList.remove("show"); }
