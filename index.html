@@ -224,17 +224,24 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 /* the view toggle sits with the other view controls and shows its state */
 .ftrigger.vtoggle[aria-pressed="true"]{background:var(--blue-tint);border-color:#9fd0f0;color:var(--blue-deep)}
 .ftrigger.vtoggle[aria-pressed="false"]{color:var(--ink-3);font-weight:600}
-.field{position:relative;display:flex;align-items:center;flex:1 1 330px;max-width:460px}
-.field>svg{position:absolute;left:11px;pointer-events:none}
-.field input{width:100%;padding:9px 30px 9px 33px;border:1px solid var(--line-3);border-radius:8px;font-size:13px;background:var(--surface)}
-.field input:focus{border-color:var(--blue);box-shadow:var(--focus)}
-.field .qclear{position:absolute;right:6px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:var(--ink-4)}
+/* The border belongs to the wrapper, not the input, so the scope badge can
+   sit inside the field alongside the text rather than floating over it. */
+.field{position:relative;display:flex;align-items:center;gap:8px;flex:1 1 340px;max-width:520px;
+  padding:0 5px 0 11px;border:1px solid var(--line-3);border-radius:8px;background:var(--surface)}
+.field:focus-within{border-color:var(--blue);box-shadow:var(--focus)}
+.field>svg{flex-shrink:0;pointer-events:none}
+.field input{flex:1;min-width:0;border:none;background:none;outline:none;padding:9px 0;font-size:13px}
+/* states which set of centers the box is searching, and keeps saying it
+   while you type — a placeholder stops explaining the moment it matters */
+.qscope{flex-shrink:0;font-size:11px;font-weight:700;color:var(--blue-deep);background:var(--blue-tint);
+  border:1px solid #a8d5f2;border-radius:20px;padding:2px 8px;white-space:nowrap}
+.qscope[hidden]{display:none}
+.field .qclear{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;color:var(--ink-4);flex-shrink:0}
 .field .qclear[hidden]{display:none}
-.field .qclear svg{position:static}
 .field .qclear:hover{background:var(--fill);color:var(--ink-2)}
-.field.linked input{border-color:var(--blue);background:var(--surface)}
+.field.linked{border-color:var(--blue)}
 @keyframes qpulse{from{box-shadow:0 0 0 0 rgba(21,157,235,.5)} to{box-shadow:0 0 0 10px rgba(21,157,235,0)}}
-.field.pulse input{animation:qpulse .75s ease-out 1}
+.field.pulse{animation:qpulse .75s ease-out 1}
 .btn{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;border:1px solid var(--line-3);background:var(--surface);color:var(--ink-2);white-space:nowrap}
 .btn:hover{background:var(--fill)}
 .btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
@@ -836,6 +843,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <div class="filters">
               <div class="field" id="qField">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+                <span class="qscope" id="qScope" hidden></span>
                 <input id="q" placeholder="Center name or store number" aria-label="Search centers by name or store number">
                 <button class="qclear" id="qClear" hidden aria-label="Clear search">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
@@ -2108,7 +2116,7 @@ function renderLive(){
 
 function render(){
   renderKpis(); renderTools(); renderSavedViews(); renderStrip();
-  renderBanner(); renderList(); renderLive(); renderDrawer();
+  renderBanner(); renderList(); renderLive(); renderDrawer(); renderSearchScope();
   $("qClear").hidden = !$("q").value;
   // The notice names the center left behind on the Dashboard, so the
   // change of altitude is stated in terms of what just happened.
@@ -2552,6 +2560,22 @@ document.addEventListener("click", e=>{
   if (dv){ deleteView(dv.dataset.delView); return; }
   if (S.dropOpen && !t.closest("#sbar")) closePicker();
 });
+
+/* The box searches the filtered set, not the whole assignment — so it has
+   to say which set. With filters on, a badge inside the field names the
+   scope and stays put while you type; with none on, the placeholder can
+   carry it, because there is nothing surprising left to warn about. */
+function renderSearchScope(){
+  const narrowed = activeFilters().length > 0;
+  const scope = DATA.filter(c=>matchesFilters(c, {ignoreQ:true})).length;
+  $("qScope").hidden = !narrowed;
+  $("qScope").textContent = `within ${plural(scope, "center")}`;
+  $("qScope").title = `Searching only the ${scope} ${scope===1?"center":"centers"} your filters left. Clear the filters to search all ${DATA.length}.`;
+  $("q").placeholder = narrowed ? "Name or store number" : `Search all ${DATA.length} centers`;
+  $("q").setAttribute("aria-label", narrowed
+    ? `Search by name or store number within the ${scope} centers your filters left, of ${DATA.length} assigned`
+    : `Search all ${DATA.length} centers by name or store number`);
+}
 
 /* Showing the overview or not is a display preference, not part of a view:
    it says how you like to work, where a saved view says what you're looking
