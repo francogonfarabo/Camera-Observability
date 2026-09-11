@@ -1051,7 +1051,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 /* =====================================================================
    Data — a deterministic stand-in for the read-replica query.
    One row per camera = its latest assessment (max assessed_at).
-   52 centers across eight brands: enough that the board has to survive a
+   73 centers across eight brands: enough that the board has to survive a
    real regional manager's assignment rather than a demo-sized one.
    ===================================================================== */
 let seed = 20260820;
@@ -1747,8 +1747,8 @@ function patchStrip(){
   }
   // Dimming answers "which centers did the filters rule out" — and the
   // search text is deliberately excluded from that, because the search is
-  // usually the strip's own doing. Letting it dim would black out fifty-one
-  // blocks the moment you clicked the fifty-second.
+  // usually the strip's own doing. Letting it dim would black out seventy-two
+  // blocks the moment you clicked the seventy-third.
   const pass = new Set(DATA.filter(c=>matchesFilters(c,{ignoreQ:true})).map(c=>c.id));
   $("strip").querySelectorAll(".cblk").forEach(b => {
     const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
@@ -2511,7 +2511,7 @@ strip.addEventListener("mouseout",  e=>{ if (e.target.closest(".cblk")) tip.clas
 strip.addEventListener("focusin",   e=>{ const b=e.target.closest(".cblk"); if (b) showCenterTip(b); });
 strip.addEventListener("focusout",  e=>{ if (e.target.closest(".cblk")) tip.classList.remove("show"); });
 // One roving tabindex across the whole strip, so brand groups don't turn
-// into fifty-two separate tab stops.
+// into seventy-three separate tab stops.
 strip.addEventListener("keydown", e=>{
   const b = e.target.closest(".cblk"); if (!b) return;
   const all = [...strip.querySelectorAll(".cblk")];
