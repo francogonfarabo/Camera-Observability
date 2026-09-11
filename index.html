@@ -191,9 +191,15 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .strip{padding:11px 14px 12px}
 .strip-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
 .strip-title{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
-.strip-head .legend{margin-left:auto}
+.strip-head .legend{margin-left:auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}
 .legend{display:flex;align-items:center;gap:13px}
 .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink-2)}
+/* The rule behind the three colors is one click away rather than three lines
+   of caption nobody reads twice. */
+.lginfo{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink-3);cursor:pointer;flex-shrink:0}
+.lginfo:hover{border-color:var(--blue);color:var(--blue-ink)}
+.lginfo:focus-visible{box-shadow:var(--focus);outline:none}
 .cgroups{display:flex;flex-wrap:wrap;gap:10px 18px}
 .cgroup{display:flex;flex-direction:column;gap:5px;min-width:0}
 .glabel{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-4);
@@ -207,7 +213,14 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .cblk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E")}
 .cblk:hover{transform:translateY(-2px)}
 .cblk:focus-visible{box-shadow:var(--focus);transform:translateY(-2px)}
-.cblk.muted{opacity:.28}
+/* Filtered out means filtered out: the block stays visible so the shape of
+   the assignment doesn't collapse, but it is not a door. Clicking it used to
+   silently tear down the filters that excluded it, which is a strange thing
+   for a dimmed control to do. */
+.cblk.muted{opacity:.28;cursor:not-allowed}
+.cblk.muted:hover,.cblk.muted:focus-visible{transform:none}
+@keyframes cnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-2.5px)}75%{transform:translateX(2.5px)}}
+.cblk.nudge{animation:cnudge .24s ease-in-out 2}
 .cblk.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
 .cblk.picked{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue);transform:translateY(-2px)}
 /* a center that already carries a note */
@@ -482,7 +495,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .resultline .legend{margin-left:auto}
 
 /* status swatch — color + texture, never color alone */
-.sw{width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
+.sw{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
 .sw.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .sw.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 1.5px,transparent 1.5px 4px)}
 .sw.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.4 3.4l5.2 5.2M8.6 3.4l-5.2 5.2' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E")}
@@ -841,9 +854,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               <div class="strip-head">
                 <span class="strip-title">Your centers</span>
                 <span class="legend">
-                  <span class="lg"><span class="sw off"></span>Cameras offline</span>
-                  <span class="lg"><span class="sw deg"></span>Degraded only</span>
-                  <span class="lg"><span class="sw ok"></span>All reporting</span>
+                  <span class="lg"><span class="sw off"></span>All cameras offline</span>
+                  <span class="lg"><span class="sw deg"></span>Some cameras offline</span>
+                  <span class="lg"><span class="sw ok"></span>All cameras reporting</span>
+                  <button class="lginfo" id="colorInfo" aria-label="How center colors are decided">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg>
+                  </button>
                 </span>
               </div>
               <div class="cgroups" id="strip" role="group" aria-label="All centers you can see"></div>
@@ -852,7 +868,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <div class="filters">
               <div class="field" id="qField">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-                <input id="q" placeholder="Center name or store number" aria-label="Search centers by name or store number">
+                <input id="q" placeholder="Search by center or store number" aria-label="Search centers by name or store number">
                 <button class="qclear" id="qClear" hidden aria-label="Clear search">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
                 </button>
@@ -918,6 +934,31 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
         <button class="ctrlbtn" id="infoClose" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.4"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
       </div>
       <div class="ib">
+        <section id="infoColors">
+          <h3>Center colors</h3>
+          <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:9px">A center is colored by how much of
+          it is <em>dark</em> — how much a parent or a manager cannot see. Picture quality is a separate
+          problem and lives on the camera, not on the center.</p>
+          <dl class="ilist">
+            <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> All cameras offline</dt><dd>
+              Every camera in the center has stopped reporting. <code>offline = total</code>.
+              <span class="d">The site is blind. Usually one cause — power, network, recorder — not
+              a list of separate faults.</span></dd></div>
+            <div class="irow"><dt><span class="sw deg" style="vertical-align:-1px"></span> Some cameras offline</dt><dd>
+              At least one camera is offline, but not all of them.
+              <code>0 &lt; offline &lt; total</code>.
+              <span class="d">Partial coverage. Someone can still see something, which usually makes this a
+              scheduled fix rather than a same-hour one.</span></dd></div>
+            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All cameras reporting</dt><dd>
+              Nothing is offline. <code>offline = 0</code>.
+              <span class="d">Degraded cameras are allowed here — they are still sending pictures, just below
+              target quality. The center stays green and the degraded cameras are hatched inside it, so the
+              quality problem is visible without being promoted to an outage.</span></dd></div>
+          </dl>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Color is never the only cue: offline
+          blocks carry an ✕ and degraded blocks a diagonal hatch, so the three states survive a colorblind
+          reader, a projector and a grayscale print.</p>
+        </section>
         <section>
           <h3>Sorting</h3>
           <dl class="ilist">
@@ -931,14 +972,14 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               Highest first by default.
               <span class="d">Count, not rate: this is the one that maps to how many visits or work orders
               the day actually holds.</span></dd></div>
-            <div class="irow"><dt>Longest Outage</dt><dd>
+            <div class="irow"><dt>Outage Time</dt><dd>
               The oldest current outage in the center: <code>max(now − last healthy heartbeat)</code> across
               its <em>offline</em> cameras. Longest first by default.
               <span class="d">Degraded cameras are excluded — they are still reporting, so they have no
               outage clock running. Centers with nothing offline sort last.</span></dd></div>
             <div class="irow"><dt>Center Name</dt><dd>Alphabetical, A–Z by default.</dd></div>
             <div class="irow"><dt>Store Number</dt><dd>Numeric on the store number, lowest first by default.</dd></div>
-            <div class="irow"><dt>Updated Annotations</dt><dd>
+            <div class="irow"><dt>Annotation Date</dt><dd>
               The last time this center's note was added or edited. Most recent first by default; flip it to
               surface notes nobody has touched in a while.
               <span class="d">Centers with no note have no date, so they sort last in both directions rather
@@ -1110,7 +1151,13 @@ function seeds(){
       const brand = BRANDS[(gi*3 + ci) % BRANDS.length];
       const n = 8 + Math.floor(rnd()*19);            // 8–26 cameras
       const roll = rnd();
-      const off = roll < .26 ? 1 + Math.floor(rnd()*4) : 0;
+      // A whole site going dark is rare, and when it happens it is one cause
+      // — power, network, the recorder — not eleven separate faults. So it is
+      // seeded as its own event rather than as the tail of the per-camera
+      // distribution, which would otherwise never reach every camera at once
+      // and would leave the red state in the legend undemonstrable.
+      const dark = roll < .085;
+      const off = dark ? n : roll < .26 ? 1 + Math.floor(rnd()*4) : 0;
       const deg = off ? (rnd() < .35 ? 1 + Math.floor(rnd()*2) : 0)
                       : (roll < .40 ? 1 + Math.floor(rnd()*2) : 0);
       out.push({ name:`${brand} — ${city}`, brand, city,
@@ -1168,7 +1215,6 @@ const dur = m => {
 };
 const ago = m => m < 1 ? "just now" : dur(m) + " ago";
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
-const listWords = a => a.length < 3 ? a.join(" and ") : a.slice(0,-1).join(", ") + " and " + a.at(-1);
 
 /* =====================================================================
    View state. There is no center scope any more: this page is always the
@@ -1284,8 +1330,11 @@ const F = {
   status: facet("Status", "Any status",
     (c,v)=>{ const t=tally(c);
       return v==="issues" ? !!(t.off||t.deg) : v==="off" ? !!t.off : v==="deg" ? !!t.deg : !(t.off||t.deg); },
+    // Deliberately not "all cameras reporting": that phrase now belongs to the
+    // green square, which tolerates degraded cameras. This option is stricter
+    // — nothing offline and nothing impaired.
     ()=>[["issues","Has any issue"],["off","Has offline cameras"],
-         ["deg","Has degraded cameras"],["clean","All reporting"]]),
+         ["deg","Has degraded cameras"],["clean","All cameras healthy"]]),
   // Presence only. "Which of these has someone already looked at?" is a
   // different question from what the note says, and the only one a filter
   // can answer honestly.
@@ -1353,20 +1402,22 @@ function reconcileFilters(){
    Sorting. Every comparator is written ascending — smallest, earliest,
    A-first — and the direction flips it, so "descending" means the same
    thing on every field. Each field carries its own natural default, since
-   nobody asks for the *lowest* defect rate first.
+   nobody asks for the *lowest* defect rate first. Labels name the field and
+   nothing else — no "longest", no "most recent" — because a label that
+   carries an order is a lie in one of the two directions.
    ===================================================================== */
 const SORTS = [
   { k:"rate",   label:"Defect Rate",         def:"desc", hi:"Highest rate first",     lo:"Lowest rate first",
     val:c=>tally(c).rate },
   { k:"count",  label:"Defect Count",        def:"desc", hi:"Most defects first",     lo:"Fewest defects first",
     val:c=>tally(c).bad },
-  { k:"outage", label:"Longest Outage",      def:"desc", hi:"Longest first",          lo:"Shortest first",
+  { k:"outage", label:"Outage Time",         def:"desc", hi:"Longest first",          lo:"Shortest first",
     val:c=>tally(c).outage },
   { k:"name",   label:"Center Name",         def:"asc",  hi:"Z–A",                    lo:"A–Z",
     val:null },
   { k:"store",  label:"Store Number",        def:"asc",  hi:"Highest first",          lo:"Lowest first",
     val:c=>+c.store },
-  { k:"notes",  label:"Updated Annotations", def:"desc", hi:"Most recent first",      lo:"Longest untouched first",
+  { k:"notes",  label:"Annotation Date",     def:"desc", hi:"Most recent first",      lo:"Longest untouched first",
     val:c=>noteStamp(c.id) },
 ];
 const sortRow = k => SORTS.find(s=>s.k===k) || SORTS[0];
@@ -1628,7 +1679,28 @@ function renderSavedViews(){
    nodes are focusable and hoverable, and replacing one under the pointer
    or the caret is the bug this codebase keeps re-learning.
    ===================================================================== */
-const centerStatus = c => { const t = tally(c); return t.off ? "off" : t.deg ? "deg" : "ok"; };
+/* A center's color is about coverage, not picture quality. Red means the
+   whole site is dark and nobody can see anything; orange means part of it
+   is still up, which is a different conversation and a different urgency;
+   green means every camera is reporting. Degraded stays a camera-level
+   fact — the picture is worse, but the coverage is intact — so it shows
+   inside the center rather than recoloring it. */
+const centerStatus = c => {
+  const t = tally(c);
+  if (!t.off) return "ok";
+  return t.off === t.total ? "off" : "deg";
+};
+
+/* The rule, in words, in one place: every caption that describes a center's
+   condition comes through here, so the legend, the hover card and the screen
+   reader cannot drift apart from each other or from the color. */
+function centerStateWords(c){
+  const t = tally(c), st = centerStatus(c);
+  return st === "off" ? `All ${t.total} cameras offline`
+    : st === "deg"    ? `${t.off} of ${t.total} cameras offline`
+    : t.deg           ? `All ${t.total} cameras reporting, ${plural(t.deg,"camera")} degraded`
+    :                   `All ${t.total} cameras reporting`;
+}
 
 function stripGroups(){
   const m = new Map();
@@ -1680,17 +1752,22 @@ function patchStrip(){
   const pass = new Set(DATA.filter(c=>matchesFilters(c,{ignoreQ:true})).map(c=>c.id));
   $("strip").querySelectorAll(".cblk").forEach(b => {
     const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
-    const t = tally(c), st = centerStatus(c), noted = !!noteOf(c.id);
-    b.className = ["cblk", st,
-      pass.has(c.id) ? "" : "muted",
+    const noted = !!noteOf(c.id), open = pass.has(c.id);
+    b.className = ["cblk", centerStatus(c),
+      open ? "" : "muted",
       S.centerPick === c.id ? "picked" : "",
-      noted ? "hasnote" : ""].filter(Boolean).join(" ");
+      noted ? "hasnote" : "",
+      // a refusal nudge in flight outlives the re-render that triggered it
+      b.classList.contains("nudge") ? "nudge" : ""].filter(Boolean).join(" ");
+    // aria-disabled, not disabled: the block still has to be reachable and
+    // hoverable, because "why can't I click this one" is answered by the card
+    // it shows, not by going inert.
+    b.setAttribute("aria-disabled", String(!open));
     b.setAttribute("aria-pressed", String(S.centerPick === c.id));
-    b.setAttribute("aria-label",
-      `${c.name}. ${t.off ? plural(t.off,"camera") + " offline"
-        : t.deg ? plural(t.deg,"camera") + " degraded" : "All " + t.total + " reporting"}.`
+    b.setAttribute("aria-label", `${c.name}. ${centerStateWords(c)}.`
       + `${noted ? " Has a note." : ""}`
-      + ` ${S.centerPick===c.id ? "Clear this search." : "Search for this center."}`);
+      + ` ${!open ? "Filtered out — change or clear your filters to search it."
+             : S.centerPick===c.id ? "Clear this search." : "Search for this center."}`);
   });
 }
 
@@ -1700,19 +1777,11 @@ function patchStrip(){
 function pickCenter(id){
   const c = DATA.find(x=>x.id===id); if (!c) return;
   if (S.centerPick === id) return clearCenterPick();
-  const t = tally(c);
-  // Drop exactly the categories that would have excluded this center, and
-  // no others. Asking each facet its own question keeps this honest when
-  // the facet list changes: the hand-written version rotted silently the
-  // moment categories went multi-select and started holding arrays, and
-  // wrote the string "all" back into them.
-  const dropped = [];
-  FKEYS.forEach(k=>{
-    if (!S[k].length || F[k].test(c, S[k])) return;
-    S[k] = [];
-    if (k === "status") S.kpi = null;
-    dropped.push(F[k].label.toLowerCase());
-  });
+  // Filters win. A center the filters exclude is locked in the strip, so
+  // reaching this line with one means the lock leaked — refuse, rather than
+  // quietly dismantling the filters the way this used to, which made a
+  // dimmed block behave like a reset button nobody asked for.
+  if (!matchesFilters(c, {ignoreQ:true})) return;
   S.centerPick = id; S.q = c.name; S.qDraft = c.name; S.page = 1;
   S.filtersOpen = false; S.sortOpen = false; S.savingOpen = false;
   $("q").value = c.name;
@@ -1727,9 +1796,19 @@ function pickCenter(id){
     card.scrollIntoView({block:"nearest", behavior:"smooth"});
     setTimeout(()=>card.classList.remove("flash"), 1200);
   }
-  $("announce").textContent = `Searching for ${c.name}. `
-    + `${t.off ? plural(t.off,"camera")+" offline" : t.deg ? plural(t.deg,"camera")+" degraded" : "all "+t.total+" cameras reporting"}.`
-    + (dropped.length ? ` Cleared the ${listWords(dropped)} filter${dropped.length>1?"s":""}.` : "");
+  $("announce").textContent = `Searching for ${c.name}. ${centerStateWords(c)}.`;
+}
+
+/* A locked block still answers — with the reason, not with a search. Silence
+   reads as a broken prototype, and clearing the filters on their behalf would
+   undo the work that locked it in the first place. */
+function refuseCenter(b){
+  const c = DATA.find(x=>x.id===b.dataset.cid);
+  b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge");
+  setTimeout(()=>b.classList.remove("nudge"), 620);
+  showCenterTip(b);
+  if (c) $("announce").textContent =
+    `${c.name} is filtered out. Change or clear your filters to search it.`;
 }
 function clearCenterPick(){
   S.centerPick = null; S.q = ""; S.qDraft = ""; S.page = 1;
@@ -1927,19 +2006,22 @@ function renderKpis(){
   const p = filtered();
   const isFiltered = hasAnyFilter();
   const t = p.map(tally);
-  const issues = t.filter(x=>x.off||x.deg).length;
+  // Same definition as a center's color: a center is in trouble when some
+  // part of it is dark. Degraded cameras get their own tile two columns over,
+  // where they are counted as cameras rather than promoted to outages.
+  const outages = t.filter(x=>x.off).length;
   const off = t.reduce((s,x)=>s+x.off,0);
   const deg = t.reduce((s,x)=>s+x.deg,0);
-  const worst = Math.max(0, ...t.map(x=>x.worst));
+  const worst = Math.max(0, ...t.map(x=>x.outage));
   const cams = t.reduce((s,x)=>s+x.total,0);
   const tiles = [
-    {k:"issues", cls:issues?"t-n":"calm", l: isFiltered?"Centers in view":"Centers with issues",
-     v: isFiltered ? p.length : `${issues} of ${p.length}`,
+    {k:"issues", cls:outages?"t-n":"calm", l: isFiltered?"Centers in view":"Centers with cameras offline",
+     v: isFiltered ? p.length : `${outages} of ${p.length}`,
      // Don't claim they're sorted to the top unless they actually are.
      s: isFiltered ? `of ${DATA.length} assigned`
-       : !issues ? "everything reporting"
+       : !outages ? "nothing offline right now"
        : ((S.sort==="rate"||S.sort==="count") && S.dir==="desc") ? "worst first" : "across your assignment",
-     t:"Show only centers with an issue"},
+     t:"Show only centers with cameras offline"},
     // A zero in a bad-news metric is good news: it goes calm rather than
     // staying alert-red/orange, and the sub-label states the good news.
     {k:"off", cls: off?"t-off":"calm", l:"Cameras offline", v:off, s: off?`of ${cams} cameras`:"none right now",
@@ -1947,7 +2029,7 @@ function renderKpis(){
     {k:"deg", cls: deg?"t-deg":"calm", l:"Degraded", v:deg, s: deg?"reporting, but impaired":"all at full quality",
      t:"Show only centers with degraded cameras"},
     {k:"longest", cls:"t-n", l:"Longest outage", v: worst? dur(worst) : "—", s: worst? "still down now" : "no active outages",
-     t:"Sort by longest outage first"}
+     t:"Sort by outage time, longest first"}
   ];
   $("kpis").innerHTML = tiles.map(x=>
     `<button class="kpi ${x.cls}" data-kpi="${x.k}" aria-pressed="${S.kpi===x.k}" title="${x.t}">
@@ -1969,7 +2051,7 @@ function centerHtml(c, absIndex){
     S.sort === "store"  ? `Store <b class="num">#${c.store}</b>` :
     S.sort === "notes"  ? (noteStamp(c.id) ? `Note edited <b>${stampAgo(c.id)}</b>` : `<b>No note yet</b>`) :
     S.sort === "outage" ? (t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : `<b>Nothing offline</b>`) :
-    t.worst ? `Longest <b class="num">${dur(t.worst)}</b>` : "";
+    t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : "";
   const stats = t.off || t.deg ? [
     t.off ? `<span class="stat off"><span class="sw off"></span><b class="num">${t.off}</b> offline</span>` : "",
     t.deg ? `<span class="stat deg"><span class="sw deg"></span><b class="num">${t.deg}</b> degraded</span>` : "",
@@ -2272,9 +2354,10 @@ function refresh({silent=false}={}){
   }
   // Announce what is actually on screen — the filtered set.
   const t = filtered().map(tally);
-  const off = t.reduce((s,x)=>s+x.off,0), deg = t.reduce((s,x)=>s+x.deg,0), issues = t.filter(x=>x.off||x.deg).length;
+  const off = t.reduce((s,x)=>s+x.off,0), deg = t.reduce((s,x)=>s+x.deg,0);
+  const dark = t.filter(x=>x.off).length;
   if (!silent) $("announce").textContent = (off || deg)
-    ? `Updated. ${issues} of ${t.length} centers have camera issues. ${off} cameras offline.`
+    ? `Updated. ${dark} of ${t.length} centers have cameras offline. ${off} cameras offline, ${deg} degraded.`
     : `Updated. All cameras reporting normally.`;
 }
 
@@ -2376,16 +2459,17 @@ function showCenterTip(b){
   if (S.sel) return;
   const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
   const t = tally(c), st = centerStatus(c), note = noteOf(c.id);
-  const head = t.off ? `${plural(t.off,"camera")} offline`
-    : t.deg ? `${plural(t.deg,"camera")} degraded`
-    : `All ${t.total} reporting`;
+  const locked = b.getAttribute("aria-disabled") === "true";
   tip.innerHTML = `<b>${esc(c.name)}</b>
     <em class="num">${c.state} · Store #${c.store} · ${t.total} cameras</em>
-    <span class="row"><span class="sw ${st}" style="width:10px;height:10px;border-radius:3px"></span>${head}</span>
+    <span class="row"><span class="sw ${st}" style="width:10px;height:10px;border-radius:3px"></span>${centerStateWords(c)}</span>
     ${t.off && t.deg ? `<em class="num">and ${plural(t.deg,"camera")} degraded</em>` : ""}
-    ${t.worst ? `<em class="num">Longest outage ${dur(t.worst)}</em>` : ""}
+    ${t.outage ? `<em class="num">Offline ${dur(t.outage)}</em>` : ""}
     ${note ? `<em style="color:var(--blue-deep);margin-top:4px">Note: ${esc(note.replace(/\s+/g," ").slice(0,64))}${note.length>64?"…":""}</em>` : ""}
-    <em style="margin-top:5px;color:var(--blue-ink);font-weight:700">${S.centerPick===c.id?"Click to clear this search":"Click to search this center below"}</em>`;
+    <em style="margin-top:5px;font-weight:700;color:${locked?"var(--ink-3)":"var(--blue-ink)"}">${
+      locked ? "Filtered out — change your filters to search it"
+      : S.centerPick===c.id ? "Click to clear this search"
+      : "Click to search this center below"}</em>`;
   placeTip(b);
 }
 /* Which camera block the pointer is on, so a re-render can put the
@@ -2419,6 +2503,7 @@ list.addEventListener("focusout",  e=>{
 const strip = $("strip");
 strip.addEventListener("click", e=>{
   const b = e.target.closest(".cblk"); if (!b) return;
+  if (b.getAttribute("aria-disabled") === "true") return refuseCenter(b);
   pickCenter(b.dataset.cid);
 });
 strip.addEventListener("mouseover", e=>{ const b=e.target.closest(".cblk"); if (b) showCenterTip(b); });
@@ -2504,7 +2589,7 @@ $("kpis").addEventListener("click", e=>{
   if (S.kpi === k){ S.kpi=null; S.status=[]; S.sort="rate"; S.dir="desc"; }
   else {
     S.kpi = k;
-    if (k==="issues"){ S.status=["issues"]; }
+    if (k==="issues"){ S.status=["off"]; }
     if (k==="off"){ S.status=["off"]; }
     if (k==="deg"){ S.status=["deg"]; }
     if (k==="longest"){ S.status=["off"]; S.sort="outage"; S.dir="desc"; }
@@ -2537,7 +2622,7 @@ document.addEventListener("click", e=>{
   if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); revealPanel("sortpanel"); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
   if (t.closest("#fClear")){ clearAll(); return; }
-  if (t.closest("[data-info]")){ openInfo(); return; }
+  if (t.closest("[data-info]")){ openInfo(null, t.closest("[data-info]")); return; }
   const fr = t.closest("[data-facet]");
   if (fr){ S.facet = fr.dataset.facet; S.fsearch = ""; renderTools(); return; }
   const fo = t.closest(".fopt");
@@ -2592,7 +2677,10 @@ function renderSearchScope(){
   $("qScope").hidden = !narrowed;
   $("qScope").textContent = `within ${plural(scope, "center")}`;
   $("qScope").title = `Searching only the ${scope} ${scope===1?"center":"centers"} your filters left. Clear the filters to search all ${DATA.length}.`;
-  $("q").placeholder = narrowed ? "Name or store number" : `Search all ${DATA.length} centers`;
+  // One placeholder, always. How wide the search reaches is the badge's job
+  // on the right edge; saying it twice, in two different phrasings, was the
+  // kind of duplication this board keeps being pruned of.
+  $("q").placeholder = "Search by center or store number";
   $("q").setAttribute("aria-label", narrowed
     ? `Search by name or store number within the ${scope} centers your filters left, of ${DATA.length} assigned`
     : `Search all ${DATA.length} centers by name or store number`);
@@ -2627,12 +2715,29 @@ function revealPanel(id){
 /* ---------- the "how these work" dialog ----------
    Three ways out, because being stuck in a reference panel is worse than
    never opening it: the close button, the scrim, and Escape. */
-function openInfo(){ $("infoScrim").hidden = false; $("infoClose").focus(); }
+/* One dialog, several doors. Whoever opened it gets focus back, and an
+   anchor scrolls to the part they asked about rather than making them hunt
+   for it — a second copy of the rules next to the legend would have been one
+   more thing to keep in sync. */
+let infoOpener = null;
+function openInfo(anchor, opener){
+  // the opener is passed in where we know it: a click does not always leave
+  // focus on the button, and returning focus to <body> strands the keyboard
+  infoOpener = opener || document.activeElement;
+  $("infoScrim").hidden = false;
+  const box = $("infoScrim").querySelector(".ib");
+  box.scrollTop = 0;
+  if (anchor) $(anchor)?.scrollIntoView({block:"start"});
+  $("infoClose").focus();
+}
 function closeInfo(){
   $("infoScrim").hidden = true;
-  ($("filterBtn") || $("sortBtn"))?.focus();
+  const back = infoOpener && infoOpener !== document.body && document.contains(infoOpener) ? infoOpener : null;
+  infoOpener = null;
+  (back || $("filterBtn") || $("sortBtn"))?.focus();
 }
 $("infoClose").onclick = closeInfo;
+$("colorInfo").onclick = e => openInfo("infoColors", e.currentTarget);
 $("infoScrim").addEventListener("click", e=>{ if (e.target === $("infoScrim")) closeInfo(); });
 
 /* ---------- shell navigation ---------- */
