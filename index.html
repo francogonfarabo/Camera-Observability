@@ -2523,14 +2523,13 @@ strip.addEventListener("keydown", e=>{
   all.forEach(x=>x.tabIndex = -1); all[n].tabIndex = 0; all[n].focus();
 });
 
-/* The notice is orientation, not a warning: once someone has read where
-   they are, it should stay gone rather than reappear every visit. */
-const NOTICE_KEY = "wmg.cameraHealth.noticeSeen.v1";
-function showNotice(on){
-  $("notice").hidden = !on;
-  try { on ? localStorage.removeItem(NOTICE_KEY) : localStorage.setItem(NOTICE_KEY, "1"); }
-  catch(e){ /* storage unavailable */ }
-}
+/* Dismissing the notice lasts the visit, not forever. It states the one
+   thing about this page that is genuinely surprising — that it ignores the
+   center picker and covers the whole assignment — and that is worth saying
+   again to whoever opens the page next. So the dismissal lives in memory:
+   it clears the line out of the way while you work, and a reload brings it
+   back. Nothing about it is written to storage. */
+function showNotice(on){ $("notice").hidden = !on; }
 $("noticeX").onclick = ()=>{
   showNotice(false);
   $("announce").textContent = "Notice dismissed. You are still seeing every center assigned to you.";
@@ -2842,7 +2841,9 @@ document.querySelector(".proto").addEventListener("click", e=>{
   S.noteStamps  = loadJSON(STAMPS_KEY, {});
   try { seedNotes(); } catch(e){ /* storage unavailable */ }
   $("noticeN").textContent = DATA.length;
-  try { if (localStorage.getItem(NOTICE_KEY)) $("notice").hidden = true; } catch(e){}
+  // An earlier build persisted the dismissal; clear that key so anyone who
+  // dismissed it back then isn't stuck without the notice forever.
+  try { localStorage.removeItem("wmg.cameraHealth.noticeSeen.v1"); } catch(e){}
   try { if (localStorage.getItem(STRIP_KEY) === "0") S.strip = false; } catch(e){}
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   S.loading = true;
