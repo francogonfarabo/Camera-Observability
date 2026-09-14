@@ -77,6 +77,7 @@ td:first-child{color:var(--ink);font-weight:600}
 .sw.ok{background-color:#16a34a;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
 .sw.deg{background-color:#f97316;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2px,transparent 2px 5px)}
 .sw.off{background-color:#dc2626;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.sw.stale{background:var(--fill);border:1.5px dashed var(--ink-3)}
 .sw-item b{color:var(--ink);font-weight:700}
 .sw-item span{color:var(--ink-3);font-size:12px}
 
@@ -118,7 +119,7 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     <span class="tag">Visual language from <code>STYLE_GUIDE.md</code></span>
     <span class="tag">Light theme only</span>
     <span class="tag num">2 versions</span>
-    <span class="tag">Offline · Degraded · Normal</span>
+    <span class="tag">Offline · Degraded · Online · Out of date</span>
   </div>
 </header>
 
@@ -234,6 +235,15 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   2:14 AM is what you match against a power cut — and lost the camera ID row. And the <strong>KPI row</strong>
   stopped repeating itself: its first tile and its second were running the same filter, so the first now
   counts centers with anything wrong and the second stays on cameras offline.</p>
+  <p>Then the fourth camera state arrived — <strong>out of date</strong> — with the assessor's real rules
+  behind all four: an HLS playlist that does not exist, FFMPEG restarts past a critical or a warning
+  threshold, an HLS playlist or a JPG older than a hundred seconds, and (for the fourth) an assessment older
+  than an hour. Those rules now live on the reference page beside the center rules, because a board that
+  claims a camera is degraded owes the reader the definition it used. The state itself is drawn as a veil
+  rather than a colour, and filtered through its own category — <em>Reading age</em> — rather than as a
+  fifth Status option: Status is the assessor's verdict and its halves are exact complements, and folding
+  freshness into it would have meant filtering for out-of-date rows silently dropped the offline cameras you
+  were chasing.</p>
 </section>
 
 <section>
@@ -268,8 +278,19 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <div class="sw-row">
     <span class="sw-item"><span class="sw off"></span><b>Offline</b><span>cross</span></span>
     <span class="sw-item"><span class="sw deg"></span><b>Degraded</b><span>diagonal hatch</span></span>
-    <span class="sw-item"><span class="sw ok"></span><b>Normal</b><span>flat fill</span></span>
+    <span class="sw-item"><span class="sw ok"></span><b>Online</b><span>flat fill</span></span>
+    <span class="sw-item"><span class="sw stale"></span><b>Out of date</b><span>faded, dashed ring</span></span>
   </div>
+  <p><strong>The fourth one is not a fourth status.</strong> Offline, degraded and online are the assessor's
+  verdict on a camera and are stored with the reading. <em>Out of date</em> is this page's verdict on the
+  <em>reading</em> — <code>assessed_at</code> older than an hour, against an assessor that runs every thirty
+  minutes, so two consecutive runs produced nothing. It is computed in the browser and written nowhere.</p>
+  <p>That distinction decides how it draws. "This camera was offline, and we have not heard since" is two
+  facts, and a fourth flat colour can only show one of them — it would overwrite the last thing anyone
+  actually knew in order to say that we no longer know it, which is the wrong half to keep. So staleness is
+  a <em>veil</em>: the block keeps its colour and its shape, drops its saturation, and gains a dashed ring.
+  Both facts survive, and the shape encoding means offline and degraded stay distinguishable even when the
+  hue is almost gone.</p>
   <p>The counts get their own column because sharing it with identity makes them wrap unpredictably; given
   a column, ten rows becomes one scannable ladder of digits. Rows carry no coloured left edge: the counts
   column and the squares already state the severity twice, and a third encoding of it was just stripes.</p>
@@ -291,6 +312,13 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   dark cameras out of ten land on the same colour, because the square answers <em>does this need looking
   at</em> and the row underneath answers how much — a hue asked to separate those two would be a number
   pretending to be a colour. An ⓘ beside the legend states the rule where it applies.</p>
+  <p>Staleness leaves the center rule alone, which is the point of making it a veil in the first place: a
+  center is coloured by what its cameras were last assessed as, because that is still the best answer
+  available. A center only fades when <em>every</em> camera in it is out of date — the assessor runs per
+  site, so when it goes quiet it goes quiet for all of them at once, and a site with three old rows out of
+  twenty still has current information about the other seventeen. Partial staleness is a count on the
+  center's row instead. Above the board, one amber line appears when anything at all is out of date, because
+  a reader who has not noticed that has no way to know the page is describing the past.</p>
   <p>Keeping green strict is what makes the rest of the board agree with itself. Green is the exact
   complement of the <em>Has any issue</em> filter, so the count of non-green squares, the first KPI, the
   status filter and the refresh announcement are all one number rather than four readings of a similar
@@ -418,9 +446,11 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
       image had none, so it shipped without one. A middle option: show the number only when non-zero.</p>
     </div></div>
     <div class="q"><span class="n num">2</span><div>
-      <p>What happens to a camera whose last heartbeat is over 30 minutes old?</p>
-      <p>Right now it keeps its last status, which quietly counts a silent camera as healthy. Recommend a
-      fourth "not reporting" state — but that widens the three-value legend.</p>
+      <p>Should an out-of-date reading still count toward Defect Rate and Defect Count?</p>
+      <p>Today it does: a camera last assessed as offline five hours ago is still counted as offline, on the
+      grounds that it is the best information available. The alternative is to exclude stale rows from both
+      metrics, which makes the numbers honest but makes them move for a reason that has nothing to do with
+      the cameras. Worth deciding before either number is used as a target.</p>
     </div></div>
     <div class="q"><span class="n num">3</span><div>
       <p>Where does someone go once camera health tells them a center is broken?</p>

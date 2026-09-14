@@ -558,10 +558,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .stat{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .stat b{min-width:2ch;text-align:right;font-weight:700}
 .stat.off b{color:#b91c1c} .stat.deg b{color:#c2410c} .stat.ok{color:#15803d}
+.stat.stale{color:#7c4a03} .stat.stale b{color:#7c4a03}
 .stat.dim{color:var(--ink-3);font-weight:500;font-size:11.5px;padding-left:21px}
 .stat.dim b{min-width:0;color:var(--ink-2)}
 .grid{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
-.blk{width:20px;height:20px;border-radius:5px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%;transition:transform .1s}
+.blk{position:relative;width:20px;height:20px;border-radius:5px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%;transition:transform .1s}
 .blk:hover{transform:scale(1.18);z-index:2}
 /* The modal appears under a stationary cursor, so the square beneath it
    keeps a stale :hover until the mouse moves — an enlarged block sitting
@@ -572,6 +573,38 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .blk.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2px,transparent 2px 5px)}
 .blk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E")}
 .blk.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue)}
+
+/* ---------- stale: a veil over a status, never a replacement for one ----
+   The block keeps its colour and its shape — that is the last thing we
+   actually knew — and loses its saturation, with a dashed ring saying the
+   reading behind it is out of date. Two facts stay legible at once:
+   "it was offline" and "we have not heard since". A fourth flat colour
+   would have erased the first to show the second. */
+.blk.stale,.cblk.stale{filter:saturate(.4) contrast(.94)}
+.blk.stale::after,.cblk.stale::after{content:"";position:absolute;inset:-2px;border-radius:7px;
+  border:1.5px dashed var(--ink-3);pointer-events:none}
+.cblk.stale::after{inset:-3px;border-radius:9px}
+.sw.stale{background:var(--fill);box-shadow:none;border:1.5px dashed var(--ink-3)}
+
+/* The one line that says the board might be out of date. It appears only
+   when something actually is, and offers the filter rather than describing
+   where to find it. */
+.staleline{display:flex;align-items:center;gap:10px;background:var(--amber-tint);color:#7c4a03;
+  border-radius:10px;padding:8px 10px 8px 12px;font-size:12.5px}
+.staleline[hidden]{display:none}
+.staleline svg{flex-shrink:0}
+.staleline p{flex:1;min-width:0}
+.staleline b{font-weight:700}
+.staleline .act{font-weight:700;text-decoration:underline;white-space:nowrap;color:inherit;
+  padding:3px 7px;border-radius:6px}
+.staleline .act:hover{background:rgba(124,74,3,.12)}
+
+/* the same warning inside the camera modal, where it outranks the status */
+.dstale{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px;
+  background:var(--amber-tint);border:1px solid #f5d98a;color:#7c4a03;font-size:12px}
+.dstale svg{flex-shrink:0;margin-top:1px}
+.dstale b{display:block;font-family:'Titillium Web',sans-serif;font-size:12.5px;font-weight:700;
+  letter-spacing:.03em;text-transform:uppercase;margin-bottom:1px}
 
 /* empty / skeleton */
 .empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:var(--surface);border:1px dashed var(--line-3);border-radius:12px;padding:40px 24px}
@@ -851,6 +884,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
           <div class="kpis" id="kpis"></div>
 
+          <!-- Present only when something is genuinely out of date: the one
+               line that tells you to read the board as history. -->
+          <div class="staleline" id="staleline" hidden></div>
+
           <!-- ===== your centers + toolbar: one connected card =====
                The strip is every center this account can see, drawn with the
                same block language as the cameras inside a center — one step
@@ -866,6 +903,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
                   <span class="lg"><span class="sw off"></span>All cameras offline</span>
                   <span class="lg"><span class="sw deg"></span>Some offline or degraded</span>
                   <span class="lg"><span class="sw ok"></span>All cameras healthy</span>
+                  <span class="lg"><span class="sw stale"></span>Faded: reading out of date</span>
                   <button class="lginfo" id="colorInfo" aria-label="How center colors are decided">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg>
                   </button>
@@ -937,12 +975,49 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
     <div class="infobox" role="dialog" aria-modal="true" aria-labelledby="infoTitle">
       <div class="ih">
         <div style="flex:1;min-width:0">
-          <h2 id="infoTitle">How sorting and filtering work</h2>
-          <p>Every number on this board is derived from one row per camera — its latest heartbeat.</p>
+          <h2 id="infoTitle">How this board decides things</h2>
+          <p>Every number here comes from one row per camera — the assessor's latest verdict on it.</p>
         </div>
         <button class="ctrlbtn" id="infoClose" aria-label="Close"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2.4"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
       </div>
       <div class="ib">
+        <section id="infoCameras">
+          <h3>Camera states</h3>
+          <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:9px">Three of these are the assessor's
+          verdict and are stored with the reading. The fourth, <b>out of date</b>, is decided in the browser
+          from how old that reading is, and is never written anywhere — which is why it sits <em>over</em> a
+          status rather than replacing one.</p>
+          <dl class="ilist">
+            <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> Offline</dt><dd>
+              Any one of:
+              <span class="d">• the HLS playlist does not exist;<br>
+              • FFMPEG restarts exceed the <b>critical</b> threshold (default 60 in 5 minutes);<br>
+              • the HLS playlist is stale or missing <b>and</b> the latest JPG is stale or missing
+              (stale meaning older than 100 seconds).</span>
+              <span class="d">Note the <b>and</b> in the third clause — it is what separates offline from
+              degraded. One dead artifact is an impairment; both are an outage.</span></dd></div>
+            <div class="irow"><dt><span class="sw deg" style="vertical-align:-1px"></span> Degraded</dt><dd>
+              None of the offline conditions, but any one of:
+              <span class="d">• FFMPEG restarts exceed the <b>warning</b> threshold (default 30 in 5 minutes);<br>
+              • the HLS playlist is older than 100 seconds;<br>
+              • the latest JPG is older than 100 seconds.</span>
+              <span class="d">Still reporting, just not well. The two restart thresholds are per-deployment
+              settings; the 100-second window is fixed in the assessor.</span></dd></div>
+            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> Online</dt><dd>
+              None of the above is true.</dd></div>
+            <div class="irow"><dt><span class="sw stale" style="vertical-align:-1px"></span> Out of date</dt><dd>
+              <code>assessed_at</code> is more than <b>1 hour</b> old. The assessor runs every 30 minutes, so
+              this means two consecutive runs produced nothing for this camera.
+              <span class="d">Not a status. A block keeps the colour and the shape of whatever it was last
+              assessed as, loses its saturation, and gains a dashed ring: <b>this was offline, and we have
+              not heard since</b> is two facts, and a fourth flat colour would have destroyed the first to
+              show the second. Front-end only — nothing persists it, and it disappears the moment a fresh
+              row arrives.</span></dd></div>
+          </dl>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Order matters: offline is tested first,
+          so a camera meeting both sets of conditions is offline, not degraded. Nothing in this section
+          confirms a picture — only that the pipeline behind it is producing files on time.</p>
+        </section>
         <section id="infoColors">
           <h3>Center colors</h3>
           <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:9px">Only the two ends are precise.
@@ -972,6 +1047,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Color is never the only cue: offline
           blocks carry an ✕ and degraded blocks a diagonal hatch, so the three states survive a colorblind
           reader, a projector and a grayscale print.</p>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:6px"><b>Out-of-date readings do not change a
+          center's colour.</b> The rule above is about what the cameras were last assessed as, and that is
+          still the best answer available. A center is faded only when <em>every</em> one of its cameras is
+          out of date — the assessor runs per site, so when it goes quiet it goes quiet for all of them at
+          once, and a site with a few old rows still has mostly current information. Partial staleness is
+          counted on the center's row instead, and the hover card says how many.</p>
         </section>
         <section>
           <h3>Sorting</h3>
@@ -1010,6 +1091,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               offline specifically, degraded specifically, or everything healthy. <b>Has any issue</b> and
               <b>All cameras healthy</b> are the two halves of the centers strip — the first is every
               non-green square, the second is every green one.</dd></div>
+            <div class="irow"><dt>Reading age</dt><dd>Whether any camera in the center has an out-of-date
+              reading. <span class="d">Deliberately its own category rather than a fifth Status option: the
+              two are different questions, and merging them would mean filtering for out-of-date rows
+              silently dropped the offline cameras you were chasing.</span></dd></div>
             <div class="irow"><dt>Annotations</dt><dd>Whether anyone has written a note on the center —
               presence only, never the text. It answers "which of these has someone already picked up?",
               which is the one thing a filter can honestly say about a free-text note.</dd></div>
@@ -1084,6 +1169,39 @@ const ROOMS = ["Infant A","Infant B","Toddler A","Toddler B","Twos","Threes","Pr
 
 const BRANDS = ["Bright Path Academy","Cedar Grove","DoodleBugs","Kiddie Academy",
   "Little Acorns","Maple Street Kids","Riverbend Early Learning","Sunrise Learning"];
+
+/* =====================================================================
+   What the assessor decides, and what the browser decides.
+
+   Offline, Degraded and Online are the assessor's verdict on the camera —
+   they come out of the status log and are stored. Stale is not one of
+   them: it is this page's verdict on the *assessment*, computed from how
+   old the row is, and never written anywhere. A camera is "offline and
+   the reading is two hours old" — two facts, not one — so the UI treats
+   staleness as a veil over a status rather than a fourth value that
+   overwrites it. Throwing the last known status away is precisely what
+   triage cannot afford.
+
+   The two restart thresholds are per-deployment settings; the rest are
+   fixed in the assessor and repeated here only so the prototype can
+   explain itself.
+   ===================================================================== */
+const ASSESS = {
+  restartCritical: 60,   // FFMPEG restarts within 5 minutes → offline
+  restartWarning:  30,   // FFMPEG restarts within 5 minutes → degraded
+  artifactStaleS:  100,  // an HLS playlist or JPG older than this counts as stale
+  assessStaleMin:  60,   // an assessment older than this is out of date
+  heartbeatMin:    30,   // how often the assessor runs
+};
+// Front-end only, and deliberately derived at read time: nothing persists it.
+const isStale      = cam => cam.checked >= ASSESS.assessStaleMin;
+const staleCount   = c => c.cams.filter(isStale).length;
+// All-or-nothing, matching how the assessor actually fails: it runs per site,
+// so when it stops running it stops for every camera at once. A site where
+// only some rows are old has mostly-current information and should not be
+// greyed out wholesale; the count on its row says what is missing.
+const centerStale  = c => c.cams.length > 0 && c.cams.every(isStale);
+const oldestAssess = c => Math.max(0, ...c.cams.map(x=>x.checked));
 
 /* code | state | region | timezone | cities — all fifty, because the filter
    panel has to survive a list nobody can scan, not a list of eight. */
@@ -1195,6 +1313,13 @@ const SEEDS = seeds();
 function build(){
   seed = 20260820;
   return SEEDS.map((s, ci) => {
+    // Staleness clusters: the assessor runs per site, so a silent site is the
+    // common case and a lone silent camera is the rare one — seeding it the
+    // other way round would make the all-or-nothing center rule look arbitrary.
+    // Chosen by index rather than rolled, because this LCG's low tail is lumpy
+    // enough that any probability here yields either one silent site or ten,
+    // and a prototype needs a number that reads as an exception.
+    const silentSite = ci % 26 === 7;
     const rooms = []; for (let i=0;i<s.n;i++) rooms.push(ROOMS[i % ROOMS.length]);
     const marks = new Array(s.n).fill("ok");
     const slots = [...Array(s.n).keys()];
@@ -1205,12 +1330,18 @@ function build(){
       id:"c"+ci, name:s.name, brand:s.brand, state:s.st, stateName:s.stateName, city:s.city,
       region:s.region, country:s.country, countryName:s.countryName, tz:s.tz,
       store:s.store, pay:s.pay, pub:s.pub,
-      cams: marks.map((status, i) => ({
-        id:`${s.store}-CAM${String(i+1).padStart(2,"0")}`,
-        n:i+1, room:rooms[i], status,
-        since: status==="ok" ? Math.floor(rnd()*4200)+120 : Math.floor(rnd()*(status==="off"?410:180))+3,
-        checked: Math.floor(rnd()*29)+1
-      }))
+      cams: marks.map((status, i) => {
+        const silent = silentSite || rnd() < .006;
+        return {
+          id:`${s.store}-CAM${String(i+1).padStart(2,"0")}`,
+          n:i+1, room:rooms[i], status,
+          since: status==="ok" ? Math.floor(rnd()*4200)+120 : Math.floor(rnd()*(status==="off"?410:180))+3,
+          silent,
+          // minutes since this camera's row was last assessed
+          checked: silent ? ASSESS.assessStaleMin + 8 + Math.floor(rnd()*430)
+                          : Math.floor(rnd()*29)+1
+        };
+      })
     };
   });
 }
@@ -1265,7 +1396,7 @@ const S = {
   dropOpen:false,       // the header picker's dropdown
   q:"", qDraft:"",
   // one key per facet, each an array of chosen values; empty = not filtering
-  status:[], notes:[], brand:[], pay:[], access:[],
+  status:[], fresh:[], notes:[], brand:[], pay:[], access:[],
   region:[], country:[], state:[], city:[], tz:[],
   strip:true,                          // the "Your centers" overview, on or off
   facet:"status", fsearch:"",          // which facet's options are open, and its search box
@@ -1350,7 +1481,7 @@ function seedNotes(){
    city list is Texas cities. `needs` is the one real dependency — an
    ungated list of ninety cities is a wall, not a filter.
    ===================================================================== */
-const FKEYS = ["status","notes","brand","pay","access","region","country","state","city","tz"];
+const FKEYS = ["status","fresh","notes","brand","pay","access","region","country","state","city","tz"];
 
 /* Every facet holds an array of chosen values. Empty means "not filtering
    on this"; two or more are ORed together, which is how people actually
@@ -1387,6 +1518,14 @@ const F = {
     // a filter — so the squares, this list and the first KPI all agree.
     ()=>[["issues","Has any issue"],["off","Has offline cameras"],
          ["deg","Has degraded cameras"],["clean","All cameras healthy"]]),
+  // Kept out of Status on purpose. Status is the assessor's verdict and its
+  // four options are a closed set whose halves are exact complements; reading
+  // age is a statement about how old that verdict is. Folded together they
+  // would break that complement, and someone filtering for out-of-date rows
+  // would silently drop the offline cameras they were actually chasing.
+  fresh: facet("Reading age", "Any reading age",
+    (c,v)=> v==="stale" ? staleCount(c) > 0 : staleCount(c) === 0,
+    ()=>[["stale","Has out-of-date readings"],["current","All readings current"]]),
   // Presence only. "Which of these has someone already looked at?" is a
   // different question from what the note says, and the only one a filter
   // can answer honestly.
@@ -1778,13 +1917,21 @@ const centerStatus = c => {
    reader cannot drift apart from each other or from the color. */
 function centerStateWords(c){
   const t = tally(c), st = centerStatus(c);
-  if (st === "off") return `All ${t.total} cameras offline`;
-  if (st === "ok")  return `All ${t.total} cameras healthy`;
   // The middle bucket is one colour but several situations, so the words
   // carry the split the square deliberately doesn't.
-  if (t.off && t.deg) return `${t.off} of ${t.total} cameras offline, ${t.deg} degraded`;
-  if (t.off)          return `${t.off} of ${t.total} cameras offline`;
-  return `${t.deg} of ${t.total} cameras degraded`;
+  const base = st === "off" ? `All ${t.total} cameras offline`
+    : st === "ok"           ? `All ${t.total} cameras healthy`
+    : t.off && t.deg        ? `${t.off} of ${t.total} cameras offline, ${t.deg} degraded`
+    : t.off                 ? `${t.off} of ${t.total} cameras offline`
+    :                         `${t.deg} of ${t.total} cameras degraded`;
+  // Staleness qualifies that sentence instead of replacing it. The status is
+  // still the last thing anyone knew; how old it is decides how much of it
+  // to believe.
+  const stale = staleCount(c);
+  if (!stale) return base;
+  return stale === t.total
+    ? `${base} — last assessed ${dur(oldestAssess(c))} ago`
+    : `${base}; ${stale} of those readings ${stale === 1 ? "is" : "are"} out of date`;
 }
 
 function stripGroups(){
@@ -1839,6 +1986,7 @@ function patchStrip(){
     const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
     const noted = !!noteOf(c.id), open = pass.has(c.id);
     b.className = ["cblk", centerStatus(c),
+      centerStale(c) ? "stale" : "",
       open ? "" : "muted",
       S.centerPick === c.id ? "picked" : "",
       noted ? "hasnote" : "",
@@ -2124,6 +2272,25 @@ function renderKpis(){
     </button>`).join("");
 }
 
+/* The board's credibility line. Every status on this page is a last known
+   reading; this says when enough of them are old that the page should be read
+   as history rather than as now. It exists only while that is true, and it
+   offers the filter rather than describing where to find it. */
+function renderStaleLine(){
+  const el = $("staleline");
+  const p = filtered();
+  const cams  = p.reduce((sum,c)=>sum+staleCount(c), 0);
+  const sites = p.filter(c=>staleCount(c)).length;
+  if (!cams || S.loading){ el.hidden = true; return; }
+  el.hidden = false;
+  const on = S.fresh.includes("stale");
+  el.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7.2V12l3.2 1.9"/></svg>
+    <p><b>${plural(cams,"camera")}</b> in ${plural(sites,"center")}
+      ${cams===1?"has":"have"} not been assessed for over ${ASSESS.assessStaleMin} minutes.
+      What the board shows for ${cams===1?"it":"them"} is the last reading recorded, not a current one.</p>
+    <button class="act" id="staleAct">${on ? "Show every center" : "Show only these"}</button>`;
+}
+
 function centerHtml(c, absIndex){
   const t = tally(c);
   const cls = t.off ? "has-off" : t.deg ? "has-deg" : "clean";
@@ -2137,16 +2304,29 @@ function centerHtml(c, absIndex){
     S.sort === "notes"  ? (noteStamp(c.id) ? `Note edited <b>${stampAgo(c.id)}</b>` : `<b>No note yet</b>`) :
     S.sort === "outage" ? (t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : `<b>Nothing offline</b>`) :
     t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : "";
-  const stats = t.off || t.deg ? [
-    t.off ? `<span class="stat off"><span class="sw off"></span><b class="num">${t.off}</b> offline</span>` : "",
-    t.deg ? `<span class="stat deg"><span class="sw deg"></span><b class="num">${t.deg}</b> degraded</span>` : "",
-    key ? `<span class="stat dim">${key}</span>` : ""
-  ].join("") : `<span class="stat ok"><span class="sw ok"></span>All <b class="num">${t.total}</b> reporting</span>`
-    + (key && (S.sort==="notes"||S.sort==="store") ? `<span class="stat dim">${key}</span>` : "");
+  // Out-of-date readings get their own line rather than being folded into
+  // either count: they are not a fourth kind of fault, they are the reason
+  // the other two numbers might be wrong.
+  const stale = staleCount(c);
+  const staleStat = stale
+    ? `<span class="stat stale"><span class="sw stale"></span><b class="num">${stale}</b> out of date</span>`
+    : "";
+  const sick = t.off || t.deg;
+  const stats = (sick
+    ? (t.off ? `<span class="stat off"><span class="sw off"></span><b class="num">${t.off}</b> offline</span>` : "")
+      + (t.deg ? `<span class="stat deg"><span class="sw deg"></span><b class="num">${t.deg}</b> degraded</span>` : "")
+    : `<span class="stat ok"><span class="sw ok"></span>All <b class="num">${t.total}</b> healthy</span>`)
+    + staleStat
+    + (key && (sick || S.sort==="notes" || S.sort==="store") ? `<span class="stat dim">${key}</span>` : "");
 
-  const blocks = c.cams.map((cam,i)=>`<button class="blk ${cam.status}${S.sel&&S.sel.ci===c.id&&S.sel.idx===i?" sel":""}"
+  const blocks = c.cams.map((cam,i)=>{
+    const stale = isStale(cam);
+    const said = cam.status==="off" ? "offline for "+dur(cam.since)
+      : cam.status==="deg" ? "degraded for "+dur(cam.since) : "normal";
+    return `<button class="blk ${cam.status}${stale?" stale":""}${S.sel&&S.sel.ci===c.id&&S.sel.idx===i?" sel":""}"
       data-ci="${c.id}" data-i="${i}" tabindex="${i===0?0:-1}"
-      aria-label="Camera ${cam.n}, ${cam.room}, ${cam.status==="off"?"offline for "+dur(cam.since):cam.status==="deg"?"degraded for "+dur(cam.since):"normal"}"></button>`).join("");
+      aria-label="Camera ${cam.n}, ${cam.room}, ${stale ? "last known "+said+", not assessed for "+dur(cam.checked) : said}"></button>`;
+  }).join("");
 
   // A note already written should be visible without opening anything: the
   // chip goes blue and its glyph fills in. The note's text is one hover
@@ -2261,7 +2441,8 @@ function renderList(){
   $("count").innerHTML = count + (S.strip ? "" : `<span class="legend">
       <span class="lg"><span class="sw off"></span>Offline</span>
       <span class="lg"><span class="sw deg"></span>Degraded</span>
-      <span class="lg"><span class="sw ok"></span>Normal</span></span>`);
+      <span class="lg"><span class="sw ok"></span>Normal</span>
+      <span class="lg"><span class="sw stale"></span>Out of date</span></span>`);
   $("count").hidden = !count && S.strip;
 }
 
@@ -2293,7 +2474,7 @@ function renderLive(){
 }
 
 function render(){
-  renderKpis(); renderTools(); renderSavedViews(); renderStrip();
+  renderKpis(); renderStaleLine(); renderTools(); renderSavedViews(); renderStrip();
   renderBanner(); renderList(); renderLive(); renderDrawer(); renderSearchScope();
   $("qClear").hidden = !$("q").value;
   // The notice names the center left behind on the Dashboard, so the
@@ -2345,28 +2526,40 @@ function renderDrawer(){
   const state = cam.status === "off"
     ? `<div class="dstate off">
         <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
-        <div class="txt"><b>Offline</b>
+        <div class="txt"><b>${isStale(cam)?"Last known: offline":"Offline"}</b>
           <span class="big num" id="camTime"></span>
           <button class="tmode" id="tmodeBtn"></button>
-          <p>Down since the last good heartbeat. Checked again ${ago(cam.checked)}.</p></div>
+          <p>Down since the last good heartbeat.${isStale(cam)?"":` Checked again ${ago(cam.checked)}.`}</p></div>
       </div>`
     : cam.status === "deg"
     ? `<div class="dstate deg">
         <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2.4"><path d="M12 8v5"/><path d="M12 16.5v.4"/><circle cx="12" cy="12" r="9"/></svg></span>
-        <div class="txt"><b>Degraded — still reporting</b>
+        <div class="txt"><b>${isStale(cam)?"Last known: degraded":"Degraded — still reporting"}</b>
           <span class="big num" id="camTime"></span>
           <button class="tmode" id="tmodeBtn"></button>
-          <p>Below target quality, not down. Checked ${ago(cam.checked)}.</p></div>
+          <p>Below target quality, not down.${isStale(cam)?"":` Checked ${ago(cam.checked)}.`}</p></div>
       </div>`
     : `<div class="dstate ok">
         <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.8"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
-        <div class="txt"><b>Normal</b><span class="big num">Healthy for ${dur(cam.since)}</span></div>
+        <div class="txt"><b>${isStale(cam)?"Last known: normal":"Normal"}</b><span class="big num">Healthy for ${dur(cam.since)}</span></div>
       </div>`;
+
+  // An out-of-date reading outranks what it says, so it goes above the status
+  // rather than beside it: everything below is a claim about the past.
+  const staleNote = isStale(cam)
+    ? `<div class="dstale">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7.2V12l3.2 1.9"/></svg>
+        <div><b>Reading out of date</b>
+        This camera has not been assessed for <b>${dur(cam.checked)}</b>, and the assessor runs every
+        ${ASSESS.heartbeatMin} minutes. Everything below is the last reading on record — it may no longer
+        be true.</div>
+      </div>`
+    : "";
 
   // Nothing between the picture and the action: the title carries the room,
   // the status block carries how long and since when, and the camera ID that
   // used to sit here went with the ticketing flow that wanted it.
-  $("dBody").innerHTML = `${state}${media}
+  $("dBody").innerHTML = `${staleNote}${state}${media}
     <div><a class="btn primary" href="#" onclick="return false" style="justify-content:center;width:100%">View live on my.wmg
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a></div>
     ${noteOf(c.id) ? `<p class="d-note">
@@ -2438,7 +2631,10 @@ function mutate(){
   halfTick = !halfTick;
   DATA.forEach(c=>c.cams.forEach(cam=>{
     if (!halfTick) cam.since += 1;
-    cam.checked = Math.floor(rnd()*29)+1;
+    // A silent camera stays silent: its assessment keeps ageing instead of
+    // being refreshed, which is the entire content of the stale state.
+    if (cam.silent){ if (!halfTick) cam.checked += 1; }
+    else cam.checked = Math.floor(rnd()*29)+1;
   }));
 }
 
@@ -2557,10 +2753,12 @@ function showTip(b){
   if (S.sel) return;
   const c = DATA.find(x=>x.id===b.dataset.ci), cam = c.cams[+b.dataset.i];
   const label = cam.status==="off"?"Offline":cam.status==="deg"?"Degraded":"Normal";
+  const stale = isStale(cam);
   tip.innerHTML = `<b>Cam ${cam.n} — ${cam.room}</b><em class="num">${c.name}</em>
-    <span class="row"><span class="sw ${cam.status}" style="width:10px;height:10px;border-radius:3px"></span>${label}
+    <span class="row"><span class="sw ${cam.status}" style="width:10px;height:10px;border-radius:3px${stale?";filter:saturate(.28)":""}"></span>${stale?"Last known: ":""}${label}
     ${cam.status!=="ok"?`· <span class="num">${dur(cam.since)}</span>`:""}</span>
-    <em class="num" style="margin-top:3px">Checked ${ago(cam.checked)}</em>`;
+    <em class="num" style="margin-top:3px${stale?";color:#7c4a03;font-weight:700":""}">${
+      stale ? `Not assessed for ${dur(cam.checked)}` : `Checked ${ago(cam.checked)}`}</em>`;
   placeTip(b);
 }
 /* Same tooltip, one level up the hierarchy: a center block answers the
@@ -2690,6 +2888,15 @@ function clearAll(){
   $("q").value=""; $("qField").classList.remove("linked");
   render();
 }
+
+$("staleline").addEventListener("click", e=>{
+  if (!e.target.closest("#staleAct")) return;
+  S.fresh = S.fresh.includes("stale") ? [] : ["stale"];
+  S.page = 1; render();
+  $("announce").textContent = S.fresh.length
+    ? "Showing only centers with out-of-date readings."
+    : "Showing every center again.";
+});
 
 // KPI tiles double as filters
 $("kpis").addEventListener("click", e=>{
@@ -2836,7 +3043,11 @@ function openInfo(anchor, opener){
   $("infoScrim").hidden = false;
   const box = $("infoScrim").querySelector(".ib");
   box.scrollTop = 0;
-  if (anchor) $(anchor)?.scrollIntoView({block:"start"});
+  // Container-local, not scrollIntoView: that walks every scrollable ancestor
+  // and, inside a fixed dialog, happily runs this box to the bottom instead of
+  // to the section it was asked for.
+  const el = anchor && $(anchor);
+  if (el) box.scrollTop += el.getBoundingClientRect().top - box.getBoundingClientRect().top - 8;
   $("infoClose").focus();
 }
 function closeInfo(){
@@ -2943,7 +3154,12 @@ document.querySelector(".proto").addEventListener("click", e=>{
   const d = b.dataset.demo;
   if (d==="loading"){ S.loading=true; S.error=false; render(); setTimeout(()=>{ S.loading=false; render(); }, 1400); }
   if (d==="fail"){ S.error=true; S.paused=false; render(); $("announce").textContent="Refresh failed. Showing the last good read."; }
-  if (d==="healthy"){ DATA.forEach(c=>c.cams.forEach(cam=>{cam.status="ok"; cam.since=Math.floor(rnd()*4000)+200;})); S.error=false; render(); }
+  if (d==="healthy"){ DATA.forEach(c=>c.cams.forEach(cam=>{
+      cam.status="ok"; cam.since=Math.floor(rnd()*4000)+200;
+      // "All healthy" has to mean the readings are current too, or the board
+      // still shows a wall of greyed-out squares nobody asked for.
+      cam.silent=false; cam.checked=Math.floor(rnd()*29)+1;
+    })); S.error=false; render(); }
   if (d==="reset"){ DATA = build(); S.error=false; S.sel=null; showNotice(true); clearAll(); }
 });
 
