@@ -240,10 +240,13 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   threshold, an HLS playlist or a JPG older than a hundred seconds, and (for the fourth) an assessment older
   than an hour. Those rules now live on the reference page beside the center rules, because a board that
   claims a camera is degraded owes the reader the definition it used. The state itself is drawn as a veil
-  rather than a colour, and filtered through its own category — <em>Reading age</em> — rather than as a
-  fifth Status option: Status is the assessor's verdict and its halves are exact complements, and folding
-  freshness into it would have meant filtering for out-of-date rows silently dropped the offline cameras you
-  were chasing.</p>
+  rather than a colour, and filtered as a fifth <em>Status</em> value, <b>Has stale cameras</b>. That last
+  one was a reversal: freshness started in a category of its own, on the argument that ANDing it against a
+  status is a question worth being able to ask — "which centers have offline cameras <em>and</em> readings I
+  can't trust". One more category in the rail turned out to cost more than that query is worth, so the two
+  live together and combine with OR like every other pair inside a category. The complement that matters is
+  untouched: <b>Has any issue</b> and <b>All cameras healthy</b> still partition the strip exactly, and the
+  new value simply overlaps both.</p>
 </section>
 
 <section>
@@ -312,13 +315,14 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   dark cameras out of ten land on the same colour, because the square answers <em>does this need looking
   at</em> and the row underneath answers how much — a hue asked to separate those two would be a number
   pretending to be a colour. An ⓘ beside the legend states the rule where it applies.</p>
-  <p>Staleness leaves the center rule alone, which is the point of making it a veil in the first place: a
-  center is coloured by what its cameras were last assessed as, because that is still the best answer
-  available. A center only fades when <em>every</em> camera in it is out of date — the assessor runs per
-  site, so when it goes quiet it goes quiet for all of them at once, and a site with three old rows out of
-  twenty still has current information about the other seventeen. Partial staleness is a count on the
-  center's row instead. Above the board, one amber line appears when anything at all is out of date, because
-  a reader who has not noticed that has no way to know the page is describing the past.</p>
+  <p><strong>Staleness never reaches the center rule.</strong> It was briefly allowed to — a center faded
+  once every camera in it was out of date — and that turned out to be one idea too many in a component whose
+  entire job is to answer one question at a glance. A center square says how much of a site is working;
+  how old a reading is asks a different question of a different object, and the veil belongs where the
+  object is. So the strip stays a three-state overview, and out-of-date shows on the camera blocks inside a
+  center, on the count beside them, and in the Status filter. Above the board, one amber line appears
+  whenever anything is out of date, because a reader who has not noticed that has no way to know the page is
+  describing the past.</p>
   <p>Keeping green strict is what makes the rest of the board agree with itself. Green is the exact
   complement of the <em>Has any issue</em> filter, so the count of non-green squares, the first KPI, the
   status filter and the refresh announcement are all one number rather than four readings of a similar
