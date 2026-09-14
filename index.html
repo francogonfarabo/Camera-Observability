@@ -600,19 +600,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   border:1.5px dashed var(--ink-3);pointer-events:none}
 .sw.stale{background:var(--fill);box-shadow:none;border:1.5px dashed var(--ink-3)}
 
-/* The one line that says the board might be out of date. It appears only
-   when something actually is, and offers the filter rather than describing
-   where to find it. */
-.staleline{display:flex;align-items:center;gap:10px;background:var(--amber-tint);color:#7c4a03;
-  border-radius:10px;padding:8px 10px 8px 12px;font-size:12.5px}
-.staleline[hidden]{display:none}
-.staleline svg{flex-shrink:0}
-.staleline p{flex:1;min-width:0}
-.staleline b{font-weight:700}
-.staleline .act{font-weight:700;text-decoration:underline;white-space:nowrap;color:inherit;
-  padding:3px 7px;border-radius:6px}
-.staleline .act:hover{background:rgba(124,74,3,.12)}
-
 /* the same warning inside the camera modal, where it outranks the status */
 .dstale{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px;
   background:var(--amber-tint);border:1px solid #f5d98a;color:#7c4a03;font-size:12px}
@@ -898,10 +885,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           </div>
 
           <div class="kpis" id="kpis"></div>
-
-          <!-- Present only when something is genuinely out of date: the one
-               line that tells you to read the board as history. -->
-          <div class="staleline" id="staleline" hidden></div>
 
           <!-- ===== your centers + toolbar: one connected card =====
                The strip is every center this account can see, drawn with the
@@ -2278,25 +2261,6 @@ function renderKpis(){
     </button>`).join("");
 }
 
-/* The board's credibility line. Every status on this page is a last known
-   reading; this says when enough of them are old that the page should be read
-   as history rather than as now. It exists only while that is true, and it
-   offers the filter rather than describing where to find it. */
-function renderStaleLine(){
-  const el = $("staleline");
-  const p = filtered();
-  const cams  = p.reduce((sum,c)=>sum+staleCount(c), 0);
-  const sites = p.filter(c=>staleCount(c)).length;
-  if (!cams || S.loading){ el.hidden = true; return; }
-  el.hidden = false;
-  const on = S.status.includes("stale");
-  el.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7.2V12l3.2 1.9"/></svg>
-    <p><b>${plural(cams,"camera")}</b> in ${plural(sites,"center")}
-      ${cams===1?"has":"have"} not been assessed for over ${ASSESS.assessStaleMin} minutes.
-      What the board shows for ${cams===1?"it":"them"} is the last reading recorded, not a current one.</p>
-    <button class="act" id="staleAct">${on ? "Show every center" : "Show only these"}</button>`;
-}
-
 function centerHtml(c, absIndex){
   const t = tally(c);
   const cls = t.off ? "has-off" : t.deg ? "has-deg" : "clean";
@@ -2480,7 +2444,7 @@ function renderLive(){
 }
 
 function render(){
-  renderKpis(); renderStaleLine(); renderTools(); renderSavedViews(); renderStrip();
+  renderKpis(); renderTools(); renderSavedViews(); renderStrip();
   renderBanner(); renderList(); renderLive(); renderDrawer(); renderSearchScope();
   $("qClear").hidden = !$("q").value;
   // The notice names the center left behind on the Dashboard, so the
@@ -2894,15 +2858,6 @@ function clearAll(){
   $("q").value=""; $("qField").classList.remove("linked");
   render();
 }
-
-$("staleline").addEventListener("click", e=>{
-  if (!e.target.closest("#staleAct")) return;
-  S.status = S.status.includes("stale") ? [] : ["stale"];
-  S.kpi = null; S.page = 1; render();
-  $("announce").textContent = S.status.includes("stale")
-    ? "Showing only centers with stale cameras."
-    : "Showing every center again.";
-});
 
 // KPI tiles double as filters
 $("kpis").addEventListener("click", e=>{
