@@ -298,10 +298,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 @keyframes cnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-2.5px)}75%{transform:translateX(2.5px)}}
 .cell.nudge{animation:cnudge .24s ease-in-out 2}
 .cell.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
-/* a center that already carries a note */
-.cell.hasnote::after{content:"";position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;
-  background:var(--blue);box-shadow:0 0 0 1.6px var(--surface)}
-.cell.out.hasnote::after{display:none}
 
 /* legend swatch — same rules as a cell, fixed size */
 .lgs{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;
@@ -343,13 +339,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 /* ---------- toolbar ---------- */
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;
   border-top:1px solid var(--line);border-radius:0 0 12px 12px;background:var(--fill-2)}
-/* overview off: the card is just the toolbar, so it loses the seam and the
-   tinted "second half" look that only made sense under the strip */
-.strip[hidden]{display:none}
-.board.nostrip .filters{border-top:none;border-radius:12px;background:var(--surface)}
-/* the view toggle sits with the other view controls and shows its state */
-.ftrigger.vtoggle[aria-pressed="true"]{background:var(--blue-tint);border-color:#9fd0f0;color:var(--blue-deep)}
-.ftrigger.vtoggle[aria-pressed="false"]{color:var(--ink-3);font-weight:600}
 /* The border belongs to the wrapper, not the input, so the scope badge can
    sit inside the field alongside the text rather than floating over it. */
 /* min-width so a crowded toolbar wraps its controls to a second row
@@ -655,26 +644,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .c-meta{font-size:11.5px;color:var(--ink-3);margin-top:3px;display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:0}
 .c-meta>.num{flex:0 0 auto}
 
-/* per-center notes — a scratch textbox, not a comment thread.
-   Three states worth telling apart: nothing written (quiet), something
-   written (blue-tinted chip that says so), and open for editing (solid). */
-.notesBtn{display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 6px;border-radius:20px;font-size:11px;
-  font-weight:600;color:var(--ink-4);border:1px solid transparent;flex:0 1 auto;min-width:0}
-.notesBtn:hover{background:var(--fill);color:var(--ink-2)}
-.notesBtn svg{flex-shrink:0}
-.notesBtn .notesLbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-/* color AND shape, same rule the status blocks follow: a written note
-   fills the page glyph in as well as tinting the chip */
-.notesBtn.has-note{background:var(--blue-tint);border-color:#a8d5f2;color:var(--blue-deep);font-weight:700}
-.notesBtn.has-note svg path:first-child{fill:currentColor;fill-opacity:.22}
-.notesBtn.has-note:hover{background:#cbe7fa;color:var(--blue-deep)}
-.notesBtn[aria-pressed="true"],.notesBtn.has-note[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
-.notesBox{grid-column:1/-1;padding-top:9px;margin-top:1px;border-top:1px solid var(--line-2)}
-.notesBox textarea{width:100%;min-height:52px;padding:8px 10px;border:1px solid var(--line-3);border-radius:8px;
-  font-family:inherit;font-size:12.5px;line-height:1.45;color:var(--ink-2);resize:vertical;background:var(--fill-2)}
-.notesBox textarea:focus{border-color:var(--blue);box-shadow:var(--focus);background:var(--surface)}
-.notesBox textarea::placeholder{color:var(--ink-4)}
-
 .pill{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:2px 8px;font-size:10.5px;font-weight:700;border:1px solid;white-space:nowrap}
 .pill.off{background:var(--off-tint);color:#b91c1c;border-color:var(--off-line)}
 .pill.deg{background:var(--deg-tint);color:#c2410c;border-color:var(--deg-line)}
@@ -790,8 +759,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
 .dstate .tmode:hover{opacity:1}
 .dstate .tmode:focus-visible{opacity:1;box-shadow:var(--focus);border-radius:4px}
-.d-note{font-size:11.5px;color:var(--ink-3);display:flex;gap:6px;align-items:flex-start}
-.d-note svg{flex-shrink:0;margin-top:2px}
 .d-foot{border-top:1px solid var(--line);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;background:var(--fill-2)}
 .d-foot .pos{font-size:11.5px;color:var(--ink-3)}
 .navbtn{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;color:var(--blue);padding:6px 8px;border-radius:7px}
@@ -1227,11 +1194,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               outage clock running. Centers with nothing offline sort last.</span></dd></div>
             <div class="irow"><dt>Center Name</dt><dd>Alphabetical, A–Z by default.</dd></div>
             <div class="irow"><dt>Store Number</dt><dd>Numeric on the store number, lowest first by default.</dd></div>
-            <div class="irow"><dt>Annotation Date</dt><dd>
-              The last time this center's note was added or edited. Most recent first by default; flip it to
-              surface notes nobody has touched in a while.
-              <span class="d">Centers with no note have no date, so they sort last in both directions rather
-              than pretending to be the oldest.</span></dd></div>
           </dl>
           <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Ties fall back to center name A–Z, in
           both directions. The card shows whichever number you sorted by, so the order is always checkable
@@ -1248,9 +1210,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               reading can be out of date whatever it says, so it overlaps both. Values inside a category are
               ORed, so picking it together with <b>Has offline cameras</b> asks for centers matching
               <em>either</em>, not both.</span></dd></div>
-            <div class="irow"><dt>Annotations</dt><dd>Whether anyone has written a note on the center —
-              presence only, never the text. It answers "which of these has someone already picked up?",
-              which is the one thing a filter can honestly say about a free-text note.</dd></div>
             <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.</dd></div>
             <div class="irow"><dt>Payment model</dt><dd>Who pays for the camera service —
               <b>parent-pay</b> (families subscribe) or <b>center-pay</b> (the center covers it).</dd></div>
@@ -1593,9 +1552,8 @@ const S = {
   dropOpen:false,       // the header picker's dropdown
   q:"", qDraft:"",
   // one key per facet, each an array of chosen values; empty = not filtering
-  status:[], notes:[], brand:[], pay:[], access:[],
+  status:[], brand:[], pay:[], access:[],
   region:[], country:[], state:[], city:[], tz:[],
-  strip:true,                          // the "Your centers" overview, on or off
   facet:"status", fsearch:"",          // which facet's options are open, and its search box
   sort:"rate", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
@@ -1608,67 +1566,10 @@ const S = {
   bandDimPick:null, bandFold:true, bandHover:false, miniOn:false,
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
-  filtersOpen:false, sortOpen:false, savedViews:[], savingOpen:false,
-  centerNotes:{}, noteStamps:{}, notesOpen:{}   // text, last-edited, expanded
+  filtersOpen:false, sortOpen:false, savedViews:[], savingOpen:false
 };
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-
-/* =====================================================================
-   Per-center notes — a scratch textbox, not a comment thread: one string
-   per center, no author, no timestamp, no thread. Browser-local, and
-   left untouched by the "Reset data" control since it's the user's own
-   annotation, not sample data.
-   ===================================================================== */
-const NOTES_KEY  = "wmg.cameraHealth.centerNotes.v1";
-const STAMPS_KEY = "wmg.cameraHealth.noteStamps.v1";   // {centerId: epoch ms}
-const SEEDED_KEY = "wmg.cameraHealth.notesSeeded.v1";
-function loadJSON(key, fallback){
-  try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-  catch(e){ return fallback; }
-}
-let notesSaveTimer = null;
-function persistNotesSoon(){
-  clearTimeout(notesSaveTimer);
-  notesSaveTimer = setTimeout(()=>{
-    try {
-      localStorage.setItem(NOTES_KEY, JSON.stringify(S.centerNotes));
-      localStorage.setItem(STAMPS_KEY, JSON.stringify(S.noteStamps));
-    } catch(e){ /* storage unavailable */ }
-  }, 400);
-}
-const noteOf = id => (S.centerNotes[id] || "").trim();
-const noteStamp = id => noteOf(id) ? (S.noteStamps[id] || 0) : 0;
-const stampAgo = id => {
-  const t = noteStamp(id); if (!t) return "";
-  return ago(Math.max(0, Math.round((Date.now() - t)/60000)));
-};
-/* A handful of sample annotations, once, so the "Updated Annotations" sort
-   has something to sort on the first time anyone opens the prototype.
-   Anything typed afterwards is the user's own and is never overwritten. */
-function seedNotes(){
-  // Storage can be unavailable (private windows, embedded previews). That
-  // must not cost the prototype its sample annotations, so the check is
-  // guarded on its own rather than taking the whole function with it.
-  let already = false;
-  try { already = !!localStorage.getItem(SEEDED_KEY); } catch(e){ /* no storage */ }
-  if (already) return;
-  const picks = DATA.filter(c=>tally(c).off).slice(0,4).concat(DATA.filter(c=>!tally(c).off).slice(0,2));
-  const texts = ["Vendor ticket #4821 — Aztec on site Thursday AM",
-    "Switch replaced 3/12; watching the two by the playground",
-    "Director asked us to hold the lobby camera until the remodel is done",
-    "PoE injector on order, ETA next week",
-    "New build — cameras commissioned last month, nothing outstanding",
-    "Annual compliance walk done; no camera findings"];
-  const ages = [8, 90, 60*26, 60*24*4, 60*24*11, 60*24*40];   // minutes ago
-  picks.forEach((c,i)=>{
-    if (noteOf(c.id)) return;
-    S.centerNotes[c.id] = texts[i % texts.length];
-    S.noteStamps[c.id] = Date.now() - ages[i % ages.length]*60000;
-  });
-  try { localStorage.setItem(SEEDED_KEY, "1"); } catch(e){}
-  persistNotesSoon();
-}
 
 /* =====================================================================
    Facets. One table drives the filter panel, the chips, the counts and
@@ -1681,7 +1582,7 @@ function seedNotes(){
    city list is Texas cities. `needs` is the one real dependency — an
    ungated list of ninety cities is a wall, not a filter.
    ===================================================================== */
-const FKEYS = ["status","notes","brand","pay","access","region","country","state","city","tz"];
+const FKEYS = ["status","brand","pay","access","region","country","state","city","tz"];
 
 /* Every facet holds an array of chosen values. Empty means "not filtering
    on this"; two or more are ORed together, which is how people actually
@@ -1725,12 +1626,6 @@ const F = {
     ()=>[["issues","Has any issue"],["off","Has offline cameras"],
          ["deg","Has degraded cameras"],["stale","Has stale cameras"],
          ["clean","All cameras healthy"]]),
-  // Presence only. "Which of these has someone already looked at?" is a
-  // different question from what the note says, and the only one a filter
-  // can answer honestly.
-  notes: facet("Annotations", "Any annotation",
-    (c,v)=> v==="yes" ? !!noteOf(c.id) : !noteOf(c.id),
-    ()=>[["yes","Has an annotation"],["no","No annotation"]]),
   brand: facet("Brand", "All brands", (c,v)=>c.brand===v, ()=>uniqOpts(c=>c.brand,"brand")),
   pay: facet("Payment model", "Any payment model", (c,v)=>c.pay===v,
     ()=>[["parent","Parent-pay"],["center","Center-pay"]]),
@@ -1823,8 +1718,6 @@ const SORTS = [
     val:null },
   { k:"store",  label:"Store Number",        def:"asc",  hi:"Highest first",          lo:"Lowest first",
     val:c=>+c.store },
-  { k:"notes",  label:"Annotation Date",     def:"desc", hi:"Most recent first",      lo:"Longest untouched first",
-    val:c=>noteStamp(c.id) },
 ];
 const sortRow = k => SORTS.find(s=>s.k===k) || SORTS[0];
 const sortLabel = k => sortRow(k).label;
@@ -1838,13 +1731,6 @@ function sorted(list){
   a.sort((x,y)=>{
     if (row.k === "name") return flip * byName(x,y);
     const vx = row.val(x), vy = row.val(y);
-    // A center with no annotation has no date: it sorts last either way
-    // rather than pretending to be the oldest.
-    if (row.k === "notes"){
-      if (!vx && !vy) return byName(x,y);
-      if (!vx) return 1;
-      if (!vy) return -1;
-    }
     return (vx === vy) ? byName(x,y) : flip * (vx - vy);
   });
   return a;
@@ -1935,11 +1821,6 @@ function renderTools(){
     : `<div class="foptlist">${facetOptionsHtml()}</div>`;
 
   $("toolsSlot").innerHTML = `${chips}
-    <button class="ftrigger vtoggle" id="stripBtn" aria-pressed="${S.strip}"
-      title="${S.strip?"Hide":"Show"} the centers overview">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      Overview
-    </button>
     <div class="pop">
       <button class="ftrigger" id="filterBtn" aria-expanded="${S.filtersOpen}" aria-haspopup="true">
         Filters${n?`<span class="cnt num">${n}</span>`:""}
@@ -2282,13 +2163,6 @@ let bandScopeN = 0;
 const bandEngaged = () => S.bandHover || $("strip").contains(document.activeElement);
 
 function renderStrip(){
-  $("stripWrap").hidden = !S.strip;
-  $("board").classList.toggle("nostrip", !S.strip);
-  if (!S.strip){
-    bandSig = ""; bandOrder = null; CELLS = [];
-    $("bandMini").hidden = true;
-    return;
-  }
   const width = bandWidth();
   // Which centers survive the filters. The search text is deliberately left
   // out: clicking a cell writes a center name into the search box, and letting
@@ -2382,7 +2256,7 @@ function renderStrip(){
 function cellWords(x){
   if (x.dim === "center"){
     const c = x.cs[0];
-    return c.name + ". " + centerStateWords(c) + "." + (noteOf(c.id) ? " Has a note." : "");
+    return c.name + ". " + centerStateWords(c) + ".";
   }
   const a = x.a, bits = [];
   bits.push(a.badCenters ? a.badCenters + " of " + a.n + " centers need attention ("
@@ -2404,7 +2278,6 @@ function cellAction(x, out, picked){
 }
 
 function patchStrip(){
-  if (!S.strip) return;
   const nodes = $("strip").querySelectorAll(".cell");
   // While the first read is in flight the band must not claim to know
   // anything: same cells, no severity, not clickable.
@@ -2420,12 +2293,11 @@ function patchStrip(){
     const x = CELLS[i]; if (!x) return;
     const isCenter = x.dim === "center";
     const out    = x.match === 0;
-    const noted  = isCenter && !!noteOf(x.k);
     const facet  = DIMS[x.dim].facet;
     const picked = isCenter ? S.centerPick === x.k : !!(facet && S[facet].includes(x.k));
     b.className = ["cell", out ? "out" : "s" + x.sev,
       (!out && !isCenter && x.a.dark) ? "down" : "",
-      picked ? "picked" : "", noted ? "hasnote" : "",
+      picked ? "picked" : "",
       // a refusal nudge in flight outlives the re-render that triggered it
       b.classList.contains("nudge") ? "nudge" : ""].filter(Boolean).join(" ");
     // Fractional membership only exists where a cell holds more than one
@@ -2517,9 +2389,7 @@ function renderBandLegend(){
     ? '<span class="lg"><span class="lgs pmk"></span>part of this group matches</span>' : "";
   const outd = CELLS.some(c=>c.match === 0)
     ? '<span class="lg"><span class="lgs dot"></span>filtered out</span>' : "";
-  const note = CELLS.some(c=>c.dim === "center" && noteOf(c.k))
-    ? '<span class="lg"><span class="lgs" style="background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);position:relative"><span style="position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 1.6px var(--surface)"></span></span>has an annotation</span>' : "";
-  $("bandLegend").innerHTML = ramp + x + dark + partial + outd + note;
+  $("bandLegend").innerHTML = ramp + x + dark + partial + outd;
 
   // One sentence for a screen reader, not two hundred announced cells.
   const scope = bandScopeAll ? DATA : DATA.filter(c=>matchesFilters(c,{ignoreQ:true}));
@@ -2537,7 +2407,7 @@ function renderBandLegend(){
 const SEVCOL = ["var(--ok)", "#fcd34d", "var(--deg)", "#b91c1c", "var(--off)"];
 function renderMini(){
   const m = $("bandMini");
-  if (!S.strip || S.loading || !S.miniOn){ m.hidden = true; return; }
+  if (S.loading || !S.miniOn){ m.hidden = true; return; }
   const scope = bandScopeAll ? DATA : DATA.filter(c=>matchesFilters(c,{ignoreQ:true}));
   const buckets = [0,0,0,0,0];
   for (const c of scope) buckets[sevOf(tally(c), false)]++;
@@ -2889,7 +2759,6 @@ function centerHtml(c, absIndex){
     S.sort === "rate"   ? `Defect rate <b class="num">${pct(t.rate)}</b>` :
     S.sort === "count"  ? `<b class="num">${t.bad}</b> of ${t.total} cameras` :
     S.sort === "store"  ? `Store <b class="num">#${c.store}</b>` :
-    S.sort === "notes"  ? (noteStamp(c.id) ? `Note edited <b>${stampAgo(c.id)}</b>` : `<b>No note yet</b>`) :
     S.sort === "outage" ? (t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : `<b>Nothing offline</b>`) :
     t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : "";
   // Out-of-date readings get their own line rather than being folded into
@@ -2905,7 +2774,7 @@ function centerHtml(c, absIndex){
       + (t.deg ? `<span class="stat deg"><span class="sw deg"></span><b class="num">${t.deg}</b> degraded</span>` : "")
     : `<span class="stat ok"><span class="sw ok"></span>All <b class="num">${t.total}</b> healthy</span>`)
     + staleStat
-    + (key && (sick || S.sort==="notes" || S.sort==="store") ? `<span class="stat dim">${key}</span>` : "");
+    + (key && (sick || S.sort==="store") ? `<span class="stat dim">${key}</span>` : "");
 
   const blocks = c.cams.map((cam,i)=>{
     const stale = isStale(cam);
@@ -2916,31 +2785,13 @@ function centerHtml(c, absIndex){
       aria-label="Camera ${cam.n}, ${cam.room}, ${stale ? "last known "+said+", not assessed for "+dur(cam.checked) : said}"></button>`;
   }).join("");
 
-  // A note already written should be visible without opening anything: the
-  // chip goes blue and its glyph fills in. The note's text is one hover
-  // (or one click) away rather than inline — there is no room for it on the
-  // meta line, and a chip that changes width with its content makes the
-  // whole row jump.
-  const note = noteOf(c.id);
-
-  return `<section class="center ${cls}" data-cid="${c.id}" aria-label="${c.name}. ${t.off} offline, ${t.deg} degraded, ${t.total} cameras.${note?" Has a note.":""}">
+  return `<section class="center ${cls}" data-cid="${c.id}" aria-label="${c.name}. ${t.off} offline, ${t.deg} degraded, ${t.total} cameras.">
     <div>
       <div class="c-name">${absIndex!==null?`<span class="c-rank num">${absIndex}</span>`:""}<span>${c.name}</span></div>
-      <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span>
-        <button class="notesBtn${note?" has-note":""}" data-notes-toggle="${c.id}" aria-pressed="${!!S.notesOpen[c.id]}"
-          title="${note ? esc(note.slice(0,180)) : "Add a note about this center"}"
-          aria-label="${note?"Edit note":"Add a note"} for ${c.name}">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/></svg>
-          <span class="notesLbl">Note</span>
-        </button>
-      </div>
+      <div class="c-meta"><span class="num">${c.state} · Store #${c.store} · ${t.total} cameras</span></div>
     </div>
     <div class="stats">${stats}</div>
     <div class="grid" role="group" aria-label="Cameras at ${c.name}">${blocks}</div>
-    ${S.notesOpen[c.id] ? `<div class="notesBox">
-      <textarea data-notes="${c.id}" placeholder="Add a note about this center — e.g. a work order, a known issue, who to call."
-        aria-label="Note for ${c.name}">${esc(S.centerNotes[c.id]||"")}</textarea>
-    </div>` : ""}
   </section>`;
 }
 
@@ -3017,8 +2868,6 @@ function renderList(){
 
   // Only worth a line when the view is narrower than the assignment: with
   // nothing filtered, every number here is already in the KPI row above.
-  // The legend moves here when the overview is off, because that is where
-  // the key lived — hiding the strip shouldn't leave the squares unexplained.
   const cams = all.reduce((s,c)=>s+c.cams.length,0);
   // One element per side: the row is a flex container, so loose text nodes
   // would each become a flex item and get spread across the whole width.
@@ -3026,12 +2875,8 @@ function renderList(){
     ? `<span><span class="num">${all.length}</span> of <span class="num">${DATA.length}</span> centers ·
        <span class="num">${cams}</span> cameras in view</span>`
     : "";
-  $("count").innerHTML = count + (S.strip ? "" : `<span class="legend">
-      <span class="lg"><span class="sw off"></span>Offline</span>
-      <span class="lg"><span class="sw deg"></span>Degraded</span>
-      <span class="lg"><span class="sw ok"></span>Normal</span>
-      <span class="lg"><span class="sw stale"></span>Out of date</span></span>`);
-  $("count").hidden = !count && S.strip;
+  $("count").innerHTML = count;
+  $("count").hidden = !count;
 }
 
 function renderBanner(){
@@ -3150,9 +2995,6 @@ function renderDrawer(){
   $("dBody").innerHTML = `${staleNote}${state}${media}
     <div><a class="btn primary" href="#" onclick="return false" style="justify-content:center;width:100%">View live on my.wmg
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a></div>
-    ${noteOf(c.id) ? `<p class="d-note">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2"><path d="M4 4h12l4 4v12H4z"/><path d="M16 4v4h4"/></svg>
-      <span><b style="color:var(--ink-2)">Note on ${esc(c.name)}:</b> ${esc(noteOf(c.id).slice(0,200))}</span></p>` : ""}
     <p class="pgtxt">Verifying on my.wmg is the only way to confirm a camera is truly down — this page reports the heartbeat, not the picture.</p>`;
 
   paintCamTime();
@@ -3262,8 +3104,7 @@ function refresh({silent=false}={}){
 setInterval(()=>{
   if (S.screen !== "health") return;   // the board isn't open; don't poll for it
   S.age++;
-  const blocked = S.paused || document.hidden || !!S.sel || document.activeElement === $("q")
-    || document.activeElement?.matches?.("[data-notes]");
+  const blocked = S.paused || document.hidden || !!S.sel || document.activeElement === $("q");
   if (blocked){ renderLive(); return; }
   S.tick--;
   if (S.tick <= 0){ S.tick = 30; refresh(); } else renderLive();
@@ -3284,38 +3125,7 @@ list.addEventListener("click", e=>{
   const b = e.target.closest(".blk");
   if (b) return openCam(b.dataset.ci, +b.dataset.i);
   if (e.target.closest("#emptyClear")) return clearAll();
-  const nt = e.target.closest("[data-notes-toggle]");
-  if (nt){ const id = nt.dataset.notesToggle; S.notesOpen[id] = !S.notesOpen[id]; renderList();
-    if (S.notesOpen[id]){ const ta = list.querySelector(`textarea[data-notes="${id}"]`); if (ta) ta.focus(); }
-  }
 });
-// Typing updates state and persists, but never re-renders — re-rendering
-// would replace the textarea's DOM node mid-keystroke and drop focus and
-// cursor position, the same mistake the camera-grid refresh guard avoids.
-list.addEventListener("input", e=>{
-  const ta = e.target.closest("[data-notes]"); if (!ta) return;
-  S.centerNotes[ta.dataset.notes] = ta.value;
-  // The edit time is what "Updated Annotations" sorts on, so it is stamped
-  // here, on the keystroke, not on some later save.
-  S.noteStamps[ta.dataset.notes] = Date.now();
-  persistNotesSoon();
-  syncNoteMarks(ta.dataset.notes);
-});
-/* The "has a note" highlight lives in two places: the chip on the center
-   card and the corner dot on that center's block in the strip. Both are
-   patched attribute-by-attribute so nothing focusable is replaced. */
-function syncNoteMarks(id){
-  const note = noteOf(id);
-  const btn = list.querySelector(`[data-notes-toggle="${CSS.escape(id)}"]`);
-  if (btn){
-    btn.classList.toggle("has-note", !!note);
-    btn.title = note ? note.slice(0,180) : "Add a note about this center";
-    const c = DATA.find(x=>x.id===id);
-    if (c) btn.setAttribute("aria-label", `${note?"Edit note":"Add a note"} for ${c.name}`);
-  }
-  const blk = $("strip").querySelector(`.cell[data-cid="${CSS.escape(id)}"]`);
-  if (blk) blk.classList.toggle("hasnote", !!note);
-}
 list.addEventListener("keydown", e=>{
   const b = e.target.closest(".blk"); if (!b) return;
   const sibs = [...b.parentElement.querySelectorAll(".blk")];
@@ -3360,15 +3170,13 @@ function showCenterTip(b){
   if (!x) return;
   const locked = b.getAttribute("aria-disabled") === "true";
   if (x.dim === "center"){
-    const c = x.cs[0], t = tally(c), st = centerStatus(c), note = noteOf(c.id);
+    const c = x.cs[0], t = tally(c), st = centerStatus(c);
     tip.innerHTML = '<b>' + esc(c.name) + '</b>'
       + '<em class="num">' + c.state + ' · Store #' + c.store + ' · ' + t.total + ' cameras</em>'
       + '<span class="row"><span class="sw ' + st + '" style="width:10px;height:10px;border-radius:3px"></span>'
       + centerStateWords(c) + '</span>'
       + (t.bad ? '<em class="num">Defect rate ' + pct(t.rate) + '</em>' : "")
       + (t.outage ? '<em class="num">Offline ' + dur(t.outage) + '</em>' : "")
-      + (note ? '<em style="color:var(--blue-deep);margin-top:4px">Note: '
-          + esc(note.replace(/\s+/g," ").slice(0,64)) + (note.length>64?"…":"") + '</em>' : "")
       + '<em style="margin-top:5px;font-weight:700;color:' + (locked?"var(--ink-3)":"var(--blue-ink)") + '">'
       + (locked ? "Filtered out — change your filters to search it"
          : S.centerPick===c.id ? "Click to clear this search"
@@ -3505,8 +3313,7 @@ $("page").addEventListener("scroll", ()=>{
   miniQ = requestAnimationFrame(()=>{
     miniQ = 0;
     const w = $("stripWrap");
-    const on = S.strip && !w.hidden
-      && w.getBoundingClientRect().bottom < $("page").getBoundingClientRect().top + 10;
+    const on = w.getBoundingClientRect().bottom < $("page").getBoundingClientRect().top + 10;
     if (on !== S.miniOn){ S.miniOn = on; renderMini(); }
   });
 });
@@ -3518,7 +3325,7 @@ $("bandMini").addEventListener("click", e=>{
 let bandRz = 0;
 window.addEventListener("resize", ()=>{
   clearTimeout(bandRz);
-  bandRz = setTimeout(()=>{ if (S.strip){ bandSig = ""; renderStrip(); } }, 150);
+  bandRz = setTimeout(()=>{ bandSig = ""; renderStrip(); }, 150);
 });
 
 /* Dismissing the notice lasts the visit, not forever. It states the one
@@ -3614,7 +3421,6 @@ document.addEventListener("click", e=>{
   if (S.savingOpen && !onFilterTrigger && !onSortTrigger && !t.closest(".sv-save")){ S.savingOpen=false; render(); return; }
   if ((S.filtersOpen || S.sortOpen) && !onSaveTrigger && !inTools){ S.filtersOpen=false; S.sortOpen=false; render(); return; }
 
-  if (t.closest("#stripBtn")){ toggleStrip(); return; }
   if (onFilterTrigger){ S.filtersOpen=!S.filtersOpen; S.sortOpen=false; S.savingOpen=false; render(); revealPanel("fpanel"); return; }
   if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); revealPanel("sortpanel"); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
@@ -3681,20 +3487,6 @@ function renderSearchScope(){
   $("q").setAttribute("aria-label", narrowed
     ? `Search by name or store number within the ${scope} centers your filters left, of ${DATA.length} assigned`
     : `Search all ${DATA.length} centers by name or store number`);
-}
-
-/* Showing the overview or not is a display preference, not part of a view:
-   it says how you like to work, where a saved view says what you're looking
-   at. So it persists on its own and saved views leave it alone. */
-const STRIP_KEY = "wmg.cameraHealth.overview.v1";
-function toggleStrip(){
-  S.strip = !S.strip;
-  try { localStorage.setItem(STRIP_KEY, S.strip ? "1" : "0"); } catch(e){ /* storage unavailable */ }
-  S.filtersOpen = S.sortOpen = S.savingOpen = false;
-  render();
-  $("announce").textContent = S.strip
-    ? `Centers overview shown. ${DATA.length} centers.`
-    : "Centers overview hidden. The list below is unchanged.";
 }
 
 /* The toolbar sits low enough on a laptop that a panel dropping from it
@@ -3859,14 +3651,10 @@ document.querySelector(".proto").addEventListener("click", e=>{
    the contrast only lands if you arrive from it rather than start there. */
 (function init(){
   S.savedViews = loadSavedViews();
-  S.centerNotes = loadJSON(NOTES_KEY, {});
-  S.noteStamps  = loadJSON(STAMPS_KEY, {});
-  try { seedNotes(); } catch(e){ /* storage unavailable */ }
   $("noticeN").textContent = DATA.length;
   // An earlier build persisted the dismissal; clear that key so anyone who
   // dismissed it back then isn't stuck without the notice forever.
   try { localStorage.removeItem("wmg.cameraHealth.noticeSeen.v1"); } catch(e){}
-  try { if (localStorage.getItem(STRIP_KEY) === "0") S.strip = false; } catch(e){}
   try { if (localStorage.getItem(TIMEMODE_KEY) === "clock") S.timeMode = "clock"; } catch(e){}
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   S.loading = true;
