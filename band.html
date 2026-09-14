@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Camera health under its own Monitoring rail item — live per-camera status across centers, with filtering, sorting, pagination, saved views, and a detail drawer.">
+<meta name="description" content="A fork of the nested board with "Your centers" rebuilt as a severity band: one cell is a zoom level, not a center, so the overview survives 4,000 assigned centers in three rows.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23159deb'/%3E%3Cpath d='M6 11h13v10H6z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M19 15l7-3.5v9L19 17' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
-<title>Camera Health Board</title>
+<title>Camera Health Board — Severity Band</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&family=Open+Sans:wght@600&display=swap">
 <style>
 /* ============================================================
@@ -200,32 +200,145 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   border:1px solid var(--line-2);background:var(--surface);color:var(--ink-3);cursor:pointer;flex-shrink:0}
 .lginfo:hover{border-color:var(--blue);color:var(--blue-ink)}
 .lginfo:focus-visible{box-shadow:var(--focus);outline:none}
-.cgroups{display:flex;flex-wrap:wrap;gap:10px 18px}
-.cgroup{display:flex;flex-direction:column;gap:5px;min-width:0}
-.glabel{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-4);
-  font-family:'Titillium Web',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-.crow{display:flex;flex-wrap:wrap;gap:5px;max-width:min(100%,340px)}
-/* Same three-way encoding as a camera block — color plus shape — one level up. */
-.cblk{position:relative;width:24px;height:24px;border-radius:6px;flex-shrink:0;background-repeat:no-repeat;
-  background-position:center;background-size:100% 100%;transition:transform .11s,box-shadow .12s,opacity .12s}
-.cblk.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-.cblk.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2.5px,transparent 2.5px 6px)}
-.cblk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E")}
-.cblk:hover{transform:translateY(-2px)}
-.cblk:focus-visible{box-shadow:var(--focus);transform:translateY(-2px)}
-/* Filtered out means filtered out: the block stays visible so the shape of
-   the assignment doesn't collapse, but it is not a door. Clicking it used to
-   silently tear down the filters that excluded it, which is a strange thing
-   for a dimmed control to do. */
-.cblk.muted{opacity:.28;cursor:not-allowed}
-.cblk.muted:hover,.cblk.muted:focus-visible{transform:none}
+/* ---------- "Your centers", rebuilt as a severity band ----------
+   One cell is not one center. It is one unit at the current zoom, and the
+   dimension control says what a unit is — so the band stays three rows tall
+   whether the assignment is 73 centers or four thousand. Everything here is
+   flat CSS fill: no SVG nodes, no per-cell pattern defs, because the band
+   repaints on every live read. */
+
+/* the control row: dimension, breadcrumb, fold chip, legend */
+.bandbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;min-height:24px}
+.dimsel{display:inline-flex;align-items:center;gap:1px;background:var(--fill);border:1px solid var(--line);
+  border-radius:8px;padding:2px;flex-shrink:0;max-width:100%;min-width:0;overflow-x:auto;
+  scrollbar-width:none}
+.dimsel::-webkit-scrollbar{display:none}
+.dimsel>*{flex-shrink:0}
+.dimsel .dl{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);
+  padding:0 5px 0 6px;white-space:nowrap}
+.dimsel button{font-size:11.5px;font-weight:600;color:var(--ink-3);padding:3px 8px;border-radius:6px;white-space:nowrap}
+.dimsel button:hover{color:var(--ink-2);background:var(--surface)}
+.dimsel button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-card)}
+.dimsel button .auto{font-size:9.5px;font-weight:700;color:var(--ink-4);margin-left:4px;letter-spacing:.05em}
+
+/* breadcrumb — where a drill-down left you, and the way back out */
+.crumb{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--ink-3);
+  flex-wrap:wrap;min-width:0}
+.crumb .sep{color:var(--ink-4)}
+.crumb button{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:6px;
+  font-size:11.5px;font-weight:700;color:var(--blue-ink);background:var(--blue-tint)}
+.crumb button:hover{background:#cbe6f8}
+.crumb .root{background:var(--fill);color:var(--ink-3)}
+.crumb .root:hover{background:var(--line-2)}
+
+.bandchip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;
+  font-size:11.5px;font-weight:700;white-space:nowrap;flex-shrink:0;border:1px solid var(--line);
+  background:var(--fill);color:var(--ink-3)}
+.bandchip.fold{border-color:var(--ok-line);background:var(--ok-tint);color:#15803d}
+.bandchip.fold:hover{border-color:var(--ok)}
+.bandchip.fold[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.bandchip.flat{cursor:default}
+.bandnote{font-size:11px;color:var(--ink-3);font-style:italic}
+
+/* the cells. Height is capped to three rows and the overflow is hidden: the
+   cells are sorted worst-first, so what falls off the bottom is always the
+   least urgent, and a chip in the bar says how many. */
+.cells{display:flex;flex-wrap:wrap;gap:var(--cgap);align-content:flex-start;overflow:hidden;
+  max-height:var(--cmax)}
+.cell{position:relative;flex-shrink:0;width:var(--csize);height:var(--csize);border-radius:var(--crad);
+  background-repeat:no-repeat;background-position:center;background-size:100% 100%;
+  transition:transform .11s,box-shadow .12s}
+.cell:hover{transform:translateY(-2px);z-index:2}
+.cell:focus-visible{box-shadow:var(--focus);transform:translateY(-2px);z-index:3}
+
+/* Five steps of fill, and only the ends are named events: s0 is a clean bill
+   of health, s4 is every camera in the cell offline. The three in between are
+   a magnitude, which is the whole point — a worst-camera rollup painted a
+   center with one dead camera the same red as a center with nineteen. */
+.cell.s0,.lgs.s0{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+.cell.s1,.lgs.s1{background-color:#fcd34d}
+.cell.s2,.lgs.s2{background-color:var(--deg)}
+.cell.s3,.lgs.s3{background-color:#b91c1c}
+.cell.s4,.lgs.s4{background-color:var(--off)}
+/* The redundant shape channel: hatch on every impaired step, so the ramp
+   survives grayscale and colorblindness without leaning on hue alone. */
+.cell.s1,.cell.s2,.cell.s3,.lgs.s1,.lgs.s2,.lgs.s3{
+  background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.88) 0 2.5px,transparent 2.5px 6px)}
+/* The X is reserved. It means one thing — every camera here is offline — and
+   it carries a heavy dark stroke, because this is the event being phoned in. */
+.cell.s4,.lgs.s4{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M5.4 5.4l9.2 9.2M14.6 5.4l-9.2 9.2' stroke='white' stroke-width='2.9' stroke-linecap='round'/%3E%3C/svg%3E");
+  box-shadow:inset 0 0 0 1.5px rgba(69,10,10,.85)}
+/* Below 10px a hatch is mud and an X is a smudge, so shape moves up a level:
+   the cell keeps its fill, and the group it belongs to carries the texture. */
+.band.tiny .cell.s1,.band.tiny .cell.s2,.band.tiny .cell.s3{background-image:none}
+.band.tiny .cell.s4{background-image:none;box-shadow:inset 0 0 0 2px rgba(69,10,10,.9)}
+
+/* An aggregate cell that contains at least one center with every camera down.
+   Inset and dark, so it never reads as the outer blue selection ring. */
+.cell.down{box-shadow:inset 0 0 0 2px rgba(69,10,10,.85)}
+.cell.s4.down{box-shadow:inset 0 0 0 1.5px rgba(69,10,10,.85)}
+
+/* Filtered out. The box keeps its place — the shape of the assignment is the
+   reason this band exists — but the fill goes away entirely rather than fading:
+   lightness is already carrying severity, and a 28%-opacity red X against a
+   full-strength amber hatch is a coin toss in grayscale. */
+.cell.out{background:none;box-shadow:none;cursor:not-allowed}
+.cell.out::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;
+  margin:-2.5px 0 0 -2.5px;border-radius:50%;background:var(--ink-4)}
+.cell.out:hover,.cell.out:focus-visible{transform:none}
+
+/* Partial membership. A state is not in or out of "has offline cameras" — some
+   of its centers match and some don't. The bar is the matching share, and its
+   length says so without spending any of the fill. */
+.cell>.pm{position:absolute;left:1px;right:1px;bottom:1px;height:3px;border-radius:2px;
+  background:linear-gradient(to right,var(--blue) calc(var(--p) * 100%),rgba(17,24,39,.3) 0)}
+.band.tiny .cell>.pm{height:2px;left:0;right:0;bottom:0;border-radius:0}
+
+.cell.picked{outline:2px solid var(--blue);outline-offset:2px;transform:translateY(-2px);z-index:2}
 @keyframes cnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-2.5px)}75%{transform:translateX(2.5px)}}
-.cblk.nudge{animation:cnudge .24s ease-in-out 2}
-.cblk.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
-.cblk.picked{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue);transform:translateY(-2px)}
+.cell.nudge{animation:cnudge .24s ease-in-out 2}
+.cell.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
 /* a center that already carries a note */
-.cblk.hasnote::before{content:"";position:absolute;top:-3px;right:-3px;width:8px;height:8px;border-radius:50%;
+.cell.hasnote::after{content:"";position:absolute;top:-3px;right:-3px;width:7px;height:7px;border-radius:50%;
   background:var(--blue);box-shadow:0 0 0 1.6px var(--surface)}
+.cell.out.hasnote::after{display:none}
+
+/* legend swatch — same rules as a cell, fixed size */
+.lgs{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;
+  background-position:center;background-size:100% 100%}
+.lgs.dot{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);position:relative}
+.lgs.dot::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
+  border-radius:50%;background:var(--ink-4)}
+.lgs.pmk{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);position:relative}
+.lgs.pmk::before{content:"";position:absolute;left:1px;right:1px;bottom:1px;height:3px;border-radius:2px;
+  background:linear-gradient(to right,var(--blue) 55%,rgba(17,24,39,.3) 0)}
+/* the ramp reads as one object, so its swatches sit flush */
+.ramp{display:inline-flex;align-items:center;gap:2px}
+.ramp .lgs{border-radius:3px;width:12px;height:12px}
+.bandlegend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;
+  padding-top:8px;border-top:1px solid var(--line-2)}
+
+/* the band's own screen-reader summary: one sentence, not four thousand cells */
+.bandsum{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- collapsed strip ----------
+   "Always visible" means always reachable, not always full size. A zero-height
+   sticky container with an absolutely positioned bar inside it, so appearing
+   and disappearing costs the page no layout at all. */
+.bandmini{position:sticky;top:0;z-index:40;height:0;margin-bottom:-10px}
+.bandmini[hidden]{display:none}
+.bandmini .mini{position:absolute;top:0;left:0;right:0;height:32px;display:flex;align-items:center;gap:10px;
+  padding:0 12px;background:rgba(255,255,255,.97);border:1px solid var(--line);border-top:none;
+  border-radius:0 0 10px 10px;box-shadow:0 4px 14px rgba(17,24,39,.10);font-size:11.5px}
+.mini .sevbar{display:flex;height:9px;flex:0 1 200px;min-width:80px;border-radius:5px;overflow:hidden;
+  background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2)}
+.mini .sevbar i{display:block;height:100%;min-width:0}
+.mini .mtxt{color:var(--ink-2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mini .mcrumb{color:var(--blue-ink);font-weight:700;white-space:nowrap;background:var(--blue-tint);
+  border-radius:6px;padding:2px 7px;flex-shrink:0}
+.mini .mup{margin-left:auto;display:inline-flex;align-items:center;gap:5px;color:var(--ink-2);font-weight:700;
+  padding:4px 9px;border-radius:6px;flex-shrink:0}
+.mini .mup:hover{background:var(--fill)}
 
 /* ---------- toolbar ---------- */
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;
@@ -759,8 +872,16 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .foptlist,.fsearch+.foptlist{max-height:none;flex:1}
   .sortlist,.sortdir{flex-shrink:0}
   .fpanel-foot{flex-shrink:0;padding-bottom:14px}
-  .crow{max-width:none}
   .strip-head .legend{margin-left:0;width:100%;gap:12px;flex-wrap:wrap}
+  /* On a phone the five zooms are wider than the screen. They scroll
+     sideways inside their own control rather than dragging the page with
+     them, and the word "Cell" goes — the buttons say what they are. */
+  .bandbar{gap:6px}
+  .dimsel{flex:1 1 100%}
+  .dimsel .dl{display:none}
+  .bandlegend{gap:9px}
+  .mini .sevbar{flex-basis:110px}
+  .mini .mtxt{font-size:11px}
   .sv-save{margin-left:0}
   .camscrim{padding:0;place-items:end stretch}
   .drawer{width:auto;max-height:88dvh;border-radius:14px 14px 0 0}
@@ -853,6 +974,9 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
       <main class="page" id="page">
         <div class="page-inner">
 
+          <!-- collapsed band; costs no layout until it is shown -->
+          <div class="bandmini" id="bandMini" hidden></div>
+
           <div class="pagehead">
             <div>
               <h1>Camera health</h1>
@@ -897,16 +1021,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <div class="strip" id="stripWrap">
               <div class="strip-head">
                 <span class="strip-title">Your centers</span>
-                <span class="legend">
-                  <span class="lg"><span class="sw off"></span>All cameras offline</span>
-                  <span class="lg"><span class="sw deg"></span>Some offline or degraded</span>
-                  <span class="lg"><span class="sw ok"></span>All cameras healthy</span>
-                  <button class="lginfo" id="colorInfo" aria-label="How center colors are decided">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg>
-                  </button>
-                </span>
+                <span class="legend" id="bandHeadSlot"></span>
               </div>
-              <div class="cgroups" id="strip" role="group" aria-label="All centers you can see"></div>
+              <div class="bandbar" id="bandBar"></div>
+              <div class="band cells" id="strip" role="group" aria-label="Center severity band"></div>
+              <div class="bandlegend" id="bandLegend"></div>
+              <p class="bandsum" id="bandSum" aria-live="polite" aria-atomic="true"></p>
             </div>
 
             <div class="filters">
@@ -941,6 +1061,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <button data-demo="fail">Refresh failure</button>
             <button data-demo="healthy">All healthy</button>
             <button data-demo="reset">Reset data</button>
+            <span class="tag" style="margin-left:6px">Fleet size</span>
+            <button data-fleet="73">73</button>
+            <button data-fleet="600">600</button>
+            <button data-fleet="4000">4,000</button>
             <span class="pgtxt">Not part of the design — these force states you'd otherwise have to wait for.</span>
           </div>
         </div>
@@ -1017,39 +1141,71 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           confirms a picture — only that the pipeline behind it is producing files on time.</p>
         </section>
         <section id="infoColors">
-          <h3>Center colors</h3>
-          <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:9px">Only the two ends are precise.
-          Green means nothing is wrong; red means everything is. Everything in between is one orange bucket
-          on purpose — the square answers <em>does this center need looking at</em>, and the row underneath
-          answers how much.</p>
+          <h3>The centers band</h3>
+          <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:9px">One cell is not one center. It is
+          one unit at whatever zoom the band is drawn at, and the <b>Cell</b> control says which. The zoom
+          starts on whatever is finest and still legible — a cell per center at 73 or 600, a cell per state
+          at 4,000 — because four thousand squares at a readable size is eleven rows of something nobody
+          can read.</p>
           <dl class="ilist">
-            <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> All cameras offline</dt><dd>
-              Every camera in the center has stopped reporting. <code>offline = total</code>.
-              <span class="d">The site is blind. That is almost always one cause — power, network, the
-              recorder — rather than a list of separate faults, which is why it gets its own colour instead
-              of being the top of a scale.</span></dd></div>
-            <div class="irow"><dt><span class="sw deg" style="vertical-align:-1px"></span> Some offline or degraded</dt><dd>
-              Anything short of both extremes: one impaired camera among healthy ones, half the site down,
-              nine of ten offline with the tenth impaired, every camera degraded but still reporting.
-              <code>offline &lt; total</code> and <code>offline + degraded &gt; 0</code>.
-              <span class="d">Deliberately ungraded. A colour that tried to separate "one camera is a bit
-              soft" from "most of the site is dark" would be asking people to read a hue to three decimal
-              places; the counts on the center's row do that job in numbers, and the hover card says it in
-              words.</span></dd></div>
-            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All cameras healthy</dt><dd>
-              Nothing offline and nothing impaired. <code>offline = 0</code> and <code>degraded = 0</code>.
-              <span class="d">Green is a clean bill of health, not merely "nothing is dark". It matches the
-              <b>All cameras healthy</b> status filter and the first KPI exactly, so the squares, the filter
-              and the headline count never disagree about how many centers are fine.</span></dd></div>
+            <div class="irow"><dt>What the fill means</dt><dd>
+              A cell grades the things inside it, in five steps — <code>0%</code>, <code>1–24%</code>,
+              <code>25–49%</code>, <code>50–99%</code>, <code>all of them</code>. Inside a center cell those
+              things are cameras, so the fill is its defect rate. Inside a state or brand cell they are
+              centers, so the fill is the share of them that needs attention.
+              <span class="d">This replaced a worst-camera rollup, which painted a center with one dead
+              camera out of nineteen exactly the same red as a center with nineteen out of nineteen. At 73
+              centers that is already a wall of red; at 4,000 it is a solid field, and a field carries no
+              information at all.</span>
+              <span class="d">The unit has to change with the zoom or the arithmetic eats the signal:
+              average a camera defect rate across a whole state and every state in the country comes out
+              between 2% and 11% — fifty-six squares, one colour, nothing said. The share of centers in
+              trouble spreads across the ramp, and blackouts get their own channel below rather than being
+              averaged into it.</span></dd></div>
+            <div class="irow"><dt><span class="lgs s4" style="vertical-align:-2px"></span> Every camera offline</dt><dd>
+              Reserved. The ✕ and the heavy dark stroke mean one thing and appear for nothing else:
+              <code>offline = total</code>, for every center in the cell.
+              <span class="d">This is the event someone is on the phone about — parents at a whole site
+              seeing nothing — and it is almost always one cause rather than a list of faults. It has to be
+              findable in a glance at every zoom, so it never shares a treatment with a magnitude.</span></dd></div>
+            <div class="irow"><dt>Aggregate cells that contain a blackout</dt><dd>
+              A dark inset ring, and first place in the sort. A state where a quarter of the centers are
+              impaired can still be less urgent than one where two are completely dark, so the blackout
+              count outranks the fill when cells are ordered — the top-left cell is always the one with the
+              most sites showing parents nothing.
+              <span class="d">Inset and dark, so it is never confused with the blue outer ring that marks a
+              selection.</span></dd></div>
+            <div class="irow"><dt>Coloured by outage time instead</dt><dd>
+              When a <b>Status</b> filter is switched on, the ramp switches to how long the longest outage
+              in the cell has run — under an hour, one to six, over six.
+              <span class="d">A band coloured by "is anything wrong" while a chip on screen already says
+              <em>has offline cameras</em> is spending a whole visual channel restating the filter. Once you
+              have asked for the broken ones, the next question is which has been dark longest.</span></dd></div>
+            <div class="irow"><dt><span class="lgs dot" style="vertical-align:-2px"></span> Filtered out</dt><dd>
+              Under about 200 cells the band still draws the whole assignment and empties the excluded cells
+              down to a neutral dot, keeping every cell in its place.
+              <span class="d">Emptied rather than faded. Lightness is already carrying severity, and a
+              28%-opacity red ✕ against a full-strength amber hatch is a coin toss in grayscale. Above 200
+              cells, drawing thousands of dots to say "not these" stops being positional stability and
+              starts being a wall, so filtering re-scopes the band instead and a chip reports how many
+              dropped out.</span></dd></div>
+            <div class="irow"><dt><span class="lgs pmk" style="vertical-align:-2px"></span> Part of this group matches</dt><dd>
+              A state is not in or out of <em>has offline cameras</em>; some of its centers match and some
+              don't. The bar along the bottom edge is the matching share. Full exclusion — the neutral dot —
+              is reserved for zero matches.</dd></div>
+            <div class="irow"><dt>Folding, and what falls below it</dt><dd>
+              Cells with nothing wrong collapse into one chip — <code>541 all reporting</code> — which
+              expands on click. Cells are sorted worst-first, so if more remain than three rows will hold,
+              what is hidden is always the least urgent, and a chip says how many.</dd></div>
           </dl>
-          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Color is never the only cue: offline
-          blocks carry an ✕ and degraded blocks a diagonal hatch, so the three states survive a colorblind
-          reader, a projector and a grayscale print.</p>
+          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Color is never the only cue: impaired
+          steps carry a diagonal hatch and a total blackout carries an ✕, so the ramp survives a colorblind
+          reader, a projector and a grayscale print. Below 10px the hatch turns to mud, which is why 10px is
+          the floor — under it the band changes zoom rather than shrinking further.</p>
           <p style="font-size:12px;color:var(--ink-3);margin-top:6px"><b>Staleness never reaches this
-          rule.</b> A center's colour is about how much of the site is working, and how old a reading is
-          asks a different question of a different object — so the squares above stay a three-state
-          overview, and the out-of-date treatment lives on the camera blocks inside each center, on the
-          count beside them, and in the Status filter.</p>
+          rule.</b> A cell's colour is about how much of the fleet under it is working, and how old a
+          reading is asks a different question of a different object — so the out-of-date treatment lives on
+          the camera blocks inside each center, on the count beside them, and in the Status filter.</p>
         </section>
         <section>
           <h3>Sorting</h3>
@@ -1273,7 +1429,14 @@ QC|Quebec|Canada|ET|Montréal`.trim().split("\n").map(r=>{
 /* One deterministic pass: camera count, how many are sick, who pays and
    whether parents can watch all come from the same seeded stream, so every
    reload of the prototype tells the same story. */
-function seeds(){
+/* Qualifiers, so a fleet that outgrows its city list still reads as a list of
+   places rather than a list of duplicates. */
+const QUAL = ["","North","South","East","West","Central","Park","Heights","Ridge","Commons",
+  "Crossing","Village","Station","Landing","Meadows","Hollow","Springs","Grove","Point","Trace",
+  "Bend","Mills","Bluff","Terrace","Harbor","Summit","Junction","Prairie","Orchard","Glen",
+  "Brook","Field","Court","Gardens","Lake","Valley","Hill","Creek","Pines","Downs"];
+
+function seeds(target = 73){
   seed = 771103;
   const out = [];
   let store = 101;
@@ -1301,9 +1464,38 @@ function seeds(){
         pub: rnd() < .78 });
     });
   });
+  /* Everything above is the original assignment, generated in the original
+     order so 73 centers stay byte-for-byte what they always were. Anything
+     past it exists only for the scale test, and uses a defect distribution a
+     real fleet would recognise: roughly three centers in four completely
+     healthy, a long tail with one or two cameras out, and a handful — about
+     1.5% — completely dark. The 73-center seed deliberately over-faults, which
+     is fine for a demo and useless for judging whether a band survives 4,000. */
+  const GEOS = [...US, ...CA];
+  let k = 0;
+  while (out.length < target){
+    const gi = k % GEOS.length, geo = GEOS[gi];
+    const slot = Math.floor(k / GEOS.length);
+    const city = geo.cities[slot % geo.cities.length];
+    const q = QUAL[Math.floor(slot / geo.cities.length) % QUAL.length];
+    const brand = BRANDS[(gi * 3 + slot) % BRANDS.length];
+    const cams = 8 + Math.floor(rnd() * 13);          // 8–20 cameras
+    const roll = rnd();
+    const dark = roll < .015;
+    const off = dark ? cams : roll < .13 ? 1 + Math.floor(rnd() * 3) : 0;
+    const deg = off ? (rnd() < .3 ? 1 + Math.floor(rnd() * 2) : 0)
+                    : (roll < .27 ? 1 + Math.floor(rnd() * 2) : 0);
+    out.push({ name: brand + " — " + (q ? city + " " + q : city), brand, city: q ? city + " " + q : city,
+      st:geo.code, stateName:geo.state, region:geo.region,
+      countryName:geo.country==="CA"?"Canada":"United States", country:geo.country, tz:geo.tz,
+      store:String(store += 3), n:cams, off:Math.min(off,cams), deg:Math.min(deg, cams-off),
+      pay: rnd() < .58 ? "parent" : "center",
+      pub: rnd() < .78 });
+    k++;
+  }
   return out;
 }
-const SEEDS = seeds();
+let SEEDS = seeds();
 
 function build(){
   seed = 20260820;
@@ -1343,15 +1535,25 @@ function build(){
 let DATA = build();
 
 /* ---------- derived helpers ---------- */
+/* Memoised per read. At 73 centers the four array walks per center cost
+   nothing; at 4,000 the sort alone asks for tens of thousands of tallies per
+   repaint. GEN is bumped once per mutation, so the cache can never outlive
+   the data it summarises. */
+let GEN = 1;
 const tally = c => {
-  const off = c.cams.filter(x=>x.status==="off").length;
-  const deg = c.cams.filter(x=>x.status==="deg").length;
-  const worst = Math.max(0, ...c.cams.filter(x=>x.status!=="ok").map(x=>x.since));
-  // The three sort metrics, computed once beside the counts that feed them.
+  if (c._g === GEN) return c._t;
+  let off = 0, deg = 0, worst = 0, outage = 0;
+  for (const x of c.cams){
+    if (x.status === "off"){ off++; if (x.since > outage) outage = x.since; }
+    else if (x.status === "deg") deg++;
+    if (x.status !== "ok" && x.since > worst) worst = x.since;
+  }
   const bad = off + deg;                                        // defect count
-  const rate = c.cams.length ? bad / c.cams.length : 0;         // defect rate
-  const outage = Math.max(0, ...c.cams.filter(x=>x.status==="off").map(x=>x.since));
-  return {off, deg, worst, bad, rate, outage, total:c.cams.length};
+  c._g = GEN;
+  c._t = {off, deg, worst, bad,
+    rate: c.cams.length ? bad / c.cams.length : 0,              // defect rate
+    outage, total:c.cams.length};
+  return c._t;
 };
 const pct = r => Math.round(r*100) + "%";
 const dur = m => {
@@ -1400,7 +1602,10 @@ const S = {
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
-  centerPick:null,      // center id searched for from the "Your centers" strip
+  centerPick:null,      // center id searched for from the "Your centers" band
+  // the band: what a cell means, whether healthy centers are folded away,
+  // and whether the collapsed strip is showing
+  bandDimPick:null, bandFold:true, bandHover:false, miniOn:false,
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
   filtersOpen:false, sortOpen:false, savedViews:[], savingOpen:false,
@@ -1924,73 +2129,486 @@ function centerStateWords(c){
   return base;
 }
 
-function stripGroups(){
-  const m = new Map();
-  DATA.forEach(c => { if (!m.has(c.brand)) m.set(c.brand, []); m.get(c.brand).push(c); });
-  return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
-    .map(([brand, cs]) => ({brand, cs:[...cs].sort((a,b)=>a.name.localeCompare(b.name))}));
+/* =====================================================================
+   The band.
+
+   One cell = one center was never a contract; it is a zoom level. At 73
+   centers a cell is a center. At 4,000 it is a state, because 4,000 cells at
+   a legible size is eleven rows of nothing anyone can read. The dimension
+   control makes that zoom explicit and overridable, and every tier answers
+   the same two questions: how bad, and is anything completely dark.
+   ===================================================================== */
+const BAND_ROWS = 3;      // hard ceiling, expanded
+const CGAP      = 4;
+const CAP_CELLS = 200;    // above this, filtering re-scopes instead of dimming
+const CSIZES    = [24, 18, 14, 10];   // 10px is the floor a hatch survives
+
+const DIMS = {
+  center: {label:"Center",   key:c=>c.id,        name:c=>c.name,               facet:null},
+  brand:  {label:"Brand",    key:c=>c.brand,     name:c=>c.brand,              facet:"brand"},
+  state:  {label:"State",    key:c=>c.stateName, name:c=>c.stateName,          facet:"state"},
+  region: {label:"Region",   key:c=>c.region,    name:c=>c.region,             facet:"region"},
+  tz:     {label:"Timezone", key:c=>c.tz,        name:c=>TZ_NAMES[c.tz]||c.tz, facet:"tz"},
+};
+const DIMKEYS = ["center","brand","state","region","tz"];
+
+function aggregate(cs){
+  let off=0, deg=0, total=0, bad=0, outage=0, dark=0, badCenters=0, longCenters=0;
+  for (const c of cs){
+    const t = tally(c);
+    off += t.off; deg += t.deg; total += t.total; bad += t.bad;
+    if (t.outage > outage) outage = t.outage;
+    if (t.total && t.off === t.total) dark++;
+    if (t.bad) badCenters++;
+    if (t.outage >= 60) longCenters++;
+  }
+  return {off, deg, total, bad, outage, dark, badCenters, longCenters,
+    n:cs.length, rate: total ? bad/total : 0,
+    ctrRate: cs.length ? badCenters/cs.length : 0};
 }
 
-let stripSig = "";
+/* Fill is magnitude, not alarm. The old square rolled a center up to its worst
+   camera, so one dead camera out of nineteen painted the same red as nineteen
+   out of nineteen — which at 73 centers is already a wall of red and at 4,000
+   is a solid field. Five steps, and only the ends are named events.
+
+   When a status facet is switched on, magnitude goes redundant with the chip
+   that is already on screen, so the ramp switches to outage time: once you
+   have asked for the broken ones, the next question is which has been dark
+   longest. Either way the ✕ stays reserved for one thing. */
+const bandMode = () => S.status.length ? "outage" : "defect";
+const STEP = r => r < .25 ? 1 : r < .5 ? 2 : 3;
+
+/* A cell grades the things inside it. Inside a center cell those are cameras,
+   so the fill is the defect rate. Inside a state cell they are centers, so the
+   fill is the share of them that needs attention — the same question one level
+   up, which is the same move the original made when it drew centers with the
+   camera block's own language.
+
+   Averaging cameras across a whole state does not survive the arithmetic: at
+   4,000 centers every state's camera defect rate lands between 2% and 11%, so
+   all fifty-six squares come out the identical yellow and the band says
+   nothing at all. The share of *centers* in trouble spreads across the ramp,
+   and the blackout count — which is what actually gets someone phoned —
+   drives the sort and the dark ring. */
+function sevOf(a, group){
+  if (group){
+    if (!a.n) return 0;
+    if (a.dark === a.n) return 4;        // every center in the group is dark
+    return a.badCenters ? STEP(a.badCenters / a.n) : 0;
+  }
+  if (a.total && a.off === a.total) return 4;
+  if (!a.bad) return 0;
+  return STEP(a.bad / a.total);
+}
+function outSevOf(a, group){
+  if (group){
+    if (!a.n) return 0;
+    if (a.dark === a.n) return 4;
+    // Max outage across seventy centers saturates as surely as mean rate does,
+    // so at this zoom the magnitude is how many of them have been dark a while.
+    return a.longCenters ? STEP(a.longCenters / a.n) : (a.badCenters ? 1 : 0);
+  }
+  if (a.total && a.off === a.total) return 4;
+  if (!a.outage) return a.bad ? 1 : 0;
+  return a.outage < 60 ? 1 : a.outage < 360 ? 2 : 3;
+}
+const sevFor = (a, group) => bandMode() === "outage" ? outSevOf(a, group) : sevOf(a, group);
+
+function buildCells(dim, scope, pass){
+  const D = DIMS[dim], m = new Map();
+  for (const c of scope){
+    const k = String(D.key(c));
+    let g = m.get(k);
+    if (!g){ g = {k, name:D.name(c), cs:[]}; m.set(k, g); }
+    g.cs.push(c);
+  }
+  const out = [];
+  for (const g of m.values()){
+    const a = aggregate(g.cs);
+    let match = 0; for (const c of g.cs) if (pass.has(c.id)) match++;
+    out.push({dim, k:g.k, name:g.name, cs:g.cs, a, match,
+      share: g.cs.length ? match / g.cs.length : 0, sev: sevFor(a, dim !== "center")});
+  }
+  // Worst first, always — so the answer is at the top-left and what falls off
+  // the bottom of a three-row band is what nobody is calling about. Blackouts
+  // lead the sort rather than the ramp: a state with four sites completely
+  // dark outranks a state with a higher share of merely impaired ones, and at
+  // the center tier the two orderings are the same thing anyway.
+  out.sort((x,y)=> y.a.dark - x.a.dark || y.sev - x.sev
+    || y.a.outage - x.a.outage || y.a.rate - x.a.rate || x.name.localeCompare(y.name));
+  return out;
+}
+
+const bandWidth = () => { const w = $("strip").clientWidth; return w > 40 ? w : 1100; };
+const drawnCount = cells => S.bandFold ? cells.filter(x=>x.a.bad > 0).length : cells.length;
+
+/* The biggest cell that fits the row budget. Nothing below 10px: at that size
+   a hatch is mud and an ✕ is a smudge, and colour alone is not an encoding. */
+function planFor(count, width){
+  for (const size of CSIZES){
+    const per = Math.max(1, Math.floor((width + CGAP) / (size + CGAP)));
+    if (count <= per * BAND_ROWS) return {size, per, cap: per*BAND_ROWS};
+  }
+  const size = CSIZES[CSIZES.length-1];
+  const per  = Math.max(1, Math.floor((width + CGAP) / (size + CGAP)));
+  return {size, per, cap: per*BAND_ROWS};
+}
+
+/* The finest zoom that still draws at a size the shape channel survives. */
+function autoDim(scope, pass, width){
+  const counts = DIMKEYS.map(d=>{
+    const set = new Set();
+    for (const c of scope) set.add(DIMS[d].key(c));
+    return {d, n:set.size};
+  }).sort((a,b)=> b.n - a.n);
+  for (const c of counts){
+    const cells = buildCells(c.d, scope, pass);
+    const p = planFor(drawnCount(cells), width);
+    if (p.size >= 14 && drawnCount(cells) <= p.cap) return {dim:c.d, cells};
+  }
+  const last = counts[counts.length-1];
+  return {dim:last.d, cells: buildCells(last.d, scope, pass)};
+}
+
+let bandSig   = "";       // DOM structure signature
+let bandOrder = null;     // the key order currently on screen
+let CELLS     = [];       // cells as drawn, index-aligned with the DOM
+let bandPlan  = {size:24, per:40, cap:120};
+let bandDimNow = "center";
+let bandScopeAll = true;
+let bandScopeN = 0;
+
+const bandEngaged = () => S.bandHover || $("strip").contains(document.activeElement);
+
 function renderStrip(){
-  // Switched off, the strip stops costing anything: no rebuild, no patch on
-  // every read. Switching it back on rebuilds from scratch, since what it
-  // was showing is however many refreshes out of date by then.
   $("stripWrap").hidden = !S.strip;
   $("board").classList.toggle("nostrip", !S.strip);
-  if (!S.strip){ stripSig = ""; return; }
-  const groups = stripGroups();
-  const sig = groups.map(g=>g.brand+":"+g.cs.map(c=>c.id).join("|")).join(";");
-  if (sig !== stripSig){
+  if (!S.strip){
+    bandSig = ""; bandOrder = null; CELLS = [];
+    $("bandMini").hidden = true;
+    return;
+  }
+  const width = bandWidth();
+  // Which centers survive the filters. The search text is deliberately left
+  // out: clicking a cell writes a center name into the search box, and letting
+  // that dim the band would black out the whole assignment on every click.
+  const pass = new Set();
+  for (const c of DATA) if (matchesFilters(c, {ignoreQ:true})) pass.add(c.id);
+
+  /* Two regimes, and the line between them is drawn at the finest zoom — one
+     cell per center — because that is the only zoom at which "the band always
+     shows the whole assignment" means anything.
+
+     While a cell can be a center, filtering dims in place: every center keeps
+     its position and the excluded ones empty out to a dot. Once it can't be —
+     once there are more centers than a three-row band can draw — holding
+     position is no longer on offer, and drawing 54 grey state cells to say
+     "nothing in here matches" is a wall rather than context. So filtering
+     re-scopes instead, the band re-tiers inside whatever is left, and a chip
+     says how many dropped out. */
+  let unhealthy = 0;
+  for (const c of DATA) if (tally(c).bad) unhealthy++;
+  const fine = S.bandFold ? unhealthy : DATA.length;
+
+  let scope = DATA;
+  bandScopeAll = true;
+  if (fine > CAP_CELLS && pass.size < DATA.length){
+    scope = DATA.filter(c=>pass.has(c.id));
+    bandScopeAll = false;
+  }
+  bandScopeN = scope.length;
+
+  const a = autoDim(scope, pass, width);
+  let dim = a.dim, cells = a.cells;
+  if (S.bandDimPick && S.bandDimPick !== dim){
+    dim = S.bandDimPick;
+    cells = buildCells(dim, scope, pass);
+  }
+  bandDimNow = dim;
+
+  const drawn  = S.bandFold ? cells.filter(x=>x.a.bad > 0) : cells;
+  const folded = cells.length - drawn.length;
+  bandPlan = planFor(drawn.length, width);
+
+  /* Churn under the pointer causes mis-clicks, so while the band is being used
+     it holds the cells it already has — the same bargain the list below makes
+     with its own ranking. Holding the *order* alone was not enough: one center
+     crossing the healthy line changes the set, and a changed set rebuilds every
+     node, which is the thing the hold exists to prevent. So a held cell is
+     looked up in the full tier rather than in the drawn subset, and a center
+     that recovers mid-hover stays put and turns green instead of vanishing.
+     The fills keep updating throughout; only the membership waits. */
+  let list = drawn;
+  if (bandEngaged() && bandOrder && bandOrder.dim === dim){
+    const byKey = new Map(cells.map(x=>[x.k, x]));
+    const kept = bandOrder.keys.map(k=>byKey.get(k)).filter(Boolean);
+    if (kept.length === bandOrder.keys.length) list = kept;
+    else bandOrder = null;                    // the tier itself changed; let go
+  } else bandOrder = null;
+  if (!bandOrder) bandOrder = {dim, keys:list.map(x=>x.k)};
+
+  const over = Math.max(0, list.length - bandPlan.cap);
+  CELLS = over ? list.slice(0, bandPlan.cap) : list;
+
+  const el = $("strip");
+  el.style.setProperty("--csize", bandPlan.size + "px");
+  el.style.setProperty("--cgap",  CGAP + "px");
+  el.style.setProperty("--crad",  (bandPlan.size >= 18 ? 6 : bandPlan.size >= 14 ? 4 : 3) + "px");
+  el.style.setProperty("--cmax",  (bandPlan.size * BAND_ROWS + CGAP * (BAND_ROWS - 1)) + "px");
+  el.classList.toggle("tiny", bandPlan.size < 14);
+
+  // Rebuild only when the set of cells or their size actually changed; patch
+  // otherwise. These nodes are focusable and hoverable, and replacing one
+  // under the pointer is the bug this codebase keeps re-learning.
+  const sig = dim + "|" + bandPlan.size + "|" + CELLS.map(x=>x.k).join("\u0001");
+  if (sig !== bandSig){
     let first = true;
-    $("strip").innerHTML = groups.map(g => `<div class="cgroup">
-      <span class="glabel">${esc(g.brand)}</span>
-      <div class="crow">${g.cs.map(c=>{
-        const t = `<button class="cblk" data-cid="${c.id}" tabindex="${first?0:-1}"></button>`;
-        first = false; return t;
-      }).join("")}</div>
-    </div>`).join("");
-    stripSig = sig;
+    el.innerHTML = CELLS.map(x=>{
+      const t = '<button class="cell" data-k="' + esc(x.k) + '"'
+        + (x.dim === "center" ? ' data-cid="' + esc(x.k) + '"' : '')
+        + ' tabindex="' + (first ? 0 : -1) + '"><i class="pm" hidden></i></button>';
+      first = false; return t;
+    }).join("");
+    bandSig = sig;
   }
   patchStrip();
+  renderBandBar({shown:CELLS.length, folded, over, total:cells.length});
+  renderBandHead();
+  renderBandLegend();
+  renderMini();
+}
+
+function cellWords(x){
+  if (x.dim === "center"){
+    const c = x.cs[0];
+    return c.name + ". " + centerStateWords(c) + "." + (noteOf(c.id) ? " Has a note." : "");
+  }
+  const a = x.a, bits = [];
+  bits.push(a.badCenters ? a.badCenters + " of " + a.n + " centers need attention ("
+      + pct(a.ctrRate) + ")" : "all " + a.n + " centers reporting");
+  if (a.dark) bits.push(plural(a.dark, "center") + " fully down");
+  if (a.bad) bits.push(a.bad + " of " + a.total + " cameras offline or degraded");
+  if (a.outage) bits.push("longest outage " + dur(a.outage));
+  return x.name + ". " + bits.join(", ") + ".";
+}
+function cellAction(x, out, picked){
+  if (x.dim === "center")
+    return out ? "Filtered out — change or clear your filters to search it."
+      : picked ? "Clear this search." : "Search for this center.";
+  const partial = x.match > 0 && x.match < x.cs.length;
+  return (out ? "No center here matches the current filters."
+    : picked ? "Selected. Activate to drop this filter."
+    : "Activate to filter to this group; hold Command or Control to add it.")
+    + (partial ? " " + x.match + " of " + x.cs.length + " centers match." : "");
 }
 
 function patchStrip(){
   if (!S.strip) return;
-  // While the first read is in flight the strip must not claim to know
-  // anything: same blocks, no status, not clickable.
+  const nodes = $("strip").querySelectorAll(".cell");
+  // While the first read is in flight the band must not claim to know
+  // anything: same cells, no severity, not clickable.
   if (S.loading){
-    $("strip").querySelectorAll(".cblk").forEach(b=>{
-      b.className = "cblk pending";
+    nodes.forEach(b=>{
+      b.className = "cell pending";
       b.setAttribute("aria-label", "Loading center status");
       b.setAttribute("aria-pressed", "false");
     });
     return;
   }
-  // Dimming answers "which centers did the filters rule out" — and the
-  // search text is deliberately excluded from that, because the search is
-  // usually the strip's own doing. Letting it dim would black out seventy-two
-  // blocks the moment you clicked the seventy-third.
-  const pass = new Set(DATA.filter(c=>matchesFilters(c,{ignoreQ:true})).map(c=>c.id));
-  $("strip").querySelectorAll(".cblk").forEach(b => {
-    const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
-    const noted = !!noteOf(c.id), open = pass.has(c.id);
-    b.className = ["cblk", centerStatus(c),
-      open ? "" : "muted",
-      S.centerPick === c.id ? "picked" : "",
-      noted ? "hasnote" : "",
+  nodes.forEach((b, i)=>{
+    const x = CELLS[i]; if (!x) return;
+    const isCenter = x.dim === "center";
+    const out    = x.match === 0;
+    const noted  = isCenter && !!noteOf(x.k);
+    const facet  = DIMS[x.dim].facet;
+    const picked = isCenter ? S.centerPick === x.k : !!(facet && S[facet].includes(x.k));
+    b.className = ["cell", out ? "out" : "s" + x.sev,
+      (!out && !isCenter && x.a.dark) ? "down" : "",
+      picked ? "picked" : "", noted ? "hasnote" : "",
       // a refusal nudge in flight outlives the re-render that triggered it
       b.classList.contains("nudge") ? "nudge" : ""].filter(Boolean).join(" ");
-    // aria-disabled, not disabled: the block still has to be reachable and
-    // hoverable, because "why can't I click this one" is answered by the card
-    // it shows, not by going inert.
-    b.setAttribute("aria-disabled", String(!open));
-    b.setAttribute("aria-pressed", String(S.centerPick === c.id));
-    b.setAttribute("aria-label", `${c.name}. ${centerStateWords(c)}.`
-      + `${noted ? " Has a note." : ""}`
-      + ` ${!open ? "Filtered out — change or clear your filters to search it."
-             : S.centerPick===c.id ? "Clear this search." : "Search for this center."}`);
+    // Fractional membership only exists where a cell holds more than one
+    // center; a single center is in or out, and a half-full bar would be a lie.
+    const partial = !out && !isCenter && x.match < x.cs.length;
+    const pm = b.firstElementChild;
+    if (pm){ pm.hidden = !partial; if (partial) pm.style.setProperty("--p", x.share.toFixed(3)); }
+    // aria-disabled, not disabled: a locked cell still has to be hoverable,
+    // because "why can't I click this one" is answered by the card it shows.
+    b.setAttribute("aria-disabled", String(isCenter && out));
+    b.setAttribute("aria-pressed", String(picked));
+    b.setAttribute("aria-label", cellWords(x) + " " + cellAction(x, out, picked));
   });
+}
+
+/* ---------- the control row ---------- */
+function bandCrumb(){
+  const out = [];
+  ["region","state","brand","tz"].forEach(fk=>{
+    if (!S[fk].length) return;
+    const nm = v => fk === "tz" ? (TZ_NAMES[v] || v) : v;
+    out.push({fk, label: S[fk].length === 1 ? nm(S[fk][0])
+      : nm(S[fk][0]) + " +" + (S[fk].length - 1)});
+  });
+  return out;
+}
+
+const X_ICON = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 5l14 14M19 5L5 19"/></svg>';
+
+function renderBandBar(info){
+  const dims = DIMKEYS.map(d=>{
+    const on = d === bandDimNow;
+    return '<button data-dim="' + d + '" aria-pressed="' + on + '">' + DIMS[d].label
+      + (on && !S.bandDimPick ? '<span class="auto">AUTO</span>' : '') + '</button>';
+  }).join("");
+  const crumbs = bandCrumb();
+  const crumbHtml = crumbs.length
+    ? '<span class="crumb"><button class="root" data-crumb="__all">All</button>'
+      + crumbs.map(c=>'<span class="sep">&#9656;</span><button data-crumb="' + c.fk + '">'
+        + esc(c.label) + X_ICON + '</button>').join("") + '</span>'
+    : "";
+  const fold = info.folded
+    ? '<button class="bandchip fold" id="foldChip" aria-pressed="' + (!S.bandFold) + '">'
+      + info.folded.toLocaleString() + ' all reporting</button>'
+    : (!S.bandFold ? '<button class="bandchip fold" id="foldChip" aria-pressed="true">Folding off</button>' : "");
+  const over = info.over
+    ? '<span class="bandchip flat" title="Cells are sorted worst first, so these are the least urgent.">'
+      + "+" + info.over.toLocaleString() + " below the fold</span>"
+    : "";
+  const outn = bandScopeAll ? 0 : DATA.length - bandScopeN;
+  const filteredOut = outn
+    ? '<span class="bandchip flat">' + outn.toLocaleString() + ' filtered out</span>' : "";
+  const note = bandMode() === "outage"
+    ? '<span class="bandnote">Coloured by outage time while a status filter is on.</span>' : "";
+  $("bandBar").innerHTML = '<span class="dimsel"><span class="dl">Cell</span>' + dims + '</span>'
+    + crumbHtml + fold + over + filteredOut + note;
+}
+
+function renderBandHead(){
+  const cams = bandScopeAll
+    ? DATA.reduce((s,c)=>s+c.cams.length, 0)
+    : DATA.filter(c=>matchesFilters(c,{ignoreQ:true})).reduce((s,c)=>s+c.cams.length, 0);
+  $("bandHeadSlot").innerHTML = '<span class="lg num">' + bandScopeN.toLocaleString() + ' centers · '
+    + cams.toLocaleString() + ' cameras</span>'
+    + '<button class="lginfo" id="colorInfo" aria-label="How the band is coloured">'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">'
+    + '<path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg></button>';
+}
+
+/* The legend lists what is actually on screen, and nothing that isn't: the
+   partial-match bar and the filtered-out dot only appear once something on
+   the band is wearing them. */
+function renderBandLegend(){
+  const outage = bandMode() === "outage";
+  const anyGroup = bandDimNow !== "center";
+  // A cell grades what is inside it, so the legend names what that is.
+  const what = anyGroup
+    ? (outage ? "of centers dark over 1h" : "of centers needing attention")
+    : (outage ? "outage time" : "of cameras down");
+  const ends = anyGroup ? ["0%", "50–99%"] : (outage ? ["none", "over 6h"] : ["0%", "50–99%"]);
+  const ramp = '<span class="lg"><span class="ramp">'
+    + [0,1,2,3].map(i=>'<span class="lgs s' + i + '"></span>').join("")
+    + '</span>' + ends[0] + ' &#8594; ' + ends[1] + ' ' + what + '</span>';
+  const x = '<span class="lg"><span class="lgs s4"></span>'
+    + (anyGroup ? "every center here fully down" : "every camera offline") + '</span>';
+  const dark = anyGroup && CELLS.some(c=>c.a.dark && c.sev !== 4)
+    ? '<span class="lg"><span class="lgs s2 down" style="box-shadow:inset 0 0 0 2px rgba(69,10,10,.85)"></span>contains a center fully down</span>' : "";
+  const partial = CELLS.some(c=>c.match > 0 && c.match < c.cs.length)
+    ? '<span class="lg"><span class="lgs pmk"></span>part of this group matches</span>' : "";
+  const outd = CELLS.some(c=>c.match === 0)
+    ? '<span class="lg"><span class="lgs dot"></span>filtered out</span>' : "";
+  const note = CELLS.some(c=>c.dim === "center" && noteOf(c.k))
+    ? '<span class="lg"><span class="lgs" style="background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);position:relative"><span style="position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 1.6px var(--surface)"></span></span>has an annotation</span>' : "";
+  $("bandLegend").innerHTML = ramp + x + dark + partial + outd + note;
+
+  // One sentence for a screen reader, not two hundred announced cells.
+  const scope = bandScopeAll ? DATA : DATA.filter(c=>matchesFilters(c,{ignoreQ:true}));
+  let bad = 0, dk = 0;
+  for (const c of scope){ const t = tally(c); if (t.bad) bad++; if (t.total && t.off === t.total) dk++; }
+  const unit = DIMS[bandDimNow].label.toLowerCase();
+  const txt = 'Band showing ' + plural(CELLS.length, unit === "center" ? "center" : unit + " cell")
+    + '. ' + bad.toLocaleString() + ' of ' + scope.length.toLocaleString()
+    + ' centers have unhealthy cameras, ' + dk.toLocaleString() + ' fully down.';
+  const sum = $("bandSum");
+  if (sum.textContent !== txt) sum.textContent = txt;
+}
+
+/* ---------- the collapsed strip ---------- */
+const SEVCOL = ["var(--ok)", "#fcd34d", "var(--deg)", "#b91c1c", "var(--off)"];
+function renderMini(){
+  const m = $("bandMini");
+  if (!S.strip || S.loading || !S.miniOn){ m.hidden = true; return; }
+  const scope = bandScopeAll ? DATA : DATA.filter(c=>matchesFilters(c,{ignoreQ:true}));
+  const buckets = [0,0,0,0,0];
+  for (const c of scope) buckets[sevOf(tally(c), false)]++;
+  const tot = scope.length || 1;
+  const bar = buckets.map((v,i)=> v
+    ? '<i style="flex:' + v + ';background:' + SEVCOL[i] + '"></i>' : "").join("");
+  const bad = tot - buckets[0], dk = buckets[4];
+  const crumbs = bandCrumb().map(c=>c.label);
+  if (S.centerPick){ const c = centerById(S.centerPick); if (c) crumbs.push(c.name); }
+  m.hidden = false;
+  m.innerHTML = '<div class="mini">'
+    + '<span class="sevbar" role="img" aria-label="Severity across ' + plural(tot,"center") + '">' + bar + '</span>'
+    + '<span class="mtxt num">' + (bad
+        ? bad.toLocaleString() + ' of ' + tot.toLocaleString() + ' centers need attention'
+        : 'all ' + tot.toLocaleString() + ' centers reporting')
+      + (dk ? ' · ' + plural(dk, "center") + ' fully down' : "") + '</span>'
+    + (crumbs.length ? '<span class="mcrumb">' + esc(crumbs.join(" · ")) + '</span>' : "")
+    + '<button class="mup" id="bandUp">Your centers'
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 15l6-6 6 6"/></svg>'
+    + '</button></div>';
+}
+
+/* ---------- drilling ---------- */
+/* A group cell is a filter, not a new kind of state: drilling writes the
+   facet the app already has, so the chip, the Filters panel, the count line
+   and the band cannot disagree about what is on. */
+function drillDim(x, additive){
+  const fk = DIMS[x.dim].facet; if (!fk) return;
+  const cur = S[fk];
+  if (additive) S[fk] = cur.includes(x.k) ? cur.filter(v=>v !== x.k) : [...cur, x.k];
+  else          S[fk] = (cur.length === 1 && cur[0] === x.k) ? [] : [x.k];
+  reconcileFilters();
+  // A center pick is a search string; a drill replaces it rather than ANDing
+  // last click's center name into this click's scope.
+  if (S.centerPick){
+    S.centerPick = null; S.q = ""; S.qDraft = "";
+    $("q").value = ""; $("qField").classList.remove("linked");
+  }
+  S.kpi = null; S.page = 1;
+  S.bandDimPick = null;          // the zoom you drilled from is rarely the one you want inside
+  bandSig = ""; bandOrder = null;
+  S.filtersOpen = S.sortOpen = S.savingOpen = false;
+  render();
+  const on = S[fk].includes(x.k);
+  $("announce").textContent = (on ? "Filtered to " + x.name + ". " : x.name + " removed. ")
+    + plural(filtered().length, "center") + " in view.";
+}
+
+/* Every mutation invalidates the tally cache. Wrapping mutate rather than
+   editing it keeps the refresh loop exactly as it was. */
+const _mutate = mutate;
+mutate = function(){ _mutate(); GEN++; };
+
+/* ---------- the dev-only fleet switch ----------
+   Not part of the design. 73 is the real assignment; 600 and 4,000 exist so
+   the band can be judged at the scale it claims to survive. */
+let FLEET = 73;
+function setFleet(size){
+  FLEET = size;
+  SEEDS = seeds(size);
+  DATA = build();
+  GEN++;
+  FKEYS.forEach(k => S[k] = []);
+  S.q = ""; S.qDraft = ""; S.kpi = null; S.centerPick = null; S.page = 1;
+  S.sel = null; S.fsearch = ""; S.bandDimPick = null; S.bandFold = true;
+  S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
+  bandSig = ""; bandOrder = null;
+  $("q").value = ""; $("qField").classList.remove("linked");
+  $("noticeN").textContent = DATA.length.toLocaleString();
+  render(); renderDashboard();
+  $("announce").textContent = "Synthetic fleet set to " + DATA.length.toLocaleString() + " centers.";
 }
 
 /* Clicking a center is a promise that the list below will show it, so drop
@@ -2695,7 +3313,7 @@ function syncNoteMarks(id){
     const c = DATA.find(x=>x.id===id);
     if (c) btn.setAttribute("aria-label", `${note?"Edit note":"Add a note"} for ${c.name}`);
   }
-  const blk = $("strip").querySelector(`.cblk[data-cid="${CSS.escape(id)}"]`);
+  const blk = $("strip").querySelector(`.cell[data-cid="${CSS.escape(id)}"]`);
   if (blk) blk.classList.toggle("hasnote", !!note);
 }
 list.addEventListener("keydown", e=>{
@@ -2731,23 +3349,50 @@ function showTip(b){
       stale ? `Not assessed for ${dur(cam.checked)}` : `Checked ${ago(cam.checked)}`}</em>`;
   placeTip(b);
 }
-/* Same tooltip, one level up the hierarchy: a center block answers the
-   same question a camera block does — what is wrong, for how long, and
-   what happens if I click. */
+/* Same card, whatever a cell currently means. A center cell answers what a
+   camera block answers one level down — what is wrong, for how long, what
+   happens if I click. A group cell has to answer one more: how much of this
+   group is the filter actually talking about. */
 function showCenterTip(b){
   if (S.sel) return;
-  const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
-  const t = tally(c), st = centerStatus(c), note = noteOf(c.id);
+  const nodes = [...$("strip").querySelectorAll(".cell")];
+  const x = CELLS[nodes.indexOf(b)];
+  if (!x) return;
   const locked = b.getAttribute("aria-disabled") === "true";
-  tip.innerHTML = `<b>${esc(c.name)}</b>
-    <em class="num">${c.state} · Store #${c.store} · ${t.total} cameras</em>
-    <span class="row"><span class="sw ${st}" style="width:10px;height:10px;border-radius:3px"></span>${centerStateWords(c)}</span>
-    ${t.outage ? `<em class="num">Offline ${dur(t.outage)}</em>` : ""}
-    ${note ? `<em style="color:var(--blue-deep);margin-top:4px">Note: ${esc(note.replace(/\s+/g," ").slice(0,64))}${note.length>64?"…":""}</em>` : ""}
-    <em style="margin-top:5px;font-weight:700;color:${locked?"var(--ink-3)":"var(--blue-ink)"}">${
-      locked ? "Filtered out — change your filters to search it"
-      : S.centerPick===c.id ? "Click to clear this search"
-      : "Click to search this center below"}</em>`;
+  if (x.dim === "center"){
+    const c = x.cs[0], t = tally(c), st = centerStatus(c), note = noteOf(c.id);
+    tip.innerHTML = '<b>' + esc(c.name) + '</b>'
+      + '<em class="num">' + c.state + ' · Store #' + c.store + ' · ' + t.total + ' cameras</em>'
+      + '<span class="row"><span class="sw ' + st + '" style="width:10px;height:10px;border-radius:3px"></span>'
+      + centerStateWords(c) + '</span>'
+      + (t.bad ? '<em class="num">Defect rate ' + pct(t.rate) + '</em>' : "")
+      + (t.outage ? '<em class="num">Offline ' + dur(t.outage) + '</em>' : "")
+      + (note ? '<em style="color:var(--blue-deep);margin-top:4px">Note: '
+          + esc(note.replace(/\s+/g," ").slice(0,64)) + (note.length>64?"…":"") + '</em>' : "")
+      + '<em style="margin-top:5px;font-weight:700;color:' + (locked?"var(--ink-3)":"var(--blue-ink)") + '">'
+      + (locked ? "Filtered out — change your filters to search it"
+         : S.centerPick===c.id ? "Click to clear this search"
+         : "Click to search this center below") + '</em>';
+    return placeTip(b);
+  }
+  const a = x.a, partial = x.match < x.cs.length;
+  tip.innerHTML = '<b>' + esc(x.name) + '</b>'
+    + '<em class="num">' + DIMS[x.dim].label + ' · ' + plural(a.n, "center")
+      + ' · ' + a.total.toLocaleString() + ' cameras</em>'
+    + '<span class="row"><span class="lgs s' + x.sev + '" style="width:10px;height:10px;border-radius:3px"></span>'
+      + (a.badCenters ? a.badCenters.toLocaleString() + ' of ' + a.n.toLocaleString()
+                 + ' centers need attention · ' + pct(a.ctrRate)
+               : 'every center reporting') + '</span>'
+    + (a.dark ? '<em class="num" style="color:var(--off);font-weight:700">'
+        + plural(a.dark, "center") + ' fully down</em>' : "")
+    + (a.bad ? '<em class="num">' + a.bad.toLocaleString() + ' of ' + a.total.toLocaleString()
+        + ' cameras offline or degraded</em>' : "")
+    + (a.outage ? '<em class="num">Longest outage ' + dur(a.outage) + '</em>' : "")
+    + (partial ? '<em class="num" style="margin-top:3px">' + x.match + ' of ' + x.cs.length
+        + ' centers match the current filters</em>' : "")
+    + '<em style="margin-top:5px;font-weight:700;color:' + (x.match?"var(--blue-ink)":"var(--ink-3)") + '">'
+      + (x.match ? "Click to filter to this group · ⌘/Ctrl-click to add" : "Nothing here matches your filters")
+      + '</em>';
   placeTip(b);
 }
 /* Which camera block the pointer is on, so a re-render can put the
@@ -2777,28 +3422,103 @@ list.addEventListener("focusout",  e=>{
   }, 0);
 });
 
-/* ---------- the centers strip ---------- */
+/* ---------- the band ---------- */
 const strip = $("strip");
+const cellFor = b => CELLS[[...strip.querySelectorAll(".cell")].indexOf(b)];
+
 strip.addEventListener("click", e=>{
-  const b = e.target.closest(".cblk"); if (!b) return;
-  if (b.getAttribute("aria-disabled") === "true") return refuseCenter(b);
-  pickCenter(b.dataset.cid);
+  const b = e.target.closest(".cell"); if (!b) return;
+  const x = cellFor(b); if (!x) return;
+  if (x.dim === "center"){
+    if (b.getAttribute("aria-disabled") === "true") return refuseCenter(b);
+    return pickCenter(x.k);
+  }
+  drillDim(x, e.metaKey || e.ctrlKey);
 });
-strip.addEventListener("mouseover", e=>{ const b=e.target.closest(".cblk"); if (b) showCenterTip(b); });
-strip.addEventListener("mouseout",  e=>{ if (e.target.closest(".cblk")) tip.classList.remove("show"); });
-strip.addEventListener("focusin",   e=>{ const b=e.target.closest(".cblk"); if (b) showCenterTip(b); });
-strip.addEventListener("focusout",  e=>{ if (e.target.closest(".cblk")) tip.classList.remove("show"); });
-// One roving tabindex across the whole strip, so brand groups don't turn
-// into seventy-three separate tab stops.
+strip.addEventListener("mouseenter", ()=>{ S.bandHover = true; });
+strip.addEventListener("mouseleave", ()=>{
+  S.bandHover = false;
+  // whatever the band held back while the pointer was on it lands now
+  if (!strip.contains(document.activeElement)) renderStrip();
+});
+strip.addEventListener("mouseover", e=>{ const b=e.target.closest(".cell"); if (b) showCenterTip(b); });
+strip.addEventListener("mouseout",  e=>{ if (e.target.closest(".cell")) tip.classList.remove("show"); });
+strip.addEventListener("focusin",   e=>{ const b=e.target.closest(".cell"); if (b) showCenterTip(b); });
+strip.addEventListener("focusout",  e=>{
+  if (!e.target.closest(".cell")) return;
+  tip.classList.remove("show");
+  setTimeout(()=>{ if (!S.bandHover && !strip.contains(document.activeElement)) renderStrip(); }, 0);
+});
+// One roving tabindex across the band. Four thousand tab stops is not an
+// experience, and neither is two hundred.
 strip.addEventListener("keydown", e=>{
-  const b = e.target.closest(".cblk"); if (!b) return;
-  const all = [...strip.querySelectorAll(".cblk")];
-  const i = all.indexOf(b);
-  const map = {ArrowRight:i+1, ArrowLeft:i-1, Home:0, End:all.length-1};
+  const b = e.target.closest(".cell"); if (!b) return;
+  const all = [...strip.querySelectorAll(".cell")];
+  const i = all.indexOf(b), per = Math.max(1, bandPlan.per);
+  const map = {ArrowRight:i+1, ArrowLeft:i-1, ArrowDown:i+per, ArrowUp:i-per,
+               Home:0, End:all.length-1};
   if (!(e.key in map)) return;
   e.preventDefault();
   const n = Math.max(0, Math.min(all.length-1, map[e.key]));
   all.forEach(x=>x.tabIndex = -1); all[n].tabIndex = 0; all[n].focus();
+});
+
+// the control row: zoom, breadcrumb, fold
+$("bandBar").addEventListener("click", e=>{
+  const d = e.target.closest("[data-dim]");
+  if (d){
+    S.bandDimPick = S.bandDimPick === d.dataset.dim ? null : d.dataset.dim;
+    bandSig = ""; bandOrder = null; renderStrip();
+    $("announce").textContent = "Each cell is now one "
+      + DIMS[bandDimNow].label.toLowerCase() + ". " + plural(CELLS.length, "cell") + " shown.";
+    return;
+  }
+  const cr = e.target.closest("[data-crumb]");
+  if (cr){
+    const fk = cr.dataset.crumb;
+    if (fk === "__all") ["region","state","brand","tz"].forEach(k=>S[k] = []);
+    else S[fk] = [];
+    reconcileFilters();
+    S.kpi = null; S.page = 1; S.bandDimPick = null;
+    bandSig = ""; bandOrder = null;
+    render();
+    $("announce").textContent = "Back to all " + DATA.length.toLocaleString() + " centers.";
+    return;
+  }
+  if (e.target.closest("#foldChip")){
+    S.bandFold = !S.bandFold;
+    bandSig = ""; bandOrder = null; renderStrip();
+    $("announce").textContent = S.bandFold
+      ? "Healthy centers folded away." : "Healthy centers shown.";
+  }
+});
+$("bandHeadSlot").addEventListener("click", e=>{
+  const b = e.target.closest("#colorInfo"); if (b) openInfo("infoColors", b);
+});
+
+/* The collapsed strip. It costs the page no layout — a zero-height sticky
+   box with the bar absolutely positioned inside it — so it can appear and
+   disappear on scroll without moving anything underneath. */
+let miniQ = 0;
+$("page").addEventListener("scroll", ()=>{
+  if (miniQ) return;
+  miniQ = requestAnimationFrame(()=>{
+    miniQ = 0;
+    const w = $("stripWrap");
+    const on = S.strip && !w.hidden
+      && w.getBoundingClientRect().bottom < $("page").getBoundingClientRect().top + 10;
+    if (on !== S.miniOn){ S.miniOn = on; renderMini(); }
+  });
+});
+$("bandMini").addEventListener("click", e=>{
+  if (e.target.closest("#bandUp")) $("page").scrollTo({top:0, behavior:"smooth"});
+});
+
+// How many cells fit is a measurement, so a resize can change the zoom.
+let bandRz = 0;
+window.addEventListener("resize", ()=>{
+  clearTimeout(bandRz);
+  bandRz = setTimeout(()=>{ if (S.strip){ bandSig = ""; renderStrip(); } }, 150);
 });
 
 /* Dismissing the notice lasts the visit, not forever. It states the one
@@ -3018,7 +3738,6 @@ function closeInfo(){
   (back || $("filterBtn") || $("sortBtn"))?.focus();
 }
 $("infoClose").onclick = closeInfo;
-$("colorInfo").onclick = e => openInfo("infoColors", e.currentTarget);
 $("infoScrim").addEventListener("click", e=>{ if (e.target === $("infoScrim")) closeInfo(); });
 
 /* ---------- shell navigation ---------- */
@@ -3109,6 +3828,16 @@ document.addEventListener("keydown", e=>{
   }
 });
 
+/* Capture phase, so the cache is invalidated before the handler below reads
+   through it — the "All healthy" forcer rewrites camera statuses in place. */
+document.querySelector(".proto").addEventListener("click", e=>{
+  if (e.target.closest("[data-demo]")) GEN++;
+}, true);
+document.querySelector(".proto").addEventListener("click", e=>{
+  const b = e.target.closest("[data-fleet]"); if (!b) return;
+  setFleet(+b.dataset.fleet);
+});
+
 // prototype-only state forcing
 document.querySelector(".proto").addEventListener("click", e=>{
   const b = e.target.closest("[data-demo]"); if (!b) return;
@@ -3147,8 +3876,8 @@ document.querySelector(".proto").addEventListener("click", e=>{
 </script>
 <nav class="vsw" aria-label="Prototype version">
   <b>Version</b>
-  <a href="index.html" aria-current="page">Nested</a>
-  <a href="band.html">Severity band</a>
+  <a href="index.html">Nested</a>
+  <a href="band.html" aria-current="page">Severity band</a>
   <a class="doc" href="rationale.html">Design notes</a>
 </nav>
 </body>
