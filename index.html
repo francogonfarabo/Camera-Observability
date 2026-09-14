@@ -299,9 +299,19 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    list on the right stays the same size whatever gets added, and leaves
    room for the search box a fifty-item list needs. Each rail row shows its
    own current value, so the whole filter state is legible at a glance. */
-.ftwo{display:grid;grid-template-columns:196px minmax(0,1fr);min-height:0;flex:1}
+/* The facet rail is a constant ten rows, so it — not the option list — is what
+   should decide how tall this pane is. Capping the pane here rather than
+   capping the list inside it means the list always fills the column it sits
+   in, and the panel stays roughly one size whichever category you move to,
+   instead of leaving dead space under a short list and resizing on every
+   switch. */
+.ftwo{display:grid;grid-template-columns:196px minmax(0,1fr);grid-template-rows:minmax(0,1fr);
+  min-height:0;flex:1;max-height:clamp(300px,64dvh,560px)}
+/* min-height:0, not max-height:100%: a percentage resolves against an
+   indefinite grid area and silently does nothing, which is how both columns
+   ended up taller than the pane that was supposed to be capping them. */
 .frail{border-right:1px solid var(--line-2);padding:8px;display:flex;flex-direction:column;gap:1px;
-  max-height:100%;overflow-y:auto;background:var(--fill-2)}
+  min-height:0;overflow-y:auto;background:var(--fill-2)}
 .frow{text-align:left;padding:6px 9px;border-radius:8px;display:flex;flex-direction:column;gap:1px;min-width:0}
 .frow:hover{background:var(--surface)}
 .frow.on{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
@@ -314,9 +324,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .fsearch svg{position:absolute;left:22px;pointer-events:none}
 .fsearch input{width:100%;padding:7px 10px 7px 31px;border:1px solid var(--line-3);border-radius:8px;font-size:13px}
 .fsearch input:focus{border-color:var(--blue);box-shadow:var(--focus);outline:none}
-.foptlist{padding:8px;display:flex;flex-direction:column;gap:1px;flex:1;min-height:0;max-height:330px;overflow-y:auto}
-.fsearch+.foptlist{max-height:280px}
-.fhint{padding:16px 14px;font-size:12.5px;color:var(--ink-3);line-height:1.5}
+/* No height of its own: it fills whatever .ftwo leaves and scrolls inside it.
+   A fixed max-height here is what stopped a fifty-six-item list two hundred
+   pixels short of the bottom of its own panel. */
+.foptlist{padding:8px;display:flex;flex-direction:column;gap:1px;flex:1;min-height:0;overflow-y:auto}
+.fhint{flex:1;min-height:0;overflow-y:auto;padding:16px 14px;font-size:12.5px;color:var(--ink-3);line-height:1.5}
 .fhint b{color:var(--ink-2)}
 .fopt{display:flex;align-items:center;gap:10px;text-align:left;padding:7px 10px;border-radius:8px;font-size:13px;
   font-weight:600;color:var(--blue-ink);min-width:0}
@@ -750,7 +762,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
     max-height:88dvh;display:flex;flex-direction:column;z-index:80}
   .fhead{flex-shrink:0}
   /* the facet rail becomes a scrolling row of pills above the options */
-  .ftwo{display:flex;flex-direction:column;flex:1;min-height:0}
+  /* the sheet owns its own height here, so the desktop cap comes off */
+  .ftwo{display:flex;flex-direction:column;flex:1;min-height:0;max-height:none}
   .frail{flex-direction:row;border-right:none;border-bottom:1px solid var(--line-2);max-height:none;
     overflow-x:auto;gap:6px;padding:8px 10px;flex-shrink:0}
   .frow{flex-shrink:0;padding:5px 10px;border-radius:20px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
