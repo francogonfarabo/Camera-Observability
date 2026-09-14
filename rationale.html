@@ -212,17 +212,28 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   the strip, the refresh announcement and the screen-reader labels all now answer "how many of my centers are
   in trouble" with the same number, which they did not before the colour rule changed underneath them.</p>
 
-  <h3 class="sub">The last round, in full</h3>
-  <p>Four changes, each of them a definition rather than a feature. <strong>A center's colour is now about
-  coverage, not quality</strong>: red only when every camera in it is dark, orange while some are still up,
-  green whenever nothing is offline — with degraded cameras allowed under green, because they are still
-  sending pictures and the hatch inside the center says so. The rule is stated next to the legend it governs
-  rather than left to be inferred. <strong>Sort labels went neutral</strong> — "Longest Outage" became
+  <h3 class="sub">The last rounds, in full</h3>
+  <p>Mostly definitions rather than features. <strong>A center's colour became a verdict with two precise
+  ends</strong>: red only when every camera is dark, green only when nothing is offline <em>and</em> nothing
+  impaired, orange for everything else. It went through coverage-only first — green tolerating degraded
+  cameras — and came back, because a green square that could still hide a problem put the strip out of step
+  with the filter and the headline count. The rule is stated beside the legend it governs rather than left
+  to be inferred. <strong>Sort labels went neutral</strong> — "Longest Outage" became
   <em>Outage Time</em>, "Updated Annotations" became <em>Annotation Date</em> — with the direction saying
   which end you want. <strong>Filtered-out centers are locked</strong> rather than clickable: the strip used
   to answer a click on a dimmed block by tearing down the filters that dimmed it, which is a strange thing
   for a greyed control to do, so it now nudges and says why instead. And <strong>the search field states its
   job once</strong>, in a placeholder that no longer changes underneath the reader.</p>
+  <p>A review pass then closed four gaps. The <strong>State</strong> list was interleaving Alberta between
+  Alaska and Arizona; it is grouped under country headings now, and still not gated, because a state name is
+  unambiguous on its own where a city name is not — Springfield and Rochester are each two different centers
+  here, which is why City <em>is</em> gated and State is not. <strong>Timezones</strong> are written out
+  rather than abbreviated, since the reason to filter on one is scheduling work outside opening hours and a
+  two-letter code makes the reader do the decoding. The <strong>camera modal</strong> gained a toggle between
+  how long a camera has been down and the wall-clock moment it went down — four hours sizes the problem,
+  2:14 AM is what you match against a power cut — and lost the camera ID row. And the <strong>KPI row</strong>
+  stopped repeating itself: its first tile and its second were running the same filter, so the first now
+  counts centers with anything wrong and the second stays on cameras offline.</p>
 </section>
 
 <section>
@@ -273,11 +284,18 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   blocks they rule out, but letting the search dim them would black out seventy-two blocks the moment you
   clicked the seventy-third, which is the opposite of what an overview is for.</p>
   <p>The three colours in the strip answer a different question from the three inside a center. A
-  <em>camera</em> is offline, degraded or normal. A <em>center</em> is coloured by how much of it is dark:
-  red when every camera is offline, orange when some are, green when none are — so a center with nothing but
-  quality problems stays green and shows its hatched cameras inside. Coverage and picture quality are
-  different emergencies, and rolling the second one up into the first made every orange block mean two
-  things at once. An ⓘ beside the legend states the rule where it applies.</p>
+  <em>camera</em> is offline, degraded or normal — three states of one device. A <em>center</em> is a verdict
+  on the whole site, and only its two ends are precise: <strong>green</strong> means nothing offline and
+  nothing impaired, <strong>red</strong> means every camera dark, and <strong>orange</strong> is everything
+  in between. That middle bucket is deliberately ungraded. One soft camera among nineteen good ones and nine
+  dark cameras out of ten land on the same colour, because the square answers <em>does this need looking
+  at</em> and the row underneath answers how much — a hue asked to separate those two would be a number
+  pretending to be a colour. An ⓘ beside the legend states the rule where it applies.</p>
+  <p>Keeping green strict is what makes the rest of the board agree with itself. Green is the exact
+  complement of the <em>Has any issue</em> filter, so the count of non-green squares, the first KPI, the
+  status filter and the refresh announcement are all one number rather than four readings of a similar
+  idea. An earlier version let green tolerate degraded cameras — coverage rather than health — and every one
+  of those four drifted apart from the others by the number of quality-only centers.</p>
   <p>The prototype's user is assigned <strong>73 centers</strong> across eight brands. At that size the strip
   becomes two rows of brand-labelled groups rather than an undifferentiated wall, which is why the grouping
   exists at all: it bounds the hunt for one site to a handful of squares. Center rows sit at one density —

@@ -341,6 +341,13 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .fopt.clearrow[aria-pressed="true"]{background:var(--fill);color:var(--ink-2)}
 .fopt.clearrow[aria-pressed="true"] .oc{color:var(--ink-4)}
 .fopt.zero .cbx{opacity:.5}
+/* A heading inside the option list, for a facet whose values come from more
+   than one kind of thing — states and provinces in one alphabet read as a
+   mistake until something separates them. */
+.fgroup{font-family:'Titillium Web',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-4);padding:9px 10px 4px;position:sticky;top:0;
+  background:var(--surface)}
+.fgroup:first-child{padding-top:3px}
 .fmulti{font-size:11.5px;color:var(--ink-4);margin-right:auto}
 .fscope{padding:8px 14px;font-size:12px;color:var(--blue-deep);background:var(--blue-tint);border-bottom:1px solid var(--line)}
 .fscope b{font-weight:700}
@@ -630,10 +637,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .media .lbl{font-size:12px;font-weight:600;color:var(--ink-3);text-align:center;padding:0 14px}
 .media.live{background:linear-gradient(160deg,#eef4f8,#e4ecf2)}
 .media.dead{background:repeating-linear-gradient(45deg,#fff6f6 0 9px,#ffecec 9px 18px);border-color:var(--off-line)}
-.dmeta{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12.5px;
-  border:1px solid var(--line);border-radius:10px;padding:9px 12px}
-.dmeta span{color:var(--ink-3)}
-.dmeta b{font-weight:700;color:var(--ink)}
+/* Sits under the headline number and borrows its colour, so it reads as part
+   of the same statement rather than a control bolted beside it. */
+.dstate .tmode{font-size:11.5px;font-weight:700;color:inherit;opacity:.7;padding:1px 0;
+  text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
+.dstate .tmode:hover{opacity:1}
+.dstate .tmode:focus-visible{opacity:1;box-shadow:var(--focus);border-radius:4px}
 .d-note{font-size:11.5px;color:var(--ink-3);display:flex;gap:6px;align-items:flex-start}
 .d-note svg{flex-shrink:0;margin-top:2px}
 .d-foot{border-top:1px solid var(--line);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;background:var(--fill-2)}
@@ -855,8 +864,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
                 <span class="strip-title">Your centers</span>
                 <span class="legend">
                   <span class="lg"><span class="sw off"></span>All cameras offline</span>
-                  <span class="lg"><span class="sw deg"></span>Some cameras offline</span>
-                  <span class="lg"><span class="sw ok"></span>All cameras reporting</span>
+                  <span class="lg"><span class="sw deg"></span>Some offline or degraded</span>
+                  <span class="lg"><span class="sw ok"></span>All cameras healthy</span>
                   <button class="lginfo" id="colorInfo" aria-label="How center colors are decided">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8"><path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg>
                   </button>
@@ -936,24 +945,29 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
       <div class="ib">
         <section id="infoColors">
           <h3>Center colors</h3>
-          <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:9px">A center is colored by how much of
-          it is <em>dark</em> — how much a parent or a manager cannot see. Picture quality is a separate
-          problem and lives on the camera, not on the center.</p>
+          <p style="font-size:12.5px;color:var(--ink-2);margin-bottom:9px">Only the two ends are precise.
+          Green means nothing is wrong; red means everything is. Everything in between is one orange bucket
+          on purpose — the square answers <em>does this center need looking at</em>, and the row underneath
+          answers how much.</p>
           <dl class="ilist">
             <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> All cameras offline</dt><dd>
               Every camera in the center has stopped reporting. <code>offline = total</code>.
-              <span class="d">The site is blind. Usually one cause — power, network, recorder — not
-              a list of separate faults.</span></dd></div>
-            <div class="irow"><dt><span class="sw deg" style="vertical-align:-1px"></span> Some cameras offline</dt><dd>
-              At least one camera is offline, but not all of them.
-              <code>0 &lt; offline &lt; total</code>.
-              <span class="d">Partial coverage. Someone can still see something, which usually makes this a
-              scheduled fix rather than a same-hour one.</span></dd></div>
-            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All cameras reporting</dt><dd>
-              Nothing is offline. <code>offline = 0</code>.
-              <span class="d">Degraded cameras are allowed here — they are still sending pictures, just below
-              target quality. The center stays green and the degraded cameras are hatched inside it, so the
-              quality problem is visible without being promoted to an outage.</span></dd></div>
+              <span class="d">The site is blind. That is almost always one cause — power, network, the
+              recorder — rather than a list of separate faults, which is why it gets its own colour instead
+              of being the top of a scale.</span></dd></div>
+            <div class="irow"><dt><span class="sw deg" style="vertical-align:-1px"></span> Some offline or degraded</dt><dd>
+              Anything short of both extremes: one impaired camera among healthy ones, half the site down,
+              nine of ten offline with the tenth impaired, every camera degraded but still reporting.
+              <code>offline &lt; total</code> and <code>offline + degraded &gt; 0</code>.
+              <span class="d">Deliberately ungraded. A colour that tried to separate "one camera is a bit
+              soft" from "most of the site is dark" would be asking people to read a hue to three decimal
+              places; the counts on the center's row do that job in numbers, and the hover card says it in
+              words.</span></dd></div>
+            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All cameras healthy</dt><dd>
+              Nothing offline and nothing impaired. <code>offline = 0</code> and <code>degraded = 0</code>.
+              <span class="d">Green is a clean bill of health, not merely "nothing is dark". It matches the
+              <b>All cameras healthy</b> status filter and the first KPI exactly, so the squares, the filter
+              and the headline count never disagree about how many centers are fine.</span></dd></div>
           </dl>
           <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Color is never the only cue: offline
           blocks carry an ✕ and degraded blocks a diagonal hatch, so the three states survive a colorblind
@@ -993,7 +1007,9 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <h3>Filtering</h3>
           <dl class="ilist">
             <div class="irow"><dt>Status</dt><dd>What the center's cameras are doing right now: any issue,
-              offline specifically, degraded specifically, or everything reporting.</dd></div>
+              offline specifically, degraded specifically, or everything healthy. <b>Has any issue</b> and
+              <b>All cameras healthy</b> are the two halves of the centers strip — the first is every
+              non-green square, the second is every green one.</dd></div>
             <div class="irow"><dt>Annotations</dt><dd>Whether anyone has written a note on the center —
               presence only, never the text. It answers "which of these has someone already picked up?",
               which is the one thing a filter can honestly say about a free-text note.</dd></div>
@@ -1007,12 +1023,16 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               group states, so a region can span more than one.</dd></div>
             <div class="irow"><dt>Country</dt><dd>United States or Canada. It's the outermost scope: changing
               it drops any state, city, region or brand it leaves with nothing to match.</dd></div>
-            <div class="irow"><dt>State</dt><dd>The state or, in Canada, the province the center sits
-              in.</dd></div>
+            <div class="irow"><dt>State / Province</dt><dd>Where the center sits. The list is grouped under
+              <b>United States</b> and <b>Canada</b> rather than gated behind Country: a state name is
+              unambiguous on its own, so a gate would cost every reader two clicks to fix what a heading
+              fixes for free. <span class="d">City is gated, because a city name is <em>not</em> unambiguous
+              — Springfield and Rochester are each two different centers in this assignment.</span></dd></div>
             <div class="irow"><dt>City</dt><dd>Available once a state is chosen — an ungated city list is
               every city you can see, which is a wall rather than a filter.</dd></div>
-            <div class="irow"><dt>Timezone</dt><dd>The center's local timezone, for planning maintenance
-              windows that land outside opening hours.</dd></div>
+            <div class="irow"><dt>Timezone</dt><dd>The center's local timezone, written out rather than
+              abbreviated — the whole point of this filter is scheduling work outside opening hours, so the
+              zone has to be readable without decoding it.</dd></div>
           </dl>
           <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Filters don't have to be applied in
           order. Each list is built from the centers that pass your <em>other</em> choices, and the number
@@ -1214,6 +1234,25 @@ const dur = m => {
   return Math.floor(m/1440) + "d " + Math.floor((m%1440)/60) + "h";
 };
 const ago = m => m < 1 ? "just now" : dur(m) + " ago";
+
+/* Standard-time offsets for September, DST already applied — a prototype
+   that did real timezone maths from a two-letter code would be lying with
+   more decimal places. The wall clock shown is the *center's*, not the
+   reader's: "it went down at 2:14 AM" is only actionable in the timezone of
+   whoever you are sending to look at it. */
+const TZ_OFFSET = { ET:-4, CT:-5, MT:-6, PT:-7, AKT:-8, HT:-10, AT:-3 };
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function clockAt(minutesAgo, tz){
+  const off = (TZ_OFFSET[tz] ?? 0) * 3600000;
+  const at  = new Date(Date.now() - minutesAgo*60000 + off);
+  const now = new Date(Date.now() + off);
+  const h = at.getUTCHours(), mm = String(at.getUTCMinutes()).padStart(2, "0");
+  const stamp = `${h % 12 === 0 ? 12 : h % 12}:${mm} ${h < 12 ? "AM" : "PM"} ${tz}`;
+  const sameDay = at.getUTCFullYear() === now.getUTCFullYear()
+    && at.getUTCMonth() === now.getUTCMonth() && at.getUTCDate() === now.getUTCDate();
+  // The date only earns its space once the event is no longer "today".
+  return sameDay ? stamp : `${MONTHS[at.getUTCMonth()]} ${at.getUTCDate()}, ${stamp}`;
+}
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
 /* =====================================================================
@@ -1234,6 +1273,7 @@ const S = {
   paused:false, tick:30, loading:false, error:false,
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
+  timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" strip
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
@@ -1326,13 +1366,25 @@ const facet = (label, all, one, options, extra={}) => ({
 const uniqOpts = (get, key) => [...new Set(DATA.filter(c=>passExcept(c, key)).map(get))]
   .sort((a,b)=>String(a).localeCompare(String(b))).map(v=>[v, String(v)]);
 
+/* State and province names are unique across both countries in this data, so
+   one flat lookup is enough to say which heading a row belongs under. */
+const STATE_COUNTRY = {};
+US.forEach(g => STATE_COUNTRY[g.state] = "United States");
+CA.forEach(g => STATE_COUNTRY[g.state] = "Canada");
+
+const TZ_NAMES = {
+  ET:"Eastern Time (ET)",  CT:"Central Time (CT)",  MT:"Mountain Time (MT)",
+  PT:"Pacific Time (PT)",  AKT:"Alaska Time (AKT)", HT:"Hawaii Time (HT)",
+  AT:"Atlantic Time (AT)",
+};
+
 const F = {
   status: facet("Status", "Any status",
     (c,v)=>{ const t=tally(c);
       return v==="issues" ? !!(t.off||t.deg) : v==="off" ? !!t.off : v==="deg" ? !!t.deg : !(t.off||t.deg); },
-    // Deliberately not "all cameras reporting": that phrase now belongs to the
-    // green square, which tolerates degraded cameras. This option is stricter
-    // — nothing offline and nothing impaired.
+    // "Has any issue" and "All cameras healthy" are the exact complement of
+    // each other, and between them they are the green square's rule stated as
+    // a filter — so the squares, this list and the first KPI all agree.
     ()=>[["issues","Has any issue"],["off","Has offline cameras"],
          ["deg","Has degraded cameras"],["clean","All cameras healthy"]]),
   // Presence only. "Which of these has someone already looked at?" is a
@@ -1349,11 +1401,27 @@ const F = {
   region: facet("Region", "All regions", (c,v)=>c.region===v, ()=>uniqOpts(c=>c.region,"region")),
   country: facet("Country", "US and Canada", (c,v)=>c.country===v,
     ()=>[["US","United States"],["CA","Canada"]]),
-  state: facet("State", "All states", (c,v)=>c.stateName===v,
-    ()=>uniqOpts(c=>c.stateName,"state"), {search:true}),
+  // Grouped, not gated. A state name is unambiguous on its own — there is
+  // exactly one Alberta and exactly one Alabama — so requiring a country
+  // first would charge everyone two clicks to fix something the eye fixes
+  // for free once the list stops interleaving. (City is gated because a city
+  // name genuinely is ambiguous without its state: Springfield is two
+  // different centers, Rochester is two more.)
+  state: facet("State / Province", "All states and provinces", (c,v)=>c.stateName===v,
+    ()=>{
+      const rank = v => STATE_COUNTRY[v] === "Canada" ? 1 : 0;
+      return uniqOpts(c=>c.stateName,"state")
+        .sort((a,b)=> rank(a[0]) - rank(b[0]) || a[1].localeCompare(b[1]));
+    },
+    {search:true, group:v=>STATE_COUNTRY[v] || ""}),
   city: facet("City", "All cities", (c,v)=>c.city===v,
     ()=>uniqOpts(c=>c.city,"city"), {search:true, needs:"state"}),
-  tz: facet("Timezone", "All timezones", (c,v)=>c.tz===v, ()=>uniqOpts(c=>c.tz,"tz")),
+  // The codes are what the data stores; they are not what anyone should have
+  // to decode in a filter list — and the point of this facet is scheduling
+  // work outside opening hours, so the zone has to be readable at a glance.
+  tz: facet("Timezone", "All timezones", (c,v)=>c.tz===v,
+    ()=>uniqOpts(c=>c.tz,"tz").map(([v])=>[v, TZ_NAMES[v] || v])
+      .sort((a,b)=>a[1].localeCompare(b[1]))),
 };
 const optLabel = (k, v) => (F[k].options().find(o=>o[0]===v) || [v, String(v)])[1];
 const facetSummary = k => S[k].length === 1 ? optLabel(k, S[k][0])
@@ -1483,10 +1551,21 @@ function facetOptionsHtml(){
       <span class="ol">${esc(F[fk].all)}</span>
       <span class="oc num">${DATA.filter(c=>passExcept(c,fk)).length}</span></button>`;
   if (!opts.length) return clear + `<div class="fhint">Nothing matches “${esc(S.fsearch)}”.</div>`;
+  // A facet can declare which heading each option sits under. The options
+  // arrive already ordered by group, so a header goes in wherever the group
+  // changes — which also means a search that filters a whole group out
+  // simply never emits its heading.
+  const group = F[fk].group;
+  let lastGroup = null;
   return clear + opts.map(o=>{
     const on = S[fk].includes(o.v);
     const zero = o.n === 0 && !on;
-    return `<button class="fopt multi${zero?" zero":""}" data-f="${fk}" data-v="${esc(o.v)}"
+    let head = "";
+    if (group){
+      const g = group(o.v);
+      if (g && g !== lastGroup){ head = `<div class="fgroup">${esc(g)}</div>`; lastGroup = g; }
+    }
+    return head + `<button class="fopt multi${zero?" zero":""}" data-f="${fk}" data-v="${esc(o.v)}"
       aria-pressed="${on}" ${zero?"disabled":""}>
       <span class="cbx">${on?CHECK:""}</span>
       <span class="ol">${esc(o.l)}</span><span class="oc num">${o.n}</span></button>`;
@@ -1679,16 +1758,19 @@ function renderSavedViews(){
    nodes are focusable and hoverable, and replacing one under the pointer
    or the caret is the bug this codebase keeps re-learning.
    ===================================================================== */
-/* A center's color is about coverage, not picture quality. Red means the
-   whole site is dark and nobody can see anything; orange means part of it
-   is still up, which is a different conversation and a different urgency;
-   green means every camera is reporting. Degraded stays a camera-level
-   fact — the picture is worse, but the coverage is intact — so it shows
-   inside the center rather than recoloring it. */
+/* Three buckets, and only the two ends are precise. Red is a total
+   blackout — every camera in the center is offline, which is one cause and
+   one call. Green is a clean bill of health — nothing offline and nothing
+   impaired. Orange is everything else, deliberately ungraded: one degraded
+   camera and nine perfect ones lands in the same bucket as nine offline and
+   one degraded, because the square's job is "does this center need looking
+   at", and the row underneath carries how much. Grading the middle would
+   ask people to read a colour to three decimal places. */
 const centerStatus = c => {
   const t = tally(c);
-  if (!t.off) return "ok";
-  return t.off === t.total ? "off" : "deg";
+  if (t.total && t.off === t.total) return "off";
+  if (!t.off && !t.deg) return "ok";
+  return "deg";
 };
 
 /* The rule, in words, in one place: every caption that describes a center's
@@ -1696,10 +1778,13 @@ const centerStatus = c => {
    reader cannot drift apart from each other or from the color. */
 function centerStateWords(c){
   const t = tally(c), st = centerStatus(c);
-  return st === "off" ? `All ${t.total} cameras offline`
-    : st === "deg"    ? `${t.off} of ${t.total} cameras offline`
-    : t.deg           ? `All ${t.total} cameras reporting, ${plural(t.deg,"camera")} degraded`
-    :                   `All ${t.total} cameras reporting`;
+  if (st === "off") return `All ${t.total} cameras offline`;
+  if (st === "ok")  return `All ${t.total} cameras healthy`;
+  // The middle bucket is one colour but several situations, so the words
+  // carry the split the square deliberately doesn't.
+  if (t.off && t.deg) return `${t.off} of ${t.total} cameras offline, ${t.deg} degraded`;
+  if (t.off)          return `${t.off} of ${t.total} cameras offline`;
+  return `${t.deg} of ${t.total} cameras degraded`;
 }
 
 function stripGroups(){
@@ -2006,27 +2091,27 @@ function renderKpis(){
   const p = filtered();
   const isFiltered = hasAnyFilter();
   const t = p.map(tally);
-  // Same definition as a center's color: a center is in trouble when some
-  // part of it is dark. Degraded cameras get their own tile two columns over,
-  // where they are counted as cameras rather than promoted to outages.
-  const outages = t.filter(x=>x.off).length;
+  // The exact complement of a green square: a center counts here when
+  // anything in it is offline or impaired. That makes this number and the
+  // non-green blocks in the strip the same number, always.
+  const unhealthy = t.filter(x=>x.off||x.deg).length;
   const off = t.reduce((s,x)=>s+x.off,0);
   const deg = t.reduce((s,x)=>s+x.deg,0);
   const worst = Math.max(0, ...t.map(x=>x.outage));
   const cams = t.reduce((s,x)=>s+x.total,0);
   const tiles = [
-    {k:"issues", cls:outages?"t-n":"calm", l: isFiltered?"Centers in view":"Centers with cameras offline",
-     v: isFiltered ? p.length : `${outages} of ${p.length}`,
+    {k:"issues", cls:unhealthy?"t-n":"calm", l: isFiltered?"Centers in view":"Centers with unhealthy cameras",
+     v: isFiltered ? p.length : `${unhealthy} of ${p.length}`,
      // Don't claim they're sorted to the top unless they actually are.
      s: isFiltered ? `of ${DATA.length} assigned`
-       : !outages ? "nothing offline right now"
+       : !unhealthy ? "everything healthy right now"
        : ((S.sort==="rate"||S.sort==="count") && S.dir==="desc") ? "worst first" : "across your assignment",
-     t:"Show only centers with cameras offline"},
+     t:"Show only centers with an offline or degraded camera"},
     // A zero in a bad-news metric is good news: it goes calm rather than
     // staying alert-red/orange, and the sub-label states the good news.
     {k:"off", cls: off?"t-off":"calm", l:"Cameras offline", v:off, s: off?`of ${cams} cameras`:"none right now",
      t:"Show only centers with offline cameras"},
-    {k:"deg", cls: deg?"t-deg":"calm", l:"Degraded", v:deg, s: deg?"reporting, but impaired":"all at full quality",
+    {k:"deg", cls: deg?"t-deg":"calm", l:"Cameras degraded", v:deg, s: deg?"reporting, but impaired":"all at full quality",
      t:"Show only centers with degraded cameras"},
     {k:"longest", cls:"t-n", l:"Longest outage", v: worst? dur(worst) : "—", s: worst? "still down now" : "no active outages",
      t:"Sort by outage time, longest first"}
@@ -2261,14 +2346,16 @@ function renderDrawer(){
     ? `<div class="dstate off">
         <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.6"><path d="M6 6l12 12M18 6L6 18"/></svg></span>
         <div class="txt"><b>Offline</b>
-          <span class="big num">${dur(cam.since)}</span>
+          <span class="big num" id="camTime"></span>
+          <button class="tmode" id="tmodeBtn"></button>
           <p>Down since the last good heartbeat. Checked again ${ago(cam.checked)}.</p></div>
       </div>`
     : cam.status === "deg"
     ? `<div class="dstate deg">
         <span class="ic"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#c2410c" stroke-width="2.4"><path d="M12 8v5"/><path d="M12 16.5v.4"/><circle cx="12" cy="12" r="9"/></svg></span>
         <div class="txt"><b>Degraded — still reporting</b>
-          <span class="big num">${dur(cam.since)}</span>
+          <span class="big num" id="camTime"></span>
+          <button class="tmode" id="tmodeBtn"></button>
           <p>Below target quality, not down. Checked ${ago(cam.checked)}.</p></div>
       </div>`
     : `<div class="dstate ok">
@@ -2276,11 +2363,10 @@ function renderDrawer(){
         <div class="txt"><b>Normal</b><span class="big num">Healthy for ${dur(cam.since)}</span></div>
       </div>`;
 
-  // The title already carries the room, and the status block already
-  // carries the duration and the last check — so the only field left worth
-  // a row is the ID someone puts on a work order.
+  // Nothing between the picture and the action: the title carries the room,
+  // the status block carries how long and since when, and the camera ID that
+  // used to sit here went with the ticketing flow that wanted it.
   $("dBody").innerHTML = `${state}${media}
-    <div class="dmeta"><span>Camera ID</span><b class="num">${cam.id}</b></div>
     <div><a class="btn primary" href="#" onclick="return false" style="justify-content:center;width:100%">View live on my.wmg
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a></div>
     ${noteOf(c.id) ? `<p class="d-note">
@@ -2288,9 +2374,34 @@ function renderDrawer(){
       <span><b style="color:var(--ink-2)">Note on ${esc(c.name)}:</b> ${esc(noteOf(c.id).slice(0,200))}</span></p>` : ""}
     <p class="pgtxt">Verifying on my.wmg is the only way to confirm a camera is truly down — this page reports the heartbeat, not the picture.</p>`;
 
+  paintCamTime();
   $("dPos").textContent = `Camera ${S.sel.idx+1} of ${c.cams.length}`;
   $("dPrev").disabled = S.sel.idx === 0;
   $("dNext").disabled = S.sel.idx === c.cams.length - 1;
+}
+
+/* Two readings of the same fact: how long it has been down, and the moment
+   it went down. Which one someone wants depends entirely on what they are
+   about to do — "four hours" sizes the problem, "2:14 AM" is what you match
+   against a power cut or a router reboot — so the modal keeps whichever was
+   asked for last rather than guessing.
+
+   Patched in place, never re-rendered: the button the user just pressed is
+   inside the node a re-render would replace, and losing focus on a toggle is
+   the one thing a toggle must not do. */
+const TIMEMODE_KEY = "wmg.cameraHealth.camTimeMode.v1";
+function paintCamTime(){
+  const v = $("camTime"), b = $("tmodeBtn");
+  if (!v || !b || !S.sel) return;
+  const c = DATA.find(x=>x.id===S.sel.ci); if (!c) return;
+  const cam = c.cams[S.sel.idx];
+  const clock = S.timeMode === "clock";
+  const what = cam.status === "off" ? "offline" : "degraded";
+  v.textContent = clock ? clockAt(cam.since, c.tz) : dur(cam.since);
+  b.textContent = clock ? `Show how long it has been ${what}` : `Show when it went ${what}`;
+  b.title = clock
+    ? "Switch back to elapsed time"
+    : `Switch to the wall clock at ${c.name} (${c.tz})`;
 }
 
 function openCam(ci, i){
@@ -2355,9 +2466,9 @@ function refresh({silent=false}={}){
   // Announce what is actually on screen — the filtered set.
   const t = filtered().map(tally);
   const off = t.reduce((s,x)=>s+x.off,0), deg = t.reduce((s,x)=>s+x.deg,0);
-  const dark = t.filter(x=>x.off).length;
+  const unhealthy = t.filter(x=>x.off||x.deg).length;
   if (!silent) $("announce").textContent = (off || deg)
-    ? `Updated. ${dark} of ${t.length} centers have cameras offline. ${off} cameras offline, ${deg} degraded.`
+    ? `Updated. ${unhealthy} of ${t.length} centers have unhealthy cameras. ${off} offline, ${deg} degraded.`
     : `Updated. All cameras reporting normally.`;
 }
 
@@ -2463,7 +2574,6 @@ function showCenterTip(b){
   tip.innerHTML = `<b>${esc(c.name)}</b>
     <em class="num">${c.state} · Store #${c.store} · ${t.total} cameras</em>
     <span class="row"><span class="sw ${st}" style="width:10px;height:10px;border-radius:3px"></span>${centerStateWords(c)}</span>
-    ${t.off && t.deg ? `<em class="num">and ${plural(t.deg,"camera")} degraded</em>` : ""}
     ${t.outage ? `<em class="num">Offline ${dur(t.outage)}</em>` : ""}
     ${note ? `<em style="color:var(--blue-deep);margin-top:4px">Note: ${esc(note.replace(/\s+/g," ").slice(0,64))}${note.length>64?"…":""}</em>` : ""}
     <em style="margin-top:5px;font-weight:700;color:${locked?"var(--ink-3)":"var(--blue-ink)"}">${
@@ -2588,7 +2698,7 @@ $("kpis").addEventListener("click", e=>{
   if (S.kpi === k){ S.kpi=null; S.status=[]; S.sort="rate"; S.dir="desc"; }
   else {
     S.kpi = k;
-    if (k==="issues"){ S.status=["off"]; }
+    if (k==="issues"){ S.status=["issues"]; }
     if (k==="off"){ S.status=["off"]; }
     if (k==="deg"){ S.status=["deg"]; }
     if (k==="longest"){ S.status=["off"]; S.sort="outage"; S.dir="desc"; }
@@ -2810,6 +2920,12 @@ $("banner").addEventListener("click", e=>{ if (e.target.closest("#retry")){ S.er
 // drawer
 $("dClose").onclick = closeCam;
 $("camScrim").addEventListener("click", e=>{ if (e.target === $("camScrim")) closeCam(); });
+$("dBody").addEventListener("click", e=>{
+  if (!e.target.closest("#tmodeBtn")) return;
+  S.timeMode = S.timeMode === "clock" ? "elapsed" : "clock";
+  try { localStorage.setItem(TIMEMODE_KEY, S.timeMode); } catch(err){ /* storage unavailable */ }
+  paintCamTime();
+});
 $("dPrev").onclick = ()=>stepCam(-1);
 $("dNext").onclick = ()=>stepCam(1);
 document.addEventListener("keydown", e=>{
@@ -2845,6 +2961,7 @@ document.querySelector(".proto").addEventListener("click", e=>{
   // dismissed it back then isn't stuck without the notice forever.
   try { localStorage.removeItem("wmg.cameraHealth.noticeSeen.v1"); } catch(e){}
   try { if (localStorage.getItem(STRIP_KEY) === "0") S.strip = false; } catch(e){}
+  try { if (localStorage.getItem(TIMEMODE_KEY) === "clock") S.timeMode = "clock"; } catch(e){}
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   S.loading = true;
   renderShell(); renderDashboard(); render();
