@@ -609,8 +609,15 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .dstale{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px;
   background:var(--amber-tint);border:1px solid #f5d98a;color:#7c4a03;font-size:12px}
 .dstale svg{flex-shrink:0;margin-top:1px}
-.dstale b{display:block;font-family:'Titillium Web',sans-serif;font-size:12.5px;font-weight:700;
-  letter-spacing:.03em;text-transform:uppercase;margin-bottom:1px}
+/* The heading is the heading; a bold inside the sentence is just a bold.
+   This rule used to be `.dstale b`, which caught both — so the duration in the
+   middle of the sentence became its own uppercase block and the sentence broke
+   around it, leaving a comma stranded at the start of a line. */
+.dstale .t{display:block;font-family:'Titillium Web',sans-serif;font-size:12.5px;font-weight:700;
+  letter-spacing:.03em;text-transform:uppercase;margin-bottom:2px}
+.dstale p{line-height:1.5}
+/* the reading's age is one value, so it never breaks across two lines */
+.dstale b{font-weight:700;white-space:nowrap}
 
 /* empty / skeleton */
 .empty{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;background:var(--surface);border:1px dashed var(--line-3);border-radius:12px;padding:40px 24px}
@@ -2620,10 +2627,10 @@ function renderDrawer(){
   const staleNote = isStale(cam)
     ? `<div class="dstale">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7.2V12l3.2 1.9"/></svg>
-        <div><b>Reading out of date</b>
-        This camera has not been assessed for <b>${dur(cam.checked)}</b>, and the assessor runs every
+        <div><b class="t">Reading out of date</b>
+        <p>This camera has not been assessed for <b>${dur(cam.checked)}</b>, and the assessor runs every
         ${ASSESS.heartbeatMin} minutes. Everything below is the last reading on record — it may no longer
-        be true.</div>
+        be true.</p></div>
       </div>`
     : "";
 
