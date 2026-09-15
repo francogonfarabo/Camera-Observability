@@ -190,6 +190,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .board{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-card)}
 .strip{padding:11px 14px 12px}
 .strip-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+/* Filters empty this component the same way they empty the list, so it needs
+   the same courtesy the list already has: a line saying so. */
+.stripempty{font-size:12.5px;color:var(--ink-3);padding:6px 2px 2px}
+.stripempty b{color:var(--ink-2);font-weight:700}
+.stripempty button{font-weight:700;color:var(--blue-ink);text-decoration:underline;margin-left:4px}
 .strip-title{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
 .strip-head .legend{margin-left:auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}
 .legend{display:flex;align-items:center;gap:13px}
@@ -259,15 +264,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .band.tiny .cell.deg{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.92) 0 1.5px,transparent 1.5px 4px)}
 .band.tiny .cell.off{background-image:none;box-shadow:inset 0 0 0 2px rgba(69,10,10,.75)}
 
-/* Filtered out. The square keeps its place — the shape of the assignment is
-   why this band exists — but empties to a neutral dot instead of fading:
-   a 28%-opacity red ✕ next to a full-strength orange hatch is a coin toss. */
-.cell.out{background:none;box-shadow:none;cursor:not-allowed}
-.cell.out::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;
-  margin:-2.5px 0 0 -2.5px;border-radius:50%;background:var(--ink-4)}
-.cell.out:hover,.cell.out:focus-visible{transform:none}
-@keyframes cnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-2.5px)}75%{transform:translateX(2.5px)}}
-.cell.nudge{animation:cnudge .24s ease-in-out 2}
+
 .cell.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
 
 /* ---- a cell that is a group of centers: a labelled tile ----
@@ -304,13 +301,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    dark site is the call you are about to get — so a non-zero slice never
    disappears. */
 .tbar i.min{min-width:5px}
-/* Matching share, when a filter is on and the group is only partly in it. */
-.tpm{position:absolute;left:0;bottom:5px;height:2px;background:var(--blue);width:var(--pm)}
-.tile.out{background:var(--fill-2);border-color:var(--line-2);cursor:not-allowed}
-.tile.out .tn{color:var(--ink-4)}
-.tile.out .tc{color:var(--ink-4)}
-.tile.out:hover{transform:none;box-shadow:none}
-.tile.out .tbar i{background:var(--line-3)}
+
 .tile.pending{background:var(--fill);border-color:var(--line-2);pointer-events:none}
 .tile.pending .tn,.tile.pending .tc{visibility:hidden}
 
@@ -318,9 +309,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .bandlegend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;
   padding-top:8px;border-top:1px solid var(--line-2)}
 .lgs{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;position:relative}
-.lgs.dot{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2)}
-.lgs.dot::before{content:"";position:absolute;left:50%;top:50%;width:5px;height:5px;margin:-2.5px 0 0 -2.5px;
-  border-radius:50%;background:var(--ink-4)}
 .lgs.split{display:inline-flex;gap:1px;width:26px;border-radius:3px;overflow:hidden;height:9px}
 .lgs.split i{display:block;height:100%}
 
@@ -1002,6 +990,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               </div>
               <div class="bandbar" id="bandBar"></div>
               <div class="band cells" id="strip" role="group" aria-label="Center severity band"></div>
+              <p class="stripempty" id="bandEmpty" hidden></p>
               <div class="bandlegend" id="bandLegend"></div>
               <p class="bandsum" id="bandSum" aria-live="polite" aria-atomic="true"></p>
             </div>
@@ -2072,7 +2061,7 @@ function aggregate(cs){
     n:cs.length, attention: red + amber};
 }
 
-function buildCells(dim, scope, pass){
+function buildCells(dim, scope){
   const D = DIMS[dim], m = new Map();
   for (const c of scope){
     const k = String(D.key(c));
@@ -2083,9 +2072,7 @@ function buildCells(dim, scope, pass){
   const out = [];
   for (const g of m.values()){
     const a = aggregate(g.cs);
-    let match = 0; for (const c of g.cs) if (pass.has(c.id)) match++;
-    out.push({dim, k:g.k, name:g.name, short:g.short, cs:g.cs, a, match,
-      share: g.cs.length ? match / g.cs.length : 0,
+    out.push({dim, k:g.k, name:g.name, short:g.short, cs:g.cs, a,
       st: dim === "center" ? centerStatus(g.cs[0]) : null});
   }
   /* Worst first, always, so the answer is the top-left corner and what falls
@@ -2123,21 +2110,21 @@ function planFor(dim, count, width){
 }
 
 /* The finest zoom that still draws at a size worth reading. */
-function autoDim(scope, pass, width){
+function autoDim(scope, width){
   const counts = DIMKEYS.map(d=>{
     const set = new Set();
     for (const c of scope) set.add(DIMS[d].key(c));
     return {d, n:set.size};
   }).sort((a,b)=> b.n - a.n);
   for (const c of counts){
-    const cells = buildCells(c.d, scope, pass);
+    const cells = buildCells(c.d, scope);
     const drawn = drawnCount(cells);
     const p = planFor(c.d, drawn, width);
     const legible = c.d === "center" ? p.size >= 16 : p.w >= 54;
     if (legible && drawn <= p.cap) return {dim:c.d, cells};
   }
   const last = counts[counts.length-1];
-  return {dim:last.d, cells: buildCells(last.d, scope, pass)};
+  return {dim:last.d, cells: buildCells(last.d, scope)};
 }
 
 let bandSig   = "";       // DOM structure signature
@@ -2152,39 +2139,33 @@ const bandEngaged = () => S.bandHover || $("strip").contains(document.activeElem
 
 function renderStrip(){
   const width = bandWidth();
-  // Which centers survive the filters. The search text is deliberately left
-  // out: clicking a cell writes a center name into the search box, and letting
-  // that dim the band would black out the whole assignment on every click.
+  /* The filters take centers out of the band exactly as they take rows out of
+     the list below. The search text is the one exception: clicking a cell
+     writes a center name into the search box, and letting that narrow the band
+     would leave one square on screen the instant you used it. */
   const pass = new Set();
   for (const c of DATA) if (matchesFilters(c, {ignoreQ:true})) pass.add(c.id);
-
-  /* Two regimes, and the line between them is drawn at the finest zoom — one
-     cell per center — because that is the only zoom at which "the band always
-     shows the whole assignment" means anything.
-
-     While a cell can be a center, filtering dims in place: every center keeps
-     its position and the excluded ones empty out to a dot. Once it can't be,
-     holding position is no longer on offer, and drawing fifty grey state tiles
-     to say "nothing in here matches" is a wall rather than context. So
-     filtering re-scopes instead, the band re-tiers inside whatever is left,
-     and a chip says how many dropped out. */
-  let unhealthy = 0;
-  for (const c of DATA) if (tally(c).bad) unhealthy++;
-  const fine = S.bandFold ? unhealthy : DATA.length;
-
-  let scope = DATA;
-  bandScopeAll = true;
-  if (fine > CAP_CELLS && pass.size < DATA.length){
-    scope = DATA.filter(c=>pass.has(c.id));
-    bandScopeAll = false;
-  }
+  const scope = pass.size === DATA.length ? DATA : DATA.filter(c=>pass.has(c.id));
+  bandScopeAll = pass.size === DATA.length;
   bandScopeN = scope.length;
 
-  const a = autoDim(scope, pass, width);
+  const empty = $("bandEmpty");
+  empty.hidden = !!scope.length;
+  if (!scope.length){
+    $("strip").innerHTML = ""; CELLS = []; bandSig = ""; bandOrder = null;
+    empty.innerHTML = 'No centers match these filters. <b>All '
+      + DATA.length.toLocaleString() + '</b> are filtered out.'
+      + '<button id="bandClear">Clear the filters</button>';
+    renderBandBar({folded:0, foldedCenters:0, over:0});
+    renderBandHead(); renderBandLegend(); renderMini();
+    return;
+  }
+
+  const a = autoDim(scope, width);
   let dim = a.dim, cells = a.cells;
   if (S.bandDimPick && S.bandDimPick !== dim){
     dim = S.bandDimPick;
-    cells = buildCells(dim, scope, pass);
+    cells = buildCells(dim, scope);
   }
   bandDimNow = dim;
 
@@ -2236,7 +2217,6 @@ function renderStrip(){
         return '<button class="cell" data-k="' + esc(x.k) + '" data-cid="' + esc(x.k) + '"' + tab + '></button>';
       return '<button class="tile' + (bandPlan.full ? '' : ' narrow') + '" data-k="' + esc(x.k) + '"' + tab + '>'
         + '<span class="tn"></span><span class="tc"></span>'
-        + '<i class="tpm" hidden></i>'
         + '<i class="tbar"><i class="b-off"></i><i class="b-deg"></i><i class="b-ok"></i></i></button>';
     }).join("");
     bandSig = sig;
@@ -2259,15 +2239,11 @@ function cellWords(x){
   bits.push(a.green + " all healthy");
   return x.name + ". " + plural(a.n, "center") + ": " + bits.join(", ") + ".";
 }
-function cellAction(x, out, picked){
+function cellAction(x, picked){
   if (x.dim === "center")
-    return out ? "Filtered out — change or clear your filters to search it."
-      : picked ? "Clear this search." : "Search for this center.";
-  const partial = x.match > 0 && x.match < x.cs.length;
-  return (out ? "No center here matches the current filters."
-    : picked ? "Selected. Activate to drop this filter."
-    : "Activate to filter to this group; hold Command or Control to add it.")
-    + (partial ? " " + x.match + " of " + x.cs.length + " centers match." : "");
+    return picked ? "Clear this search." : "Search for this center.";
+  return picked ? "Selected. Activate to drop this filter."
+    : "Activate to filter to this group; hold Command or Control to add it.";
 }
 
 function patchStrip(){
@@ -2287,32 +2263,28 @@ function patchStrip(){
     const b = nodes[i], x = CELLS[i];
     if (!x) continue;
     const isCenter = x.dim === "center";
-    const out = x.match === 0;
     const facet = DIMS[x.dim].facet;
     const picked = isCenter ? S.centerPick === x.k : !!(facet && S[facet].includes(x.k));
 
     if (isCenter){
-      b.className = ["cell", out ? "out" : x.st, picked ? "picked" : "",
-        // a refusal nudge in flight outlives the re-render that triggered it
-        b.classList.contains("nudge") ? "nudge" : ""].filter(Boolean).join(" ");
+      b.className = ["cell", x.st, picked ? "picked" : ""].filter(Boolean).join(" ");
     } else {
       const a = x.a;
-      b.className = ["tile", bandPlan.full ? "" : "narrow", out ? "out" : "",
+      b.className = ["tile", bandPlan.full ? "" : "narrow",
         a.red ? "hasred" : "", picked ? "picked" : ""].filter(Boolean).join(" ");
       const tn = b.querySelector(".tn");
       const label = bandPlan.full ? x.name : x.short;
       if (tn && tn.textContent !== label) tn.textContent = label;
-      // Wide enough for a sentence, or narrow enough that only the number fits.
+      /* Wide enough for a sentence, or narrow enough that only the number fits.
+         Once a filter has narrowed the band, every center drawn is one the
+         filter kept, so "111 of 111 need attention" is a tautology — the useful
+         number is how many of the matches live here. */
       const tc = b.querySelector(".tc");
-      // Once filtering has re-scoped the band, every center drawn is one the
-      // filter kept, so "111 of 111 need attention" is a tautology — the useful
-      // number is how many of the matches live here.
       const txt = bandPlan.full
-        ? (out ? "none match"
-           : !bandScopeAll ? "<b>" + a.n + "</b> " + (a.n === 1 ? "center" : "centers")
+        ? (!bandScopeAll ? "<b>" + a.n + "</b> " + (a.n === 1 ? "center" : "centers")
            : a.attention ? "<b>" + a.attention + "</b> of " + a.n + " need attention"
            : "all " + a.n + " reporting")
-        : (out ? "–" : !bandScopeAll ? String(a.n) : a.attention ? String(a.attention) : "✓");
+        : (!bandScopeAll ? String(a.n) : a.attention ? String(a.attention) : "✓");
       if (tc.innerHTML !== txt) tc.innerHTML = txt;
       const seg = b.querySelectorAll(".tbar i");
       const parts = [a.red, a.amber, a.green];
@@ -2321,16 +2293,9 @@ function patchStrip(){
         seg[k].hidden = !parts[k];
         seg[k].classList.toggle("min", !!parts[k]);
       }
-      const pm = b.querySelector(".tpm");
-      const partial = !out && x.match < x.cs.length;
-      pm.hidden = !partial;
-      if (partial) pm.style.setProperty("--pm", (x.share * 100).toFixed(1) + "%");
     }
-    // aria-disabled, not disabled: a locked cell still has to be hoverable,
-    // because "why can't I click this one" is answered by the card it shows.
-    b.setAttribute("aria-disabled", String(isCenter && out));
     b.setAttribute("aria-pressed", String(picked));
-    b.setAttribute("aria-label", cellWords(x) + " " + cellAction(x, out, picked));
+    b.setAttribute("aria-label", cellWords(x) + " " + cellAction(x, picked));
   }
 }
 
@@ -2401,13 +2366,7 @@ function renderBandLegend(){
     ? '<span class="lg"><span class="lgs split"><i style="flex:1;background:var(--off)"></i>'
       + '<i style="flex:2;background:var(--deg)"></i><i style="flex:5;background:var(--ok)"></i></span>'
       + 'how a group splits across the three</span>' : "";
-  const outd = CELLS.some(c=>c.match === 0)
-    ? '<span class="lg"><span class="lgs dot"></span>filtered out</span>' : "";
-  const pm = CELLS.some(c=>c.match > 0 && c.match < c.cs.length)
-    ? '<span class="lg"><span class="lgs" style="background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2)">'
-      + '<i style="position:absolute;left:0;bottom:2px;height:2px;width:60%;background:var(--blue)"></i></span>'
-      + 'part of the group matches</span>' : "";
-  $("bandLegend").innerHTML = three + bar + outd + pm;
+  $("bandLegend").innerHTML = three + bar;
 
   // One sentence for a screen reader, not two hundred announced cells.
   const scope = bandScopeAll ? DATA : DATA.filter(c=>matchesFilters(c,{ignoreQ:true}));
@@ -2523,17 +2482,6 @@ function pickCenter(id){
   $("announce").textContent = `Searching for ${c.name}. ${centerStateWords(c)}.`;
 }
 
-/* A locked block still answers — with the reason, not with a search. Silence
-   reads as a broken prototype, and clearing the filters on their behalf would
-   undo the work that locked it in the first place. */
-function refuseCenter(b){
-  const c = DATA.find(x=>x.id===b.dataset.cid);
-  b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge");
-  setTimeout(()=>b.classList.remove("nudge"), 620);
-  showCenterTip(b);
-  if (c) $("announce").textContent =
-    `${c.name} is filtered out. Change or clear your filters to search it.`;
-}
 function clearCenterPick(){
   S.centerPick = null; S.q = ""; S.qDraft = ""; S.page = 1;
   $("q").value = "";
@@ -3181,7 +3129,6 @@ function showCenterTip(b){
   if (S.sel) return;
   const x = CELLS[[...$("strip").children].indexOf(b)];
   if (!x) return;
-  const locked = b.getAttribute("aria-disabled") === "true";
   if (x.dim === "center"){
     const c = x.cs[0], t = tally(c), st = centerStatus(c);
     tip.innerHTML = '<b>' + esc(c.name) + '</b>'
@@ -3189,13 +3136,12 @@ function showCenterTip(b){
       + '<span class="row"><span class="sw ' + st + '" style="width:10px;height:10px;border-radius:3px"></span>'
       + centerStateWords(c) + '</span>'
       + (t.outage ? '<em class="num">Offline ' + dur(t.outage) + '</em>' : "")
-      + '<em style="margin-top:5px;font-weight:700;color:' + (locked?"var(--ink-3)":"var(--blue-ink)") + '">'
-      + (locked ? "Filtered out — change your filters to search it"
-         : S.centerPick===c.id ? "Click to clear this search"
+      + '<em style="margin-top:5px;font-weight:700;color:var(--blue-ink)">'
+      + (S.centerPick===c.id ? "Click to clear this search"
          : "Click to search this center below") + '</em>';
     return placeTip(b);
   }
-  const a = x.a, partial = x.match < x.cs.length;
+  const a = x.a;
   const row = (cls, n, words) => n
     ? '<span class="row"><span class="sw ' + cls + '" style="width:10px;height:10px;border-radius:3px"></span>'
       + '<span class="num"><b>' + n.toLocaleString() + '</b> ' + words + '</span></span>' : "";
@@ -3206,11 +3152,8 @@ function showCenterTip(b){
     + row("deg", a.amber, a.amber === 1 ? "center partly affected" : "centers partly affected")
     + row("ok",  a.green, a.green === 1 ? "center all healthy" : "centers all healthy")
     + (a.outage ? '<em class="num">Longest outage ' + dur(a.outage) + '</em>' : "")
-    + (partial ? '<em class="num" style="margin-top:3px">' + x.match + ' of ' + x.cs.length
-        + ' centers match the current filters</em>' : "")
-    + '<em style="margin-top:5px;font-weight:700;color:' + (x.match?"var(--blue-ink)":"var(--ink-3)") + '">'
-      + (x.match ? "Click to filter to this group · ⌘/Ctrl-click to add" : "Nothing here matches your filters")
-      + '</em>';
+    + '<em style="margin-top:5px;font-weight:700;color:var(--blue-ink)">'
+      + "Click to filter to this group · ⌘/Ctrl-click to add" + '</em>';
   placeTip(b);
 }
 /* Which camera block the pointer is on, so a re-render can put the
@@ -3250,11 +3193,7 @@ const cellFor = b => CELLS[[...strip.children].indexOf(b)];
 strip.addEventListener("click", e=>{
   const b = e.target.closest(CELLSEL); if (!b || b.parentElement !== strip) return;
   const x = cellFor(b); if (!x) return;
-  if (x.dim === "center"){
-    if (b.getAttribute("aria-disabled") === "true") return refuseCenter(b);
-    return pickCenter(x.k);
-  }
-  if (!x.match) return;
+  if (x.dim === "center") return pickCenter(x.k);
   drillDim(x, e.metaKey || e.ctrlKey);
 });
 strip.addEventListener("mouseenter", ()=>{ S.bandHover = true; });
@@ -3314,6 +3253,7 @@ $("bandBar").addEventListener("click", e=>{
       ? "Healthy centers folded away." : "Healthy centers shown.";
   }
 });
+$("bandEmpty").addEventListener("click", e=>{ if (e.target.closest("#bandClear")) clearAll(); });
 $("bandHeadSlot").addEventListener("click", e=>{
   const b = e.target.closest("#colorInfo"); if (b) openInfo("infoColors", b);
 });

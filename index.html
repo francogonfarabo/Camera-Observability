@@ -190,6 +190,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .board{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-card)}
 .strip{padding:11px 14px 12px}
 .strip-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+/* Filters empty this component the same way they empty the list, so it needs
+   the same courtesy the list already has: a line saying so. */
+.stripempty{font-size:12.5px;color:var(--ink-3);padding:6px 2px 2px}
+.stripempty b{color:var(--ink-2);font-weight:700}
+.stripempty button{font-weight:700;color:var(--blue-ink);text-decoration:underline;margin-left:4px}
 .strip-title{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
 .strip-head .legend{margin-left:auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}
 .legend{display:flex;align-items:center;gap:13px}
@@ -200,11 +205,16 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   border:1px solid var(--line-2);background:var(--surface);color:var(--ink-3);cursor:pointer;flex-shrink:0}
 .lginfo:hover{border-color:var(--blue);color:var(--blue-ink)}
 .lginfo:focus-visible{box-shadow:var(--focus);outline:none}
-.cgroups{display:flex;flex-wrap:wrap;gap:10px 18px}
+/* One column per brand, on a grid rather than a flex wrap. A flex item sizes
+   to its content, so a brand with two sick centers came out 60px wide next to
+   one with forty at 340px, and the whole band collapsed into a ragged
+   two-column masonry with holes in it. Equal columns, aligned to the top. */
+.cgroups{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));
+  gap:12px 18px;align-items:start;position:relative}
 .cgroup{display:flex;flex-direction:column;gap:5px;min-width:0}
 .glabel{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-4);
   font-family:'Titillium Web',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-.crow{display:flex;flex-wrap:wrap;gap:5px;max-width:min(100%,340px)}
+.crow{display:flex;flex-wrap:wrap;gap:5px;max-width:100%}
 /* Same three-way encoding as a camera block — color plus shape — one level up. */
 .cblk{position:relative;width:24px;height:24px;border-radius:6px;flex-shrink:0;background-repeat:no-repeat;
   background-position:center;background-size:100% 100%;transition:transform .11s,box-shadow .12s,opacity .12s}
@@ -213,14 +223,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .cblk.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.1' stroke-linecap='round'/%3E%3C/svg%3E")}
 .cblk:hover{transform:translateY(-2px)}
 .cblk:focus-visible{box-shadow:var(--focus);transform:translateY(-2px)}
-/* Filtered out means filtered out: the block stays visible so the shape of
-   the assignment doesn't collapse, but it is not a door. Clicking it used to
-   silently tear down the filters that excluded it, which is a strange thing
-   for a dimmed control to do. */
-.cblk.muted{opacity:.28;cursor:not-allowed}
-.cblk.muted:hover,.cblk.muted:focus-visible{transform:none}
-@keyframes cnudge{0%,100%{transform:translateX(0)}25%{transform:translateX(-2.5px)}75%{transform:translateX(2.5px)}}
-.cblk.nudge{animation:cnudge .24s ease-in-out 2}
+
 .cblk.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
 .cblk.picked{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue);transform:translateY(-2px)}
 /* The healthy tail of a brand, rolled into one square and a count. A row of
@@ -234,6 +237,23 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .wellchip:focus-visible{box-shadow:var(--focus);outline:none}
 .wellchip[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
 .wellchip .sw{width:11px;height:11px;border-radius:3px}
+
+/* A default height, and a way past it.
+   Three brand rows is about as much as this component can take at the top of
+   a page before it stops being a header and starts being the page. Past that
+   it clips and says so, and one click opens the rest — a drag handle was the
+   alternative and it is both harder to find and harder to aim at. */
+.cgroups.capped{max-height:var(--stripcap,200px);overflow:hidden}
+.cgroups.faded{-webkit-mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent);
+  mask-image:linear-gradient(to bottom,#000 calc(100% - 30px),transparent)}
+.stripmore{display:flex;justify-content:center;margin-top:6px}
+.stripmore[hidden]{display:none}
+.stripmore button{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
+  color:var(--ink-2);background:var(--fill);border:1px solid var(--line);border-radius:20px;padding:4px 12px}
+.stripmore button:hover{border-color:var(--line-3);background:var(--surface)}
+.stripmore button:focus-visible{box-shadow:var(--focus);outline:none}
+.stripmore svg{transition:transform .15s}
+.stripmore button[aria-expanded="true"] svg{transform:rotate(180deg)}
 .wellchip[aria-pressed="true"] .sw{background-color:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 
 /* ---------- toolbar ---------- */
@@ -739,8 +759,11 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .foptlist,.fsearch+.foptlist{max-height:none;flex:1}
   .sortlist,.sortdir{flex-shrink:0}
   .fpanel-foot{flex-shrink:0;padding-bottom:14px}
-  .crow{max-width:none}
   .strip-head .legend{margin-left:0;width:100%;gap:12px;flex-wrap:wrap}
+  /* One brand per column on a phone, so the default height has to come down
+     with it — eight stacked brands is the whole screen. */
+  .cgroups{grid-template-columns:1fr}
+  .cgroups.capped{--stripcap:150px}
   .sv-save{margin-left:0}
   .camscrim{padding:0;place-items:end stretch}
   .drawer{width:auto;max-height:88dvh;border-radius:14px 14px 0 0}
@@ -887,6 +910,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
                 </span>
               </div>
               <div class="cgroups" id="strip" role="group" aria-label="All centers you can see"></div>
+              <p class="stripempty" id="stripEmpty" hidden></p>
+              <div class="stripmore" id="stripMoreWrap" hidden>
+                <button id="stripMore" aria-controls="strip" aria-expanded="false"></button>
+              </div>
             </div>
 
             <div class="filters">
@@ -1423,6 +1450,7 @@ const S = {
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" strip
   openWell:{},          // brands whose all-healthy centers are expanded
+  stripOpen:false,      // the centers overview, opened past its default height
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
   filtersOpen:false, sortOpen:false, savedViews:[], savingOpen:false
@@ -1876,10 +1904,16 @@ function centerStateWords(c){
    600 the two red squares are somewhere in the fourth row of a green field.
    Ordering by state costs nothing and folding the greens costs one square and
    a number, which says the same thing the forty squares said. */
+/* The filters take centers out of here exactly as they take rows out of the
+   list below — no grey ghosts of what you filtered away. The search text is
+   the one exception: clicking a block writes that center's name into the
+   search field, and letting that narrow the strip would leave one square on
+   screen the instant you used it. */
 function stripGroups(){
   const rank = c => { const st = centerStatus(c); return st === "off" ? 0 : st === "deg" ? 1 : 2; };
   const m = new Map();
-  DATA.forEach(c => { if (!m.has(c.brand)) m.set(c.brand, []); m.get(c.brand).push(c); });
+  DATA.forEach(c => { if (!matchesFilters(c, {ignoreQ:true})) return;
+    if (!m.has(c.brand)) m.set(c.brand, []); m.get(c.brand).push(c); });
   return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
     .map(([brand, cs]) => {
       const ordered = [...cs].sort((a,b)=>
@@ -1916,7 +1950,42 @@ function renderStrip(){
     }).join("");
     stripSig = sig;
   }
+  const empty = $("stripEmpty");
+  empty.hidden = !!groups.length;
+  if (!groups.length)
+    empty.innerHTML = 'No centers match these filters. <b>All '
+      + DATA.length.toLocaleString() + '</b> are filtered out.'
+      + '<button id="stripClear">Clear the filters</button>';
   patchStrip();
+  syncStripHeight();
+}
+
+/* How tall this component is allowed to be by default, and whether there is
+   anything past that worth offering. Measured rather than counted: how much
+   fits depends on the window, not on how many centers there are. */
+let stripOverflows = false;
+function syncStripHeight(){
+  const box = $("strip"), wrap = $("stripMoreWrap"), btn = $("stripMore");
+  box.classList.toggle("capped", !S.stripOpen);
+  /* Only measurable while capped — and expanding only ever adds height, so a
+     component that overflowed when closed still would when reopened.
+
+     The slack matters: a grid of brands that runs forty pixels past the cap
+     does not need a control, it needs forty more pixels. Offering "show the
+     whole overview" for one clipped row of squares is a worse trade than just
+     showing them, so below the tolerance the cap comes off entirely and the
+     button never appears. In practice that puts the threshold somewhere past
+     six hundred centers — which is where the cap starts earning its place. */
+  if (!S.stripOpen) stripOverflows = box.scrollHeight - box.clientHeight > 40;
+  box.classList.toggle("capped", !S.stripOpen && stripOverflows);
+  box.classList.toggle("faded", !S.stripOpen && stripOverflows);
+  wrap.hidden = !stripOverflows;
+  btn.setAttribute("aria-expanded", String(S.stripOpen));
+  // Not "show all N centers": the healthy ones stay folded behind their own
+  // per-brand chips, and promising them here would be a promise this button
+  // does not keep.
+  btn.innerHTML = (S.stripOpen ? "Show less" : "Show the whole overview")
+    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M6 9l6 6 6-6"/></svg>';
 }
 
 function patchStrip(){
@@ -1930,27 +1999,13 @@ function patchStrip(){
     });
     return;
   }
-  // Dimming answers "which centers did the filters rule out" — and the
-  // search text is deliberately excluded from that, because the search is
-  // usually the strip's own doing. Letting it dim would black out seventy-two
-  // blocks the moment you clicked the seventy-third.
-  const pass = new Set(DATA.filter(c=>matchesFilters(c,{ignoreQ:true})).map(c=>c.id));
   $("strip").querySelectorAll(".cblk").forEach(b => {
     const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
-    const open = pass.has(c.id);
-    b.className = ["cblk", centerStatus(c),
-      open ? "" : "muted",
-      S.centerPick === c.id ? "picked" : "",
-      // a refusal nudge in flight outlives the re-render that triggered it
-      b.classList.contains("nudge") ? "nudge" : ""].filter(Boolean).join(" ");
-    // aria-disabled, not disabled: the block still has to be reachable and
-    // hoverable, because "why can't I click this one" is answered by the card
-    // it shows, not by going inert.
-    b.setAttribute("aria-disabled", String(!open));
+    b.className = ["cblk", centerStatus(c), S.centerPick === c.id ? "picked" : ""]
+      .filter(Boolean).join(" ");
     b.setAttribute("aria-pressed", String(S.centerPick === c.id));
-    b.setAttribute("aria-label", `${c.name}. ${centerStateWords(c)}.`
-      + ` ${!open ? "Filtered out — change or clear your filters to search it."
-             : S.centerPick===c.id ? "Clear this search." : "Search for this center."}`);
+    b.setAttribute("aria-label", `${c.name}. ${centerStateWords(c)}. `
+      + (S.centerPick===c.id ? "Clear this search." : "Search for this center."));
   });
 }
 
@@ -1982,17 +2037,6 @@ function pickCenter(id){
   $("announce").textContent = `Searching for ${c.name}. ${centerStateWords(c)}.`;
 }
 
-/* A locked block still answers — with the reason, not with a search. Silence
-   reads as a broken prototype, and clearing the filters on their behalf would
-   undo the work that locked it in the first place. */
-function refuseCenter(b){
-  const c = DATA.find(x=>x.id===b.dataset.cid);
-  b.classList.remove("nudge"); void b.offsetWidth; b.classList.add("nudge");
-  setTimeout(()=>b.classList.remove("nudge"), 620);
-  showCenterTip(b);
-  if (c) $("announce").textContent =
-    `${c.name} is filtered out. Change or clear your filters to search it.`;
-}
 function clearCenterPick(){
   S.centerPick = null; S.q = ""; S.qDraft = ""; S.page = 1;
   $("q").value = "";
@@ -2639,14 +2683,12 @@ function showCenterTip(b){
   if (S.sel) return;
   const c = DATA.find(x=>x.id===b.dataset.cid); if (!c) return;
   const t = tally(c), st = centerStatus(c);
-  const locked = b.getAttribute("aria-disabled") === "true";
   tip.innerHTML = `<b>${esc(c.name)}</b>
     <em class="num">${c.state} · Store #${c.store} · ${t.total} cameras</em>
     <span class="row"><span class="sw ${st}" style="width:10px;height:10px;border-radius:3px"></span>${centerStateWords(c)}</span>
     ${t.outage ? `<em class="num">Offline ${dur(t.outage)}</em>` : ""}
-    <em style="margin-top:5px;font-weight:700;color:${locked?"var(--ink-3)":"var(--blue-ink)"}">${
-      locked ? "Filtered out — change your filters to search it"
-      : S.centerPick===c.id ? "Click to clear this search"
+    <em style="margin-top:5px;font-weight:700;color:var(--blue-ink)">${
+      S.centerPick===c.id ? "Click to clear this search"
       : "Click to search this center below"}</em>`;
   placeTip(b);
 }
@@ -2691,7 +2733,6 @@ strip.addEventListener("click", e=>{
     return;
   }
   const b = e.target.closest(".cblk"); if (!b) return;
-  if (b.getAttribute("aria-disabled") === "true") return refuseCenter(b);
   pickCenter(b.dataset.cid);
 });
 strip.addEventListener("mouseover", e=>{ const b=e.target.closest(".cblk"); if (b) showCenterTip(b); });
@@ -2719,6 +2760,21 @@ strip.addEventListener("keydown", e=>{
    it clears the line out of the way while you work, and a reload brings it
    back. Nothing about it is written to storage. */
 function showNotice(on){ $("notice").hidden = !on; }
+$("stripMore").onclick = ()=>{
+  S.stripOpen = !S.stripOpen;
+  syncStripHeight();
+  $("announce").textContent = S.stripOpen
+    ? "Centers overview expanded."
+    : "Centers overview back to its default height.";
+};
+$("stripEmpty").addEventListener("click", e=>{ if (e.target.closest("#stripClear")) clearAll(); });
+// How much fits is a measurement, so a resize can change the answer.
+let stripRz = 0;
+window.addEventListener("resize", ()=>{
+  clearTimeout(stripRz);
+  stripRz = setTimeout(syncStripHeight, 150);
+});
+
 $("noticeX").onclick = ()=>{
   showNotice(false);
   $("announce").textContent = "Notice dismissed. You are still seeing every center assigned to you.";
@@ -3038,7 +3094,7 @@ function setFleet(size){
   GEN++;
   FKEYS.forEach(k => S[k] = []);
   S.q = ""; S.qDraft = ""; S.kpi = null; S.centerPick = null; S.page = 1;
-  S.sel = null; S.fsearch = ""; S.openWell = {};
+  S.sel = null; S.fsearch = ""; S.openWell = {}; S.stripOpen = false;
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   stripSig = "";
   $("q").value = ""; $("qField").classList.remove("linked");

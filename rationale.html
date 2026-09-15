@@ -242,9 +242,7 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   cameras — and came back, because a green square that could still hide a problem put the strip out of step
   with the filter and the headline count. The rule is stated beside the legend it governs rather than left
   to be inferred. <strong>Sort labels went neutral</strong> — "Longest Outage" became
-  <em>Outage Time</em> — with the direction saying which end you want. <strong>Filtered-out centers are locked</strong> rather than clickable: the strip used
-  to answer a click on a dimmed block by tearing down the filters that dimmed it, which is a strange thing
-  for a greyed control to do, so it now nudges and says why instead. And <strong>the search field states its
+  <em>Outage Time</em> — with the direction saying which end you want. And <strong>the search field states its
   job once</strong>, in a placeholder that no longer changes underneath the reader.</p>
   <p>A review pass then closed four gaps. The <strong>State</strong> list was interleaving Alberta between
   Alaska and Arizona; it is grouped under country headings now, and still not gated, because a state name is
@@ -322,12 +320,14 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   level up, one block per center the account can see, grouped by brand so the hunt for a particular site is
   bounded. It is not a separate card — it shares one card with the search and filter row, because its real job
   is navigational: clicking a block writes that center's name into the field below it and the list narrows to
-  that center. Two rules keep that promise honest. <strong>Filters win:</strong> a block the filters exclude is
-  dimmed <em>and locked</em>, and clicking it explains itself rather than searching — an earlier version
-  answered that click by silently dropping the filters that excluded the center, which made a greyed control
-  behave like a reset button. And the search text is excluded from the strip's own dimming — filters dim the
-  blocks they rule out, but letting the search dim them would black out seventy-two blocks the moment you
-  clicked the seventy-third, which is the opposite of what an overview is for.</p>
+  that center. Two rules keep that promise honest. <strong>Filters take centers out of it</strong>, exactly as they take
+  rows out of the list below, and the space comes back. That took two tries to get right: the first version
+  answered a click on a filtered-out block by silently dropping the filters that excluded it, which made a
+  greyed control behave like a reset button; the second locked the block and explained itself, which was
+  honest but left an overview two thirds full of grey ghosts of what you had just filtered away. A filter
+  means <em>show me less</em>. And <strong>the search text is the one exception</strong> — clicking a block
+  writes that center's name into the field below, and if the search narrowed this component too, using it
+  once would leave a single square on screen, which is the opposite of what an overview is for.</p>
   <p>The three colours in the strip answer a different question from the three inside a center. A
   <em>camera</em> is offline, degraded or normal — three states of one device. A <em>center</em> is a verdict
   on the whole site, and only its two ends are precise: <strong>green</strong> means nothing offline and
