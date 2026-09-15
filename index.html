@@ -223,6 +223,18 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .cblk.nudge{animation:cnudge .24s ease-in-out 2}
 .cblk.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
 .cblk.picked{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--blue);transform:translateY(-2px)}
+/* The healthy tail of a brand, rolled into one square and a count. A row of
+   forty identical green blocks is forty pixels of "nothing to do here" said
+   forty times, and it pushes the two red ones off the top of the screen. */
+.wellchip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:20px;
+  border:1px solid var(--ok-line);background:var(--ok-tint);color:#15803d;font-size:11px;font-weight:600;
+  white-space:nowrap;flex-shrink:0;max-width:100%;overflow:hidden}
+.wellchip b{font-weight:700;font-variant-numeric:tabular-nums}
+.wellchip:hover{border-color:var(--ok)}
+.wellchip:focus-visible{box-shadow:var(--focus);outline:none}
+.wellchip[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.wellchip .sw{width:11px;height:11px;border-radius:3px}
+.wellchip[aria-pressed="true"] .sw{background-color:#fff;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 
 /* ---------- toolbar ---------- */
 .filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 14px;
@@ -1410,6 +1422,7 @@ const S = {
   sel:null,             // {ci, idx}
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" strip
+  openWell:{},          // brands whose all-healthy centers are expanded
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
   filtersOpen:false, sortOpen:false, savedViews:[], savingOpen:false
@@ -1856,26 +1869,51 @@ function centerStateWords(c){
   return base;
 }
 
+/* Worst first, inside each brand, with the healthy tail rolled up.
+
+   The strip's job is "what needs me", and the old order — alphabetical, every
+   center drawn — answered it last. At 73 centers that is a mild annoyance; at
+   600 the two red squares are somewhere in the fourth row of a green field.
+   Ordering by state costs nothing and folding the greens costs one square and
+   a number, which says the same thing the forty squares said. */
 function stripGroups(){
+  const rank = c => { const st = centerStatus(c); return st === "off" ? 0 : st === "deg" ? 1 : 2; };
   const m = new Map();
   DATA.forEach(c => { if (!m.has(c.brand)) m.set(c.brand, []); m.get(c.brand).push(c); });
   return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
-    .map(([brand, cs]) => ({brand, cs:[...cs].sort((a,b)=>a.name.localeCompare(b.name))}));
+    .map(([brand, cs]) => {
+      const ordered = [...cs].sort((a,b)=>
+        rank(a) - rank(b) || tally(b).bad - tally(a).bad || a.name.localeCompare(b.name));
+      return {brand,
+        sick: ordered.filter(c=>rank(c) < 2),
+        well: ordered.filter(c=>rank(c) === 2)};
+    });
 }
 
 let stripSig = "";
 function renderStrip(){
   const groups = stripGroups();
-  const sig = groups.map(g=>g.brand+":"+g.cs.map(c=>c.id).join("|")).join(";");
+  const blk = c => { const t = '<button class="cblk" data-cid="' + c.id + '" tabindex="' + (first?0:-1) + '"></button>';
+    first = false; return t; };
+  let first = true;
+  const sig = groups.map(g => g.brand + ":" + (S.openWell[g.brand] ? "o" : "c") + ":"
+    + g.sick.map(c=>c.id).join("|") + "/" + g.well.map(c=>c.id).join("|")).join(";");
   if (sig !== stripSig){
-    let first = true;
-    $("strip").innerHTML = groups.map(g => `<div class="cgroup">
-      <span class="glabel">${esc(g.brand)}</span>
-      <div class="crow">${g.cs.map(c=>{
-        const t = `<button class="cblk" data-cid="${c.id}" tabindex="${first?0:-1}"></button>`;
-        first = false; return t;
-      }).join("")}</div>
-    </div>`).join("");
+    $("strip").innerHTML = groups.map(g => {
+      const open = !!S.openWell[g.brand];
+      const shown = open ? [...g.sick, ...g.well] : g.sick;
+      // A brand with nothing wrong is the chip and nothing else: the row would
+      // otherwise be the loudest thing on screen for the quietest news.
+      const chip = g.well.length
+        ? '<button class="wellchip" data-well="' + esc(g.brand) + '" aria-pressed="' + open + '"'
+          + ' aria-label="' + esc(g.brand) + ': ' + plural(g.well.length, "center")
+          + ' with all cameras healthy. ' + (open ? "Hide them." : "Show them.") + '">'
+          + '<span class="sw ok"></span><b>' + g.well.length + '</b>'
+          + (open ? " shown" : " reporting OK") + '</button>'
+        : "";
+      return '<div class="cgroup"><span class="glabel">' + esc(g.brand) + '</span>'
+        + '<div class="crow">' + shown.map(blk).join("") + chip + '</div></div>';
+    }).join("");
     stripSig = sig;
   }
   patchStrip();
@@ -2642,6 +2680,16 @@ list.addEventListener("focusout",  e=>{
 /* ---------- the centers strip ---------- */
 const strip = $("strip");
 strip.addEventListener("click", e=>{
+  const w = e.target.closest("[data-well]");
+  if (w){
+    const brand = w.dataset.well;
+    S.openWell[brand] = !S.openWell[brand];
+    stripSig = ""; renderStrip();
+    $("announce").textContent = S.openWell[brand]
+      ? brand + ": showing the centers with all cameras healthy."
+      : brand + ": healthy centers folded away again.";
+    return;
+  }
   const b = e.target.closest(".cblk"); if (!b) return;
   if (b.getAttribute("aria-disabled") === "true") return refuseCenter(b);
   pickCenter(b.dataset.cid);
@@ -2653,8 +2701,9 @@ strip.addEventListener("focusout",  e=>{ if (e.target.closest(".cblk")) tip.clas
 // One roving tabindex across the whole strip, so brand groups don't turn
 // into seventy-three separate tab stops.
 strip.addEventListener("keydown", e=>{
-  const b = e.target.closest(".cblk"); if (!b) return;
-  const all = [...strip.querySelectorAll(".cblk")];
+  const b = e.target.closest(".cblk,.wellchip"); if (!b) return;
+  // The fold chips are controls in the same grid, not extra tab stops beside it.
+  const all = [...strip.querySelectorAll(".cblk,.wellchip")];
   const i = all.indexOf(b);
   const map = {ArrowRight:i+1, ArrowLeft:i-1, Home:0, End:all.length-1};
   if (!(e.key in map)) return;
@@ -2989,7 +3038,7 @@ function setFleet(size){
   GEN++;
   FKEYS.forEach(k => S[k] = []);
   S.q = ""; S.qDraft = ""; S.kpi = null; S.centerPick = null; S.page = 1;
-  S.sel = null; S.fsearch = "";
+  S.sel = null; S.fsearch = ""; S.openWell = {};
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   stripSig = "";
   $("q").value = ""; $("qField").classList.remove("linked");
