@@ -212,6 +212,13 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .cgroups{display:grid;grid-template-columns:repeat(auto-fill,minmax(264px,1fr));
   gap:12px 18px;align-items:start;position:relative}
 .cgroup{display:flex;flex-direction:column;gap:5px;min-width:0}
+/* A heading that is a blank field rather than a name says so by dropping out
+   of the uppercase the brand names are set in — small caps with tracking is the
+   "this is a proper noun" signal, so removing it is the whole message.
+   It keeps the same colour as the others: quiet is a weight and a case, not a
+   contrast ratio, and the line colour I reached for first came out at about
+   1.4:1 on white. */
+.glabel.none{text-transform:none;letter-spacing:0;font-weight:600;font-size:10.5px}
 .glabel{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-4);
   font-family:'Titillium Web',sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
 .crow{display:flex;flex-wrap:wrap;gap:5px;max-width:100%}
@@ -229,7 +236,10 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 /* The healthy tail of a brand, rolled into one square and a count. A row of
    forty identical green blocks is forty pixels of "nothing to do here" said
    forty times, and it pushes the two red ones off the top of the screen. */
-.wellchip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px;border-radius:20px;
+/* Shaped like the squares it stands in for, not like a pill: it sits in the
+   same row as them, at the same height and the same corner radius, so it reads
+   as the tail of the row rather than as a control that wandered in. */
+.wellchip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 8px;border-radius:6px;
   border:1px solid var(--ok-line);background:var(--ok-tint);color:#15803d;font-size:11px;font-weight:600;
   white-space:nowrap;flex-shrink:0;max-width:100%;overflow:hidden}
 .wellchip b{font-weight:700;font-variant-numeric:tabular-nums}
@@ -1098,7 +1108,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               reading can be out of date whatever it says, so it overlaps both. Values inside a category are
               ORed, so picking it together with <b>Has offline cameras</b> asks for centers matching
               <em>either</em>, not both.</span></dd></div>
-            <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.</dd></div>
+            <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.
+              <span class="d">About one site in twelve belongs to no chain and has an empty brand field.
+              Those are offered as <b>No brand</b> — last in the list, because it is the absence of a
+              brand rather than one more of them — and they get their own group in <em>Your centers</em>
+              for the same reason. "No brand" and not "Independent": the record says the field is empty,
+              which is not the same claim.</span></dd></div>
             <div class="irow"><dt>Payment model</dt><dd>Who pays for the camera service —
               <b>parent-pay</b> (families subscribe) or <b>center-pay</b> (the center covers it).</dd></div>
             <div class="irow"><dt>Parent access</dt><dd>Whether parents can watch this center's cameras
@@ -1169,6 +1184,19 @@ const ROOMS = ["Infant A","Infant B","Toddler A","Toddler B","Twos","Threes","Pr
 
 const BRANDS = ["Bright Path Academy","Cedar Grove","DoodleBugs","Kiddie Academy",
   "Little Acorns","Maple Street Kids","Riverbend Early Learning","Sunrise Learning"];
+
+/* One-off sites that belong to no chain. They have names like anyone else —
+   what they don't have is a brand, which is a different fact from not having
+   a name, and the board has to keep the two apart. */
+const INDIE = ["Acorn House","The Learning Tree","Wildflower Cottage","Harborview Kids",
+  "Stepping Stones","Cornerstone Kids","Bright Beginnings","Wee Care","Maple Lane",
+  "Riverstone Nursery","Sandbox Studio","Hollyhock House"];
+/* Shown wherever a brand would be. Deliberately "No brand" rather than
+   "Independent": the record says the field is empty, not that the business is
+   unaffiliated, and a board read by support staff should not upgrade a blank
+   into a claim. */
+const NO_BRAND = "No brand";
+const brandOf = c => c.brand || NO_BRAND;
 
 /* =====================================================================
    What the assessor decides, and what the browser decides.
@@ -1340,6 +1368,17 @@ function seeds(target = 73){
       pub: rnd() < .78 });
     k++;
   }
+  /* Not every center trades under one of the chains. Roughly one in twelve is
+     an independent site whose brand field is simply empty — which is the case
+     a grouped overview has to be built for, because a grouping that silently
+     drops a twelfth of the assignment is worse than no grouping at all.
+     Chosen by index, so the choice is stable across fleet sizes and costs the
+     seeded stream nothing. */
+  out.forEach((c, i) => {
+    if (i % 12 !== 5) return;
+    c.brand = "";
+    c.name = INDIE[Math.floor(i / 12) % INDIE.length] + " — " + c.city;
+  });
   return out;
 }
 let SEEDS = seeds();
@@ -1513,7 +1552,11 @@ const F = {
     ()=>[["issues","Has any issue"],["off","Has offline cameras"],
          ["deg","Has degraded cameras"],["stale","Has stale cameras"],
          ["clean","All cameras healthy"]]),
-  brand: facet("Brand", "All brands", (c,v)=>c.brand===v, ()=>uniqOpts(c=>c.brand,"brand")),
+  brand: facet("Brand", "All brands", (c,v)=>c.brand===v,
+    // "No brand" is not a brand whose name happens to start with N — it is the
+    // absence of one, so it sits at the end of the list rather than inside it.
+    ()=>uniqOpts(c=>c.brand,"brand").map(([v])=>[v, v || NO_BRAND])
+      .sort((a,b)=> (a[0]?0:1) - (b[0]?0:1) || a[1].localeCompare(b[1]))),
   pay: facet("Payment model", "Any payment model", (c,v)=>c.pay===v,
     ()=>[["parent","Parent-pay"],["center","Center-pay"]]),
   access: facet("Parent access", "Any parent access", (c,v)=>v==="parent"?c.pub:!c.pub,
@@ -1914,11 +1957,13 @@ function stripGroups(){
   const m = new Map();
   DATA.forEach(c => { if (!matchesFilters(c, {ignoreQ:true})) return;
     if (!m.has(c.brand)) m.set(c.brand, []); m.get(c.brand).push(c); });
-  return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
+  // The brandless sites are a group like any other, and last, because they are
+  // not a brand called "No brand" — they are what is left when brand is empty.
+  return [...m.entries()].sort((a,b)=> (a[0]?0:1) - (b[0]?0:1) || a[0].localeCompare(b[0]))
     .map(([brand, cs]) => {
       const ordered = [...cs].sort((a,b)=>
         rank(a) - rank(b) || tally(b).bad - tally(a).bad || a.name.localeCompare(b.name));
-      return {brand,
+      return {brand, label: brand || NO_BRAND, none: !brand,
         sick: ordered.filter(c=>rank(c) < 2),
         well: ordered.filter(c=>rank(c) === 2)};
     });
@@ -1940,12 +1985,13 @@ function renderStrip(){
       // otherwise be the loudest thing on screen for the quietest news.
       const chip = g.well.length
         ? '<button class="wellchip" data-well="' + esc(g.brand) + '" aria-pressed="' + open + '"'
-          + ' aria-label="' + esc(g.brand) + ': ' + plural(g.well.length, "center")
+          + ' aria-label="' + esc(g.label) + ': ' + plural(g.well.length, "center")
           + ' with all cameras healthy. ' + (open ? "Hide them." : "Show them.") + '">'
           + '<span class="sw ok"></span><b>' + g.well.length + '</b>'
           + (open ? " shown" : " reporting OK") + '</button>'
         : "";
-      return '<div class="cgroup"><span class="glabel">' + esc(g.brand) + '</span>'
+      return '<div class="cgroup"><span class="glabel' + (g.none ? ' none' : '') + '">'
+        + esc(g.label) + '</span>'
         + '<div class="crow">' + shown.map(blk).join("") + chip + '</div></div>';
     }).join("");
     stripSig = sig;
@@ -2105,11 +2151,11 @@ function renderPicker(){
   const hits = DATA.filter(x => !q || x.name.toLowerCase().includes(q) || x.store.includes(q)).slice(0, 8);
   d.hidden = false;
   d.innerHTML =
-    (c ? `<div class="dropsel"><b>${esc(c.name)}</b><em>${esc(c.brand)}</em></div>` : "")
+    (c ? `<div class="dropsel"><b>${esc(c.name)}</b><em>${esc(brandOf(c))}</em></div>` : "")
     + `<div class="dscroll">${hits.length
       ? hits.map(x=>`<button class="drow" role="option" data-pickc="${x.id}"
           aria-selected="${x.id===S.center}">
-          <span class="dn">${esc(x.name)}</span><span class="db">${esc(x.brand)} · Store #${esc(x.store)}</span></button>`).join("")
+          <span class="dn">${esc(x.name)}</span><span class="db">${esc(brandOf(x))} · Store #${esc(x.store)}</span></button>`).join("")
       : `<div class="dempty">No center matches "${esc(inp.value)}"</div>`}</div>`
     + `<button class="dfoot">Search all centers</button>`;
 }
@@ -2724,12 +2770,12 @@ const strip = $("strip");
 strip.addEventListener("click", e=>{
   const w = e.target.closest("[data-well]");
   if (w){
-    const brand = w.dataset.well;
+    const brand = w.dataset.well, label = brand || NO_BRAND;
     S.openWell[brand] = !S.openWell[brand];
     stripSig = ""; renderStrip();
     $("announce").textContent = S.openWell[brand]
-      ? brand + ": showing the centers with all cameras healthy."
-      : brand + ": healthy centers folded away again.";
+      ? label + ": showing the centers with all cameras healthy."
+      : label + ": healthy centers folded away again.";
     return;
   }
   const b = e.target.closest(".cblk"); if (!b) return;

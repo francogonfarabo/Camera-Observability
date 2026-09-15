@@ -234,7 +234,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .crumb .root{background:var(--fill);color:var(--ink-3)}
 .crumb .root:hover{background:var(--line-2)}
 
-.bandchip{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;
+/* Squared off to the cells' own radius rather than a pill. The fold chip
+   stands in for a block of green squares and sits a row above them, so it
+   borrows their corner; the neighbouring counts follow it so the row does not
+   come out half pill, half tile. */
+.bandchip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;
   font-size:11.5px;font-weight:700;white-space:nowrap;flex-shrink:0;border:1px solid var(--line);
   background:var(--fill);color:var(--ink-3)}
 .bandchip .sw{width:11px;height:11px;border-radius:3px}
@@ -1202,7 +1206,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               reading can be out of date whatever it says, so it overlaps both. Values inside a category are
               ORed, so picking it together with <b>Has offline cameras</b> asks for centers matching
               <em>either</em>, not both.</span></dd></div>
-            <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.</dd></div>
+            <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.
+              <span class="d">About one site in twelve belongs to no chain and has an empty brand field.
+              Those are offered as <b>No brand</b> — last in the list, because it is the absence of a
+              brand rather than one more of them — and they get their own group in <em>Your centers</em>
+              for the same reason. "No brand" and not "Independent": the record says the field is empty,
+              which is not the same claim.</span></dd></div>
             <div class="irow"><dt>Payment model</dt><dd>Who pays for the camera service —
               <b>parent-pay</b> (families subscribe) or <b>center-pay</b> (the center covers it).</dd></div>
             <div class="irow"><dt>Parent access</dt><dd>Whether parents can watch this center's cameras
@@ -1273,6 +1282,19 @@ const ROOMS = ["Infant A","Infant B","Toddler A","Toddler B","Twos","Threes","Pr
 
 const BRANDS = ["Bright Path Academy","Cedar Grove","DoodleBugs","Kiddie Academy",
   "Little Acorns","Maple Street Kids","Riverbend Early Learning","Sunrise Learning"];
+
+/* One-off sites that belong to no chain. They have names like anyone else —
+   what they don't have is a brand, which is a different fact from not having
+   a name, and the board has to keep the two apart. */
+const INDIE = ["Acorn House","The Learning Tree","Wildflower Cottage","Harborview Kids",
+  "Stepping Stones","Cornerstone Kids","Bright Beginnings","Wee Care","Maple Lane",
+  "Riverstone Nursery","Sandbox Studio","Hollyhock House"];
+/* Shown wherever a brand would be. Deliberately "No brand" rather than
+   "Independent": the record says the field is empty, not that the business is
+   unaffiliated, and a board read by support staff should not upgrade a blank
+   into a claim. */
+const NO_BRAND = "No brand";
+const brandOf = c => c.brand || NO_BRAND;
 
 /* =====================================================================
    What the assessor decides, and what the browser decides.
@@ -1444,6 +1466,17 @@ function seeds(target = 73){
       pub: rnd() < .78 });
     k++;
   }
+  /* Not every center trades under one of the chains. Roughly one in twelve is
+     an independent site whose brand field is simply empty — which is the case
+     a grouped overview has to be built for, because a grouping that silently
+     drops a twelfth of the assignment is worse than no grouping at all.
+     Chosen by index, so the choice is stable across fleet sizes and costs the
+     seeded stream nothing. */
+  out.forEach((c, i) => {
+    if (i % 12 !== 5) return;
+    c.brand = "";
+    c.name = INDIE[Math.floor(i / 12) % INDIE.length] + " — " + c.city;
+  });
   return out;
 }
 let SEEDS = seeds();
@@ -1618,7 +1651,11 @@ const F = {
     ()=>[["issues","Has any issue"],["off","Has offline cameras"],
          ["deg","Has degraded cameras"],["stale","Has stale cameras"],
          ["clean","All cameras healthy"]]),
-  brand: facet("Brand", "All brands", (c,v)=>c.brand===v, ()=>uniqOpts(c=>c.brand,"brand")),
+  brand: facet("Brand", "All brands", (c,v)=>c.brand===v,
+    // "No brand" is not a brand whose name happens to start with N — it is the
+    // absence of one, so it sits at the end of the list rather than inside it.
+    ()=>uniqOpts(c=>c.brand,"brand").map(([v])=>[v, v || NO_BRAND])
+      .sort((a,b)=> (a[0]?0:1) - (b[0]?0:1) || a[1].localeCompare(b[1]))),
   pay: facet("Payment model", "Any payment model", (c,v)=>c.pay===v,
     ()=>[["parent","Parent-pay"],["center","Center-pay"]]),
   access: facet("Parent access", "Any parent access", (c,v)=>v==="parent"?c.pub:!c.pub,
@@ -2036,7 +2073,7 @@ const TILE_SIZES = [                        // one group per cell
 
 const DIMS = {
   center: {label:"Center",   key:c=>c.id,        name:c=>c.name,               short:c=>c.name,  facet:null},
-  brand:  {label:"Brand",    key:c=>c.brand,     name:c=>c.brand,              short:c=>c.brand, facet:"brand"},
+  brand:  {label:"Brand",    key:c=>c.brand,     name:c=>brandOf(c),           short:c=>brandOf(c), facet:"brand"},
   state:  {label:"State",    key:c=>c.stateName, name:c=>c.stateName,          short:c=>c.state, facet:"state"},
   region: {label:"Region",   key:c=>c.region,    name:c=>c.region,             short:c=>c.region, facet:"region"},
   tz:     {label:"Timezone", key:c=>c.tz,        name:c=>TZ_NAMES[c.tz]||c.tz, short:c=>c.tz,    facet:"tz"},
@@ -2304,7 +2341,10 @@ function bandCrumb(){
   const out = [];
   ["region","state","brand","tz"].forEach(fk=>{
     if (!S[fk].length) return;
-    const nm = v => fk === "tz" ? (TZ_NAMES[v] || v) : v;
+    // The stored value is not always the readable one: a timezone is a code,
+    // and a brandless center is an empty string, which would draw a crumb with
+    // nothing in it but its own remove button.
+    const nm = v => fk === "tz" ? (TZ_NAMES[v] || v) : fk === "brand" ? (v || NO_BRAND) : v;
     out.push({fk, label: S[fk].length === 1 ? nm(S[fk][0])
       : nm(S[fk][0]) + " +" + (S[fk].length - 1)});
   });
@@ -2550,11 +2590,11 @@ function renderPicker(){
   const hits = DATA.filter(x => !q || x.name.toLowerCase().includes(q) || x.store.includes(q)).slice(0, 8);
   d.hidden = false;
   d.innerHTML =
-    (c ? `<div class="dropsel"><b>${esc(c.name)}</b><em>${esc(c.brand)}</em></div>` : "")
+    (c ? `<div class="dropsel"><b>${esc(c.name)}</b><em>${esc(brandOf(c))}</em></div>` : "")
     + `<div class="dscroll">${hits.length
       ? hits.map(x=>`<button class="drow" role="option" data-pickc="${x.id}"
           aria-selected="${x.id===S.center}">
-          <span class="dn">${esc(x.name)}</span><span class="db">${esc(x.brand)} · Store #${esc(x.store)}</span></button>`).join("")
+          <span class="dn">${esc(x.name)}</span><span class="db">${esc(brandOf(x))} · Store #${esc(x.store)}</span></button>`).join("")
       : `<div class="dempty">No center matches "${esc(inp.value)}"</div>`}</div>`
     + `<button class="dfoot">Search all centers</button>`;
 }
