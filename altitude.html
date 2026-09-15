@@ -2143,6 +2143,41 @@ const bandPass = c => wellActive()
   ? FKEYS.every(k => k === "status" || F[k].test(c, S[k]))
   : matchesFilters(c, {ignoreQ:true});
 
+/* "Your centers" holds one pick at a time.
+
+   The component offers two ways to point at something: a center square, which
+   is a search, and the "all reporting" badge, which is a filter. The rest of
+   the board is glad to combine a search with a filter, and should keep doing
+   that. This component is the exception, because inside it the two are not
+   ingredients — they are alternatives, and combining them is never what the
+   click meant.
+
+   Left combining, each one broke the other. With the badge on, clicking a red
+   center did nothing at all: the badge's own filter excluded the very center
+   being clicked, and pickCenter bailed on its guard without a word. The other
+   way round, clicking the badge left the picked center's name sitting in the
+   search box, so the list was asked for one named center AND every healthy
+   center, and returned nothing. Two ways of asking for one thing, ANDed into
+   zero.
+
+   So each pick drops the other. Note what these two do *not* touch: any filter
+   the user set from the Filters panel, and any query they typed themselves —
+   those still combine exactly as before. The component only ever withdraws its
+   own pick. */
+function dropWellPick(){
+  if (!wellActive()) return false;
+  S.status = []; S.wellPick = false;
+  bandSig = "";
+  return true;
+}
+function dropCenterPick(){
+  // Only the search this component wrote. A query the user typed is theirs.
+  if (!S.centerPick) return false;
+  S.centerPick = null; S.q = ""; S.qDraft = "";
+  $("q").value = ""; $("qField").classList.remove("linked");
+  return true;
+}
+
 const bandWidth = () => { const w = $("strip").clientWidth; return w > 40 ? w : 1100; };
 /* The healthy cells fold so the problems stay visible — so when there are no
    problems there is nothing to protect, and folding everything away would
@@ -2535,10 +2570,12 @@ function setFleet(size){
 function pickCenter(id){
   const c = DATA.find(x=>x.id===id); if (!c) return;
   if (S.centerPick === id) return clearCenterPick();
-  // Filters win. A center the filters exclude is locked in the strip, so
-  // reaching this line with one means the lock leaked — refuse, rather than
-  // quietly dismantling the filters the way this used to, which made a
-  // dimmed block behave like a reset button nobody asked for.
+  // One pick at a time: this click supersedes the badge, if the badge was on.
+  // It has to happen before the guard below, or the badge's own filter is what
+  // makes the guard refuse.
+  dropWellPick();
+  // Every cell drawn here already passes the filters, so this is a backstop
+  // rather than a branch anyone reaches.
   if (!matchesFilters(c, {ignoreQ:true})) return;
   S.centerPick = id; S.q = c.name; S.qDraft = c.name; S.page = 1;
   S.filtersOpen = false; S.sortOpen = false; S.savingOpen = false;
@@ -3345,7 +3382,8 @@ $("bandBar").addEventListener("click", e=>{
     const on = wellActive();
     S.status   = on ? [] : ["clean"];
     S.wellPick = !on;
-    S.kpi = null; S.page = 1; S.centerPick = null;
+    dropCenterPick();          // one pick at a time: this supersedes a center
+    S.kpi = null; S.page = 1;
     S.filtersOpen = S.sortOpen = S.savingOpen = false;
     bandSig = ""; bandOrder = null; render();
     $("announce").textContent = on
