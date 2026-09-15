@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="A fork of the nested board with "Your centers" rebuilt as a severity band: one cell is a zoom level, not a center, so the overview survives 4,000 assigned centers in three rows.">
+<meta name="description" content="A fork of the nested board whose "Your centers" overview changes altitude with the size of the assignment: one cell is a center while that fits, and a state, brand or region once it does not.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23159deb'/%3E%3Cpath d='M6 11h13v10H6z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M19 15l7-3.5v9L19 17' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
-<title>Camera Health Board — Severity Band</title>
+<title>Camera Health Board — Altitude</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&family=Open+Sans:wght@600&display=swap">
 <style>
 /* ============================================================
@@ -989,7 +989,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
                 <span class="legend" id="bandHeadSlot"></span>
               </div>
               <div class="bandbar" id="bandBar"></div>
-              <div class="band cells" id="strip" role="group" aria-label="Center severity band"></div>
+              <div class="band cells" id="strip" role="group" aria-label="Your centers"></div>
               <p class="stripempty" id="bandEmpty" hidden></p>
               <div class="bandlegend" id="bandLegend"></div>
               <p class="bandsum" id="bandSum" aria-live="polite" aria-atomic="true"></p>
@@ -3618,7 +3618,7 @@ document.querySelector(".proto").addEventListener("click", e=>{
 <nav class="vsw" aria-label="Prototype version">
   <b>Version</b>
   <a href="index.html">Nested</a>
-  <a href="band.html" aria-current="page">Severity band</a>
+  <a href="altitude.html" aria-current="page">Altitude</a>
   <a class="doc" href="rationale.html">Design notes</a>
 </nav>
 </body>
