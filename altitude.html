@@ -1587,6 +1587,7 @@ const S = {
   sel:null,             // {ci, idx}
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" band
+  wellPick:false,       // the "all reporting" badge is switched on
   // the band: what a cell means, whether healthy centers are folded away,
   // and whether the collapsed strip is showing
   bandDimPick:null, bandHover:false, miniOn:false,
@@ -2123,6 +2124,25 @@ function buildCells(dim, scope){
   return out;
 }
 
+/* The one filter this component does not apply to itself.
+
+   The "N centers all reporting" badge is part of the band, and a control does
+   not get to blind the component it sits in — the same reason the search box is
+   left out of the band's scope. Switching it on would otherwise re-scope the
+   band to the healthy centers and take the badge with it, which is a strange
+   way for a control to answer a click. So while the badge is on, the band
+   ignores the status it set and keeps drawing the whole assignment; the list
+   below is where the answer shows up.
+
+   The badge being "on" is re-derived from the filters every render rather than
+   remembered, so touching any other filter turns it off and the band goes back
+   to honouring everything. Nothing has to remember to clear the flag. */
+const wellActive = () => S.wellPick
+  && S.status.length === 1 && S.status[0] === "clean";
+const bandPass = c => wellActive()
+  ? FKEYS.every(k => k === "status" || F[k].test(c, S[k]))
+  : matchesFilters(c, {ignoreQ:true});
+
 const bandWidth = () => { const w = $("strip").clientWidth; return w > 40 ? w : 1100; };
 /* The healthy cells fold so the problems stay visible — so when there are no
    problems there is nothing to protect, and folding everything away would
@@ -2185,7 +2205,7 @@ function renderStrip(){
      writes a center name into the search box, and letting that narrow the band
      would leave one square on screen the instant you used it. */
   const pass = new Set();
-  for (const c of DATA) if (matchesFilters(c, {ignoreQ:true})) pass.add(c.id);
+  for (const c of DATA) if (bandPass(c)) pass.add(c.id);
   const scope = pass.size === DATA.length ? DATA : DATA.filter(c=>pass.has(c.id));
   bandScopeAll = pass.size === DATA.length;
   bandScopeN = scope.length;
@@ -2381,9 +2401,10 @@ function renderBandBar(info){
      4,000 centers no single *state* is entirely healthy, so a cell count said
      nothing while 2,975 centers sat behind it. Centers are also what the filter
      it applies acts on, so the number and the result are the same number. */
-  const cleanOn = S.status.length === 1 && S.status[0] === "clean";
-  const fold = (info.healthy && !cleanOn)
-    ? '<button class="bandchip fold" id="foldChip" title="Show these in the list below">'
+  const on = wellActive();
+  const fold = info.healthy
+    ? '<button class="bandchip fold" id="foldChip" aria-pressed="' + on + '"'
+      + ' title="' + (on ? "Stop showing these below" : "Show these in the list below") + '">'
       + '<span class="sw ok"></span>' + info.healthy.toLocaleString()
       + (info.healthy === 1 ? " center" : " centers") + " all reporting</button>"
     : "";
@@ -2401,7 +2422,7 @@ function renderBandBar(info){
 function renderBandHead(){
   const cams = bandScopeAll
     ? DATA.reduce((s,c)=>s+c.cams.length, 0)
-    : DATA.filter(c=>matchesFilters(c,{ignoreQ:true})).reduce((s,c)=>s+c.cams.length, 0);
+    : DATA.filter(bandPass).reduce((s,c)=>s+c.cams.length, 0);
   $("bandHeadSlot").innerHTML = '<span class="lg num">' + bandScopeN.toLocaleString() + ' centers · '
     + cams.toLocaleString() + ' cameras</span>'
     + '<button class="lginfo" id="colorInfo" aria-label="How this band is read">'
@@ -2423,7 +2444,7 @@ function renderBandLegend(){
   $("bandLegend").innerHTML = three + bar;
 
   // One sentence for a screen reader, not two hundred announced cells.
-  const scope = bandScopeAll ? DATA : DATA.filter(c=>matchesFilters(c,{ignoreQ:true}));
+  const scope = bandScopeAll ? DATA : DATA.filter(bandPass);
   const a = aggregate(scope);
   const unit = group ? DIMS[bandDimNow].label.toLowerCase() + " cells" : "center cells";
   const txt = "Band showing " + CELLS.length.toLocaleString() + " " + unit + ". "
@@ -2437,7 +2458,7 @@ function renderBandLegend(){
 function renderMini(){
   const m = $("bandMini");
   if (S.loading || !S.miniOn){ m.hidden = true; return; }
-  const scope = bandScopeAll ? DATA : DATA.filter(c=>matchesFilters(c,{ignoreQ:true}));
+  const scope = bandScopeAll ? DATA : DATA.filter(bandPass);
   const a = aggregate(scope), tot = a.n || 1;
   const seg = [["var(--off)", a.red], ["var(--deg)", a.amber], ["var(--ok)", a.green]]
     .filter(x=>x[1])
@@ -2499,7 +2520,7 @@ function setFleet(size){
   GEN++;
   FKEYS.forEach(k => S[k] = []);
   S.q = ""; S.qDraft = ""; S.kpi = null; S.centerPick = null; S.page = 1;
-  S.sel = null; S.fsearch = ""; S.bandDimPick = null;
+  S.sel = null; S.fsearch = ""; S.bandDimPick = null; S.wellPick = false;
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   bandSig = ""; bandOrder = null;
   $("q").value = ""; $("qField").classList.remove("linked");
@@ -3321,8 +3342,9 @@ $("bandBar").addEventListener("click", e=>{
   }
   if (e.target.closest("#foldChip")){
     // Exactly the filter the badge describes.
-    const on = S.status.length === 1 && S.status[0] === "clean";
-    S.status = on ? [] : ["clean"];
+    const on = wellActive();
+    S.status   = on ? [] : ["clean"];
+    S.wellPick = !on;
     S.kpi = null; S.page = 1; S.centerPick = null;
     S.filtersOpen = S.sortOpen = S.savingOpen = false;
     bandSig = ""; bandOrder = null; render();

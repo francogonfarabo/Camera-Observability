@@ -1482,6 +1482,7 @@ const S = {
   sel:null,             // {ci, idx}
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" strip
+  wellPick:null,        // brand whose "all reporting" badge is switched on
   stripOpen:false,      // the centers overview, opened past its default height
   pendingOrder:null,    // order held back while the pointer is in the list
   hover:false, kpi:null,
@@ -1933,6 +1934,26 @@ function centerStateWords(c){
   return base;
 }
 
+/* The one filter this component does not apply to itself.
+
+   The "N reporting OK" badge is part of the strip, and a control does not get
+   to blind the component it sits in — the same reason the search box is left
+   out of the strip's scope. Switching it on would otherwise delete every block
+   around it and then delete the badge too, which is a strange way for a control
+   to answer a click. So while the badge is on, the strip ignores the status and
+   brand it set and keeps drawing the whole assignment; the list below is where
+   the answer shows up.
+
+   The badge being "on" is re-derived from the filters every render rather than
+   remembered, so touching any other filter turns it off and the strip goes back
+   to honouring everything. Nothing has to remember to clear the flag. */
+const wellActive = () => S.wellPick !== null
+  && S.status.length === 1 && S.status[0] === "clean"
+  && S.brand.length === 1 && S.brand[0] === S.wellPick;
+const inStrip = c => wellActive()
+  ? FKEYS.every(k => k === "status" || k === "brand" || F[k].test(c, S[k]))
+  : matchesFilters(c, {ignoreQ:true});
+
 /* Worst first, inside each brand, with the healthy tail rolled up.
 
    The strip's job is "what needs me", and the old order — alphabetical, every
@@ -1948,7 +1969,7 @@ function centerStateWords(c){
 function stripGroups(){
   const rank = c => { const st = centerStatus(c); return st === "off" ? 0 : st === "deg" ? 1 : 2; };
   const m = new Map();
-  DATA.forEach(c => { if (!matchesFilters(c, {ignoreQ:true})) return;
+  DATA.forEach(c => { if (!inStrip(c)) return;
     if (!m.has(c.brand)) m.set(c.brand, []); m.get(c.brand).push(c); });
   // The brandless sites are a group like any other, and last, because they are
   // not a brand called "No brand" — they are what is left when brand is empty.
@@ -1972,7 +1993,7 @@ function renderStrip(){
   const blk = c => { const t = '<button class="cblk" data-cid="' + c.id + '" tabindex="' + (first?0:-1) + '"></button>';
     first = false; return t; };
   let first = true;
-  const sig = (anySick ? "f:" : "o:") + groups.map(g => g.brand + ":"
+  const sig = (anySick ? "f:" : "o:") + (wellActive() ? S.wellPick + "!" : "") + groups.map(g => g.brand + ":"
     + g.sick.map(c=>c.id).join("|") + "/" + g.well.map(c=>c.id).join("|")).join(";");
   if (sig !== stripSig){
     $("strip").innerHTML = groups.map(g => {
@@ -1981,9 +2002,11 @@ function renderStrip(){
          it in place was the obvious move and does not survive scale — at 4,000
          centers it means three thousand green squares nobody asked for, and the
          list below already knows how to show a lot of centers. */
+      const on = wellActive() && S.wellPick === g.brand;
       const chip = anySick && g.well.length
-        ? '<button class="wellchip" data-well="' + esc(g.brand) + '"'
-          + ' aria-label="Show the ' + plural(g.well.length, "center") + ' in '
+        ? '<button class="wellchip" data-well="' + esc(g.brand) + '" aria-pressed="' + on + '"'
+          + ' aria-label="' + (on ? "Stop showing" : "Show") + ' the '
+          + plural(g.well.length, "center") + ' in '
           + esc(g.label) + ' with all cameras healthy">'
           + '<span class="sw ok"></span><b>' + g.well.length + '</b> reporting OK</button>'
         : "";
@@ -2787,10 +2810,10 @@ strip.addEventListener("click", e=>{
   if (w){
     const brand = w.dataset.well, label = brand || NO_BRAND;
     // Exactly the filter the badge describes: this brand, all cameras healthy.
-    const on = S.status.length === 1 && S.status[0] === "clean"
-      && S.brand.length === 1 && S.brand[0] === brand;
-    S.status = on ? [] : ["clean"];
-    S.brand  = on ? [] : [brand];
+    const on = wellActive() && S.wellPick === brand;
+    S.status  = on ? [] : ["clean"];
+    S.brand   = on ? [] : [brand];
+    S.wellPick = on ? null : brand;
     S.kpi = null; S.page = 1; S.centerPick = null;
     S.filtersOpen = S.sortOpen = S.savingOpen = false;
     stripSig = ""; render();
