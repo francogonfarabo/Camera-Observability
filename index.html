@@ -229,12 +229,15 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   border-radius:8px;padding:2px;flex-shrink:0;max-width:100%;min-width:0;overflow-x:auto;scrollbar-width:none}
 .dimsel::-webkit-scrollbar{display:none}
 .dimsel>*{flex-shrink:0}
-.dimsel .dl{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-4);
-  padding:0 5px 0 6px;white-space:nowrap}
-.dimsel button{font-size:11.5px;font-weight:600;color:var(--ink-3);padding:3px 8px;border-radius:6px;white-space:nowrap}
+/* No "CELL" caption. Three words that are plainly a segmented control, sitting
+   directly under a title that already says what they group — the caption was
+   naming the obvious and taking size away from the words that matter. The
+   group keeps an aria-label so the same sentence still reaches a screen
+   reader, which cannot see that it is a segmented control. */
+.dimsel button{font-size:12.5px;font-weight:600;color:var(--ink-3);padding:3px 9px;border-radius:6px;white-space:nowrap}
 .dimsel button:hover{color:var(--ink-2);background:var(--surface)}
 .dimsel button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-card)}
-.dimsel button .auto{font-size:9.5px;font-weight:700;color:var(--ink-4);margin-left:4px;letter-spacing:.05em}
+.dimsel button .auto{font-size:10px;font-weight:700;color:var(--ink-4);margin-left:5px;letter-spacing:.05em}
 
 .crumb{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--ink-3);
   flex-wrap:wrap;min-width:0}
@@ -285,18 +288,24 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 /* ---- a cell that is a group of centers: a labelled tile ----
    A square cannot say "Ohio", and at this zoom the name is most of the value:
    support staff are looking for a place, not decoding a swatch. The tile says
-   the name, how many of its centers need attention, and — in the bar along the
-   bottom — how that splits across the same three states. */
+   the name, how many of its centers need attention, and — in a bar of its own
+   inside the tile — how that splits across the same three states.
+
+   The bar used to run edge to edge along the bottom, clipped by the tile's
+   own corners, which made it read as the tile's floor: a border that happened
+   to be three colours. It is not a border, it is the second half of the
+   answer. Inset to the same left edge as the text and lifted off the bottom,
+   with corners of its own, it reads as a thing the tile contains. */
 .tile{position:relative;flex-shrink:0;width:var(--tw);height:var(--th);border-radius:8px;
   border:1px solid var(--line);background:var(--surface);overflow:hidden;text-align:left;
-  padding:0 8px;display:flex;flex-direction:column;justify-content:center;gap:1px;
+  padding:0 8px 13px;display:flex;flex-direction:column;justify-content:center;gap:1px;
   transition:transform .11s,box-shadow .12s,border-color .12s}
 .tile:hover{transform:translateY(-2px);border-color:var(--line-3);box-shadow:var(--shadow-card);z-index:2}
 .tile:focus-visible{box-shadow:var(--focus);transform:translateY(-2px);z-index:3}
 .tile.picked{outline:2px solid var(--blue);outline-offset:2px;border-color:var(--blue);z-index:2}
 /* Narrow enough that the name has to become a code — but never so narrow that
    the number goes. "OH 18" is the whole answer; the card on hover spells it. */
-.tile.narrow{padding:0 6px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
+.tile.narrow{padding:0 6px 9px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
 .tile .tn{font-size:12px;font-weight:700;color:var(--ink);line-height:1.2;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .tile.narrow .tn{font-size:12.5px;letter-spacing:.02em;flex:0 0 auto}
@@ -306,8 +315,10 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .tile .tc b{font-weight:700;color:var(--ink-2)}
 .tile.hasred .tc b{color:var(--off)}
 
-/* the split, in the three states, across the bottom edge */
-.tbar{position:absolute;left:0;right:0;bottom:0;height:5px;display:flex;gap:1px;background:var(--surface)}
+/* the split, in the three states, as a bar the tile holds */
+.tbar{position:absolute;left:8px;right:8px;bottom:6px;height:5px;display:flex;gap:1.5px;
+  border-radius:3px;overflow:hidden;background:var(--surface)}
+.tile.narrow .tbar{left:6px;right:6px;bottom:4px;height:4px;border-radius:2px}
 .tbar i{display:block;height:100%;min-width:0}
 .tbar i.b-off{background:var(--off)}
 .tbar i.b-deg{background:var(--deg)}
@@ -762,7 +773,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .camscrim{position:fixed;inset:0;background:rgba(17,24,39,.45);backdrop-filter:blur(2px);
   display:grid;place-items:center;padding:20px;z-index:75}
 .camscrim[hidden]{display:none}
-.drawer{width:min(430px,100%);max-height:92dvh;background:var(--surface);border-radius:14px;
+.drawer{width:min(482px,100%);max-height:92dvh;background:var(--surface);border-radius:14px;
   box-shadow:var(--shadow-modal);overflow:hidden;display:flex;flex-direction:column}
 .d-head{display:flex;align-items:flex-start;gap:10px;padding:14px 14px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
 .d-head h2{font-family:'Titillium Web',sans-serif;font-size:17.5px;font-weight:700;line-height:1.2}
@@ -898,12 +909,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .sortlist,.sortdir{flex-shrink:0}
   .fpanel-foot{flex-shrink:0;padding-bottom:14px}
   .strip-head .legend{margin-left:0;width:100%;gap:12px;flex-wrap:wrap}
-  /* On a phone the five zooms are wider than the screen. They scroll
-     sideways inside their own control rather than dragging the page with
-     them, and the word "Cell" goes — the buttons say what they are. */
+  /* On a phone the zooms can be wider than the screen. They scroll sideways
+     inside their own control rather than dragging the page with them. */
   .bandbar{gap:6px}
   .dimsel{flex:1 1 100%}
-  .dimsel .dl{display:none}
   .bandlegend{gap:9px}
   .mini .sevbar{flex-basis:110px}
   .mini .mtxt{font-size:11px}
@@ -1195,7 +1204,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               <b>All cameras healthy</b> status filter and the first KPI, so the squares, the filter and the
               headline count never disagree.</dd></div>
             <div class="irow"><dt>One cell is a zoom level, not a center</dt><dd>
-              The <b>Cell</b> control switches between center, brand and state, and <b>AUTO</b> picks the
+              The <b>Center / Brand / State</b> control above the cells switches between them, and <b>AUTO</b> picks the
               finest one that still draws at a readable size inside three rows: a square per center at 73
               and at 600, a tile per state at 4,000.
               <span class="d">Four thousand squares at a size anyone can read is eleven rows of nothing.
@@ -1204,7 +1213,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <div class="irow"><dt>A group is a mix, so it gets a tile</dt><dd>
               At any zoom above center, a cell holds many centers and is therefore not in one of the three
               states — it is some of each. The tile names the group, says how many of its centers need
-              attention, and splits the bar along its bottom edge into the same three colours.
+              attention, and splits the bar inside it into the same three colours.
               <span class="d">A tile rather than a square for two reasons. At this zoom the name is most of
               the value — you are looking for Ohio, not decoding a swatch — and a mix cannot honestly be
               painted one colour. Note that a single dark site inside seventy would round to nothing in that
@@ -2190,12 +2199,16 @@ function centerStateWords(c){
 const BAND_ROWS = 3;      // hard ceiling, expanded
 const CGAP      = 4;
 const SQ_SIZES  = [24, 20, 16, 13];        // one center per cell
+/* Heights carry the split bar now that it sits inside the tile rather than on
+   its edge: two lines of text, then 13px of tile below them for a 5px bar with
+   air on both sides. Three rows of the widest tile is 146px, which is inside
+   the band's share of the viewport. */
 const TILE_SIZES = [                        // one group per cell
-  {w:184, h:40, full:true},
-  {w:140, h:38, full:true},
-  {w:104, h:36, full:true},
-  {w:74,  h:28, full:false},
-  {w:54,  h:28, full:false},
+  {w:184, h:46, full:true},
+  {w:140, h:44, full:true},
+  {w:104, h:42, full:true},
+  {w:74,  h:30, full:false},
+  {w:54,  h:30, full:false},
 ];
 
 /* A zoom level has to be a grouping the reader can also filter by, or the
@@ -2576,7 +2589,7 @@ function renderBandBar(info){
   const outn = bandScopeAll ? 0 : DATA.length - bandScopeN;
   const filteredOut = outn
     ? '<span class="bandchip flat">' + outn.toLocaleString() + ' filtered out</span>' : "";
-  $("bandBar").innerHTML = '<span class="dimsel"><span class="dl">Cell</span>' + dims + '</span>'
+  $("bandBar").innerHTML = '<span class="dimsel" role="group" aria-label="What one cell is">' + dims + '</span>'
     + crumbHtml + fold + over + filteredOut;
 }
 
