@@ -263,9 +263,18 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .bandchip.flat{cursor:default}
 
 /* The cells. Three rows, hard — and they are sorted worst-first, so whatever
-   falls past the cap is the least urgent, with a chip saying how many. */
-.cells{display:flex;flex-wrap:wrap;gap:var(--cgap);align-content:flex-start;overflow:hidden;
-  max-height:var(--cmax)}
+   falls past the cap is the least urgent, with a chip saying how many.
+
+   The three-row cap is enforced in renderStrip, which only ever builds `cap`
+   cells; the max-height here is the guard, not the mechanism. But a clip box
+   that sits exactly on the cells shaves the top two pixels off any cell the
+   pointer lifts, and takes the focus ring and the selected outline with it.
+   So the box is pushed out by --bleed on every side and pulled back by an
+   equal negative margin: the content lands in exactly the same place, and the
+   clip happens --bleed away from it. Anything measuring this element has to
+   take the bleed back out — see bandWidth() and --cmax, both of which do. */
+.cells{--bleed:7px;display:flex;flex-wrap:wrap;gap:var(--cgap);align-content:flex-start;
+  margin:calc(-1 * var(--bleed));padding:var(--bleed);overflow:hidden;max-height:var(--cmax)}
 
 /* ---- a cell that is one center: the nested board's square, unchanged ---- */
 .cell{position:relative;flex-shrink:0;width:var(--csize);height:var(--csize);border-radius:var(--crad);
@@ -296,16 +305,24 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    to be three colours. It is not a border, it is the second half of the
    answer. Inset to the same left edge as the text and lifted off the bottom,
    with corners of its own, it reads as a thing the tile contains. */
+/* The bar is the last thing in the tile's own column rather than a box pinned
+   to its bottom, and that is what keeps the gap above the name equal to the
+   gap below the bar: justify-content:center splits whatever slack the height
+   leaves, so there is no arithmetic to keep in step when a type size moves. */
 .tile{position:relative;flex-shrink:0;width:var(--tw);height:var(--th);border-radius:8px;
   border:1px solid var(--line);background:var(--surface);overflow:hidden;text-align:left;
-  padding:0 8px 13px;display:flex;flex-direction:column;justify-content:center;gap:1px;
+  padding:4px 8px;display:flex;flex-direction:column;justify-content:center;gap:2px;
   transition:transform .11s,box-shadow .12s,border-color .12s}
 .tile:hover{transform:translateY(-2px);border-color:var(--line-3);box-shadow:var(--shadow-card);z-index:2}
 .tile:focus-visible{box-shadow:var(--focus);transform:translateY(-2px);z-index:3}
 .tile.picked{outline:2px solid var(--blue);outline-offset:2px;border-color:var(--blue);z-index:2}
 /* Narrow enough that the name has to become a code — but never so narrow that
-   the number goes. "OH 18" is the whole answer; the card on hover spells it. */
-.tile.narrow{padding:0 6px 9px;flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
+   the number goes. "OH 18" is the whole answer; the card on hover spells it.
+   Only the text block turns sideways; the tile stays a column so the bar keeps
+   its place and its symmetry. */
+.tile.narrow{padding:4px 6px}
+.tt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.tile.narrow .tt{flex-direction:row;align-items:center;justify-content:space-between;gap:4px}
 .tile .tn{font-size:12px;font-weight:700;color:var(--ink);line-height:1.2;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .tile.narrow .tn{font-size:12.5px;letter-spacing:.02em;flex:0 0 auto}
@@ -315,11 +332,20 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .tile .tc b{font-weight:700;color:var(--ink-2)}
 .tile.hasred .tc b{color:var(--off)}
 
-/* the split, in the three states, as a bar the tile holds */
-.tbar{position:absolute;left:8px;right:8px;bottom:6px;height:5px;display:flex;gap:1.5px;
-  border-radius:3px;overflow:hidden;background:var(--surface)}
-.tile.narrow .tbar{left:6px;right:6px;bottom:4px;height:4px;border-radius:2px}
+/* the split, in the three states, as a bar the tile holds.
+   The ends are rounded by the bar clipping its own segments, so whichever
+   state happens to come first or last gets the round end — an all-green group
+   is a green pill, a group with no red starts with a rounded orange. That only
+   works if a state with nothing in it actually leaves the box, which is what
+   the [hidden] rule is for: `.tbar i` sets display, and an author rule beats
+   the browser's own [hidden]{display:none} whatever the specificity, so a zero
+   segment was staying in the flow as a 0px sliver and squaring off the end
+   behind it. */
+.tbar{height:5px;display:flex;gap:1.5px;border-radius:3px;overflow:hidden;
+  background:var(--surface);flex-shrink:0}
+.tile.narrow .tbar{height:4px;border-radius:2px}
 .tbar i{display:block;height:100%;min-width:0}
+.tbar i[hidden]{display:none}
 .tbar i.b-off{background:var(--off)}
 .tbar i.b-deg{background:var(--deg)}
 .tbar i.b-ok{background:var(--ok)}
@@ -2199,16 +2225,18 @@ function centerStateWords(c){
 const BAND_ROWS = 3;      // hard ceiling, expanded
 const CGAP      = 4;
 const SQ_SIZES  = [24, 20, 16, 13];        // one center per cell
-/* Heights carry the split bar now that it sits inside the tile rather than on
-   its edge: two lines of text, then 13px of tile below them for a 5px bar with
-   air on both sides. Three rows of the widest tile is 146px, which is inside
-   the band's share of the viewport. */
+/* Height is a function of what a tile contains, and every full tile contains
+   the same three things — name, count, bar — so they are all the same height
+   whatever their width. 46px is 4px of air, two lines of text, 2px, a 5px bar
+   and 4px of air; a narrow tile puts its name and count on one row instead and
+   needs 32. Both leave a pixel of slack rather than none, so a font that falls
+   back a little wider does not get shaved. */
 const TILE_SIZES = [                        // one group per cell
   {w:184, h:46, full:true},
-  {w:140, h:44, full:true},
-  {w:104, h:42, full:true},
-  {w:74,  h:30, full:false},
-  {w:54,  h:30, full:false},
+  {w:140, h:46, full:true},
+  {w:104, h:46, full:true},
+  {w:74,  h:32, full:false},
+  {w:54,  h:32, full:false},
 ];
 
 /* A zoom level has to be a grouping the reader can also filter by, or the
@@ -2317,7 +2345,15 @@ function dropCenterPick(){
   return true;
 }
 
-const bandWidth = () => { const w = $("strip").clientWidth; return w > 40 ? w : 1100; };
+/* Kept in step with --bleed on .cells: the container is inset from its own
+   clip box so a lifted cell is not shaved at the edge, and that inset is
+   padding, which clientWidth includes. Plan rows on the content width or the
+   band lays out one cell too many per row. */
+const BAND_BLEED = 7;
+const bandWidth = () => {
+  const w = $("strip").clientWidth - BAND_BLEED * 2;
+  return w > 40 ? w : 1100;
+};
 /* The healthy cells fold so the problems stay visible — so when there are no
    problems there is nothing to protect, and folding everything away would
    leave a band with nothing in it. */
@@ -2433,13 +2469,16 @@ function renderStrip(){
   if (bandPlan.mode === "sq"){
     el.style.setProperty("--csize", bandPlan.size + "px");
     el.style.setProperty("--crad", (bandPlan.size >= 20 ? 6 : bandPlan.size >= 16 ? 5 : 4) + "px");
-    el.style.setProperty("--cmax", (bandPlan.size * BAND_ROWS + CGAP * (BAND_ROWS - 1)) + "px");
+    el.style.setProperty("--cmax",
+      (bandPlan.size * BAND_ROWS + CGAP * (BAND_ROWS - 1) + BAND_BLEED * 2) + "px");
   } else {
     el.style.setProperty("--tw", bandPlan.w + "px");
     el.style.setProperty("--th", bandPlan.h + "px");
-    el.style.setProperty("--cmax", (bandPlan.h * BAND_ROWS + CGAP * (BAND_ROWS - 1)) + "px");
+    el.style.setProperty("--cmax",
+      (bandPlan.h * BAND_ROWS + CGAP * (BAND_ROWS - 1) + BAND_BLEED * 2) + "px");
   }
   el.style.setProperty("--cgap", CGAP + "px");
+  el.style.setProperty("--bleed", BAND_BLEED + "px");
   el.classList.toggle("tiny", bandPlan.mode === "sq" && bandPlan.size < 16);
 
   // Rebuild only when the set of cells or their size actually changed; patch
@@ -2454,7 +2493,7 @@ function renderStrip(){
       if (x.dim === "center")
         return '<button class="cell" data-k="' + esc(x.k) + '" data-cid="' + esc(x.k) + '"' + tab + '></button>';
       return '<button class="tile' + (bandPlan.full ? '' : ' narrow') + '" data-k="' + esc(x.k) + '"' + tab + '>'
-        + '<span class="tn"></span><span class="tc"></span>'
+        + '<span class="tt"><span class="tn"></span><span class="tc"></span></span>'
         + '<i class="tbar"><i class="b-off"></i><i class="b-deg"></i><i class="b-ok"></i></i></button>';
     }).join("");
     bandSig = sig;
