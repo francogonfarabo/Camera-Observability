@@ -28,7 +28,12 @@
   --amber-tint:#FFECB1; --amber-ink:#B45309;
 
   /* neutrals — cool-biased toward the brand blue, not flat grey */
-  --ink:#111827; --ink-2:#374151; --ink-3:#6b7280; --ink-4:#9ca3af;
+  /* --ink-3 and --ink-4 carry nearly all the small print here: KPI sub-lines,
+     the store/city meta, option counts, legend labels. Both sat a step lighter
+     than the type sizes could afford — #6b7280 is 4.8:1 on white and #9ca3af
+     2.5:1, which is under the line at 11-12px. Darkened to 6.0:1 and 3.1:1.
+     One variable each, so the fix reaches every one of those places at once. */
+  --ink:#111827; --ink-2:#374151; --ink-3:#5a6472; --ink-4:#8a92a0;
   --surface:#ffffff; --fill:#f4f5f7; --fill-2:#f8f9fb;
   --line:#e0e3e8; --line-2:#e5e7eb; --line-3:#d1d5db;
 
@@ -86,10 +91,13 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .searchbar input::placeholder{color:#9aa1a8}
 .searchbar input:disabled{cursor:not-allowed}
 /* the selected center, two lines, exactly where the input would be */
-.sel{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left}
-.sel[hidden]{display:none}
-.sel b{font-size:13px;font-weight:600;color:#3d8c5c;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sel em{font-size:9.5px;font-style:normal;font-weight:600;color:#8a9a90;letter-spacing:.02em}
+/* Scoped to the picker on purpose. A bare .sel also matches the selected
+   camera block down in the list, and flex:1 there stretched that square to the
+   full width of its row — visible behind the modal the click had just opened. */
+.searchbar .sel{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left}
+.searchbar .sel[hidden]{display:none}
+.searchbar .sel b{font-size:13px;font-weight:600;color:#3d8c5c;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.searchbar .sel em{font-size:9.5px;font-style:normal;font-weight:600;color:#8a9a90;letter-spacing:.02em}
 .sx{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;color:#7c8a92;flex-shrink:0;order:2}
 .sx[hidden]{display:none}
 .sx:hover{background:var(--fill)}
@@ -176,9 +184,9 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .kpi{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:1px;box-shadow:var(--shadow-card);transition:border-color .12s,transform .12s}
 .kpi:hover{border-color:var(--line-3);transform:translateY(-1px)}
 .kpi[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),var(--shadow-card)}
-.kpi-l{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
-.kpi-v{font-size:25px;font-weight:700;line-height:1.15;letter-spacing:-.01em}
-.kpi-s{font-size:11.5px;color:var(--ink-3)}
+.kpi-l{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+.kpi-v{font-size:29px;font-weight:700;line-height:1.12;letter-spacing:-.015em}
+.kpi-s{font-size:12.5px;color:var(--ink-3)}
 .kpi.t-off .kpi-v{color:var(--off)} .kpi.t-deg .kpi-v{color:#c2410c} .kpi.t-n .kpi-v{color:var(--ink)}
 /* A zero in a bad-news metric is good news: it goes calm rather than
    staying alert-red/orange, and the sub-label states the good news. */
@@ -195,7 +203,10 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .stripempty{font-size:12.5px;color:var(--ink-3);padding:6px 2px 2px}
 .stripempty b{color:var(--ink-2);font-weight:700}
 .stripempty button{font-weight:700;color:var(--blue-ink);text-decoration:underline;margin-left:4px}
-.strip-title{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-3)}
+/* It was set as a field label — 11px uppercase grey — which is what every
+   caption on the page looks like. This is the title of the largest component
+   on the board, so it is sized and weighted as one. */
+.strip-title{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:16px;letter-spacing:.01em;color:var(--ink)}
 .strip-head .legend{margin-left:auto;flex-wrap:wrap;justify-content:flex-end;min-width:0}
 .legend{display:flex;align-items:center;gap:13px}
 .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink-2)}
@@ -210,7 +221,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    red for a site with every camera down, orange for anything short of that,
    green for a clean bill of health. Nothing here invents a new scale to learn.
    What changes with scale is what a cell *is*: one center while that fits,
-   and one state / brand / region once it doesn't. */
+   and one brand or state once it doesn't. */
 
 /* the control row: zoom, breadcrumb, fold chip */
 .bandbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;min-height:24px}
@@ -398,18 +409,18 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .finfo:hover{background:var(--blue-tint)}
 
 /* ---------- two-pane facet panel ----------
-   Nine dimensions won't fit in a row of columns, and stacking them makes a
+   Eight dimensions won't fit in a row of columns, and stacking them makes a
    panel you scroll to read. A rail of facets on the left with one option
    list on the right stays the same size whatever gets added, and leaves
    room for the search box a fifty-item list needs. Each rail row shows its
    own current value, so the whole filter state is legible at a glance. */
-/* The facet rail is a constant ten rows, so it — not the option list — is what
+/* The facet rail is a constant height, so it — not the option list — is what
    should decide how tall this pane is. Capping the pane here rather than
    capping the list inside it means the list always fills the column it sits
    in, and the panel stays roughly one size whichever category you move to,
    instead of leaving dead space under a short list and resizing on every
    switch. */
-.ftwo{display:grid;grid-template-columns:196px minmax(0,1fr);grid-template-rows:minmax(0,1fr);
+.ftwo{display:grid;grid-template-columns:216px minmax(0,1fr);grid-template-rows:minmax(0,1fr);
   min-height:0;flex:1;max-height:clamp(300px,64dvh,560px)}
 /* min-height:0, not max-height:100%: a percentage resolves against an
    indefinite grid area and silently does nothing, which is how both columns
@@ -423,6 +434,28 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .frow .fv{font-size:11px;color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .frow .fv.set{color:var(--blue-ink);font-weight:700}
 .frow.dim .fl{color:var(--ink-4)}
+/* A yes/no category. It gets a switch rather than a rail row with an option
+   list of one, because "is this on" is the whole question — and it sits above
+   the divider because an out-of-date reading outranks what the reading says. */
+.frailtabs{display:flex;flex-direction:column;gap:1px;min-height:0}
+.frailsep{height:1px;background:var(--line-2);margin:7px 4px}
+.fbool{display:flex;align-items:center;gap:8px;text-align:left;padding:6px 9px;border-radius:8px;min-width:0}
+.fbool:hover{background:var(--surface)}
+/* Same two-line shape as the category rows below it — name over current value
+   — so the switch reads as one of the rail rows rather than a control bolted
+   above them. */
+.fbool .ftxt{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.fbool .fl{font-size:12.5px;font-weight:700;color:var(--ink-2);line-height:1.2;white-space:nowrap}
+.fbool .fv{font-size:11px;color:var(--ink-4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fbool .sw2{width:30px;height:17px;border-radius:9999px;background:var(--line-3);
+  position:relative;flex-shrink:0;transition:background .14s}
+.fbool .sw2::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;
+  border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .14s}
+.fbool[aria-pressed="true"]{background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
+.fbool[aria-pressed="true"] .fl{color:var(--blue-ink)}
+.fbool[aria-pressed="true"] .fv{color:var(--blue-ink);font-weight:700}
+.fbool[aria-pressed="true"] .sw2{background:var(--blue)}
+.fbool[aria-pressed="true"] .sw2::after{transform:translateX(13px)}
 .fbody{display:flex;flex-direction:column;min-width:0;min-height:0}
 .fsearch{position:relative;display:flex;align-items:center;padding:10px 12px 6px}
 .fsearch svg{position:absolute;left:22px;pointer-events:none}
@@ -689,7 +722,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 
 /* the same warning inside the camera modal, where it outranks the status */
 .dstale{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px;
-  background:var(--amber-tint);border:1px solid #f5d98a;color:#7c4a03;font-size:12px}
+  background:var(--amber-tint);border:1px solid #f5d98a;color:#7c4a03;font-size:12.5px}
 .dstale svg{flex-shrink:0;margin-top:1px}
 /* The heading is the heading; a bold inside the sentence is just a bold.
    This rule used to be `.dstale b`, which caught both — so the duration in the
@@ -732,8 +765,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .drawer{width:min(430px,100%);max-height:92dvh;background:var(--surface);border-radius:14px;
   box-shadow:var(--shadow-modal);overflow:hidden;display:flex;flex-direction:column}
 .d-head{display:flex;align-items:flex-start;gap:10px;padding:14px 14px 12px;border-bottom:1px solid var(--line);flex-shrink:0}
-.d-head h2{font-family:'Titillium Web',sans-serif;font-size:16px;font-weight:700;line-height:1.2}
-.d-head .sub{font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.d-head h2{font-family:'Titillium Web',sans-serif;font-size:17.5px;font-weight:700;line-height:1.2}
+.d-head .sub{font-size:12.5px;color:var(--ink-2);margin-top:3px}
 .d-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
 /* ---------- the drawer states the camera's condition, loudly for offline ----
@@ -750,25 +783,30 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .dstate{display:flex;gap:11px;align-items:flex-start;border-radius:10px;padding:12px 13px;border:1px solid}
 .dstate .ic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;background:rgba(255,255,255,.72)}
 .dstate .txt{min-width:0}
-.dstate b{display:block;font-family:'Titillium Web',sans-serif;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
-.dstate .big{display:block;font-size:23px;font-weight:700;line-height:1.15;letter-spacing:-.01em;margin:1px 0 2px}
-.dstate p{font-size:12px;opacity:.92}
+.dstate b{display:block;font-family:'Titillium Web',sans-serif;font-size:13.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.dstate .big{display:block;font-size:24px;font-weight:700;line-height:1.18;letter-spacing:-.015em;margin:2px 0 3px}
+/* The tint behind this text is already pale; knocking the ink back as well
+   was two discounts on the same sentence. */
+.dstate p{font-size:12.5px;line-height:1.45}
+/* One reading, one line: this used to wrap between the duration and the word
+   after it, leaving "ago." alone at the start of a line. */
+.dstate p .nb{white-space:nowrap}
 .dstate.off{background:var(--off-tint);border-color:var(--off-line);color:#991b1b}
 .dstate.deg{background:var(--deg-tint);border-color:var(--deg-line);color:#9a3412}
 .dstate.ok{background:var(--ok-tint);border-color:var(--ok-line);color:#15803d;padding:10px 13px}
-.dstate.ok .big{font-size:15px;margin:0}
+.dstate.ok .big{font-size:16px;margin:0}
 /* scoped to the pill on purpose: as a bare .pulse this rule was captured
    by anything else that wanted a class called "pulse" — which is exactly
    how the search field ended up a red 7px lens */
 .pill .pulse{width:7px;height:7px;border-radius:50%;background:var(--off);flex-shrink:0;animation:pl 1.7s infinite}
 @keyframes pl{0%{box-shadow:0 0 0 0 rgba(220,38,38,.55)}70%{box-shadow:0 0 0 8px rgba(220,38,38,0)}100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}}
 .media{aspect-ratio:16/10;border-radius:10px;border:1px solid var(--line);background:var(--fill);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;overflow:hidden}
-.media .lbl{font-size:12px;font-weight:600;color:var(--ink-3);text-align:center;padding:0 14px}
+.media .lbl{font-size:12.5px;font-weight:600;color:var(--ink-2);text-align:center;padding:0 14px}
 .media.live{background:linear-gradient(160deg,#eef4f8,#e4ecf2)}
 .media.dead{background:repeating-linear-gradient(45deg,#fff6f6 0 9px,#ffecec 9px 18px);border-color:var(--off-line)}
 /* Sits under the headline number and borrows its colour, so it reads as part
    of the same statement rather than a control bolted beside it. */
-.dstate .tmode{font-size:11.5px;font-weight:700;color:inherit;opacity:.7;padding:1px 0;
+.dstate .tmode{font-size:12px;font-weight:700;color:inherit;opacity:.85;padding:1px 0;
   text-decoration:underline;text-underline-offset:2px;text-decoration-thickness:1px}
 .dstate .tmode:hover{opacity:1}
 .dstate .tmode:focus-visible{opacity:1;box-shadow:var(--focus);border-radius:4px}
@@ -848,6 +886,13 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
     overflow-x:auto;gap:6px;padding:8px 10px;flex-shrink:0}
   .frow{flex-shrink:0;padding:5px 10px;border-radius:20px;background:var(--surface);box-shadow:inset 0 0 0 1px var(--line)}
   .frow.on{background:var(--blue-tint);box-shadow:inset 0 0 0 1px #9fd0f0}
+  /* The switch is one of those pills here, and the divider turns with the row. */
+  .frailtabs{flex-direction:row;gap:6px;flex-shrink:0}
+  .frailsep{width:1px;height:auto;align-self:stretch;margin:2px 1px;flex-shrink:0}
+  .fbool{flex-shrink:0;padding:5px 10px;border-radius:20px;background:var(--surface);
+    box-shadow:inset 0 0 0 1px var(--line);gap:9px}
+  .fbool .ftxt{flex:0 0 auto}
+  .fbool[aria-pressed="true"]{background:var(--blue-tint);box-shadow:inset 0 0 0 1px #9fd0f0}
   .fbody{flex:1;min-height:0}
   .foptlist,.fsearch+.foptlist{max-height:none;flex:1}
   .sortlist,.sortdir{flex-shrink:0}
@@ -1150,9 +1195,9 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               <b>All cameras healthy</b> status filter and the first KPI, so the squares, the filter and the
               headline count never disagree.</dd></div>
             <div class="irow"><dt>One cell is a zoom level, not a center</dt><dd>
-              The <b>Cell</b> control switches between center, brand, state, region and timezone, and
-              <b>AUTO</b> picks the finest one that still draws at a readable size inside three rows: a
-              square per center at 73 and at 600, a tile per state at 4,000.
+              The <b>Cell</b> control switches between center, brand and state, and <b>AUTO</b> picks the
+              finest one that still draws at a readable size inside three rows: a square per center at 73
+              and at 600, a tile per state at 4,000.
               <span class="d">Four thousand squares at a size anyone can read is eleven rows of nothing.
               Squares stop shrinking at 13px, because below that the hatch is mud and the ✕ a smudge, and
               colour on its own is not an encoding.</span></dd></div>
@@ -1185,7 +1230,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <p style="font-size:12px;color:var(--ink-3);margin-top:6px"><b>Staleness never reaches this
           rule.</b> A cell's colour is about how much of the fleet under it is working, and how old a reading
           is asks a different question of a different object — so the out-of-date treatment lives on
-          the camera blocks inside each center, on the count beside them, and in the Status filter.</p>
+          the camera blocks inside each center, on the count beside them, and in its own filter.</p>
         </section>
         <section>
           <h3>Sorting</h3>
@@ -1215,14 +1260,20 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
         <section>
           <h3>Filtering</h3>
           <dl class="ilist">
-            <div class="irow"><dt>Status</dt><dd>What the center's cameras are doing right now: any issue,
-              offline specifically, degraded specifically, stale specifically, or everything healthy.
+            <div class="irow"><dt>Out-of-date readings</dt><dd>A switch, not a list — the only category on
+              this panel that is a yes/no. On, it keeps the centers holding at least one camera whose
+              assessment has gone stale.
+              <span class="d">It sits above the others because it outranks them: a reading being out of
+              date is a statement about the reading, not a fourth thing a camera can be, and everything the
+              rest of the panel filters on is a claim about the past for those centers. It used to be one
+              option inside Status, where it read as a status.</span></dd></div>
+            <div class="irow"><dt>Camera health</dt><dd>What the center's cameras are doing right now: any
+              issue, offline specifically, degraded specifically, or everything healthy.
               <b>Has any issue</b> and <b>All cameras healthy</b> are the two halves of the centers strip —
               the first is every non-green square, the second is every green one.
-              <span class="d"><b>Has stale cameras</b> sits alongside those rather than between them: a
-              reading can be out of date whatever it says, so it overlaps both. Values inside a category are
-              ORed, so picking it together with <b>Has offline cameras</b> asks for centers matching
-              <em>either</em>, not both.</span></dd></div>
+              <span class="d">Values inside a category are ORed, so <b>Has offline cameras</b> together
+              with <b>Has degraded cameras</b> asks for centers matching <em>either</em>, not both.</span>
+              </dd></div>
             <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.
               <span class="d">About one site in twelve belongs to no chain and has an empty brand field.
               Those are offered as <b>No brand</b> — last in the list, because it is the absence of a
@@ -1234,10 +1285,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <div class="irow"><dt>Parent access</dt><dd>Whether parents can watch this center's cameras
               (<b>parent-facing</b>) or the feeds are staff-only (<b>internal</b>). Independent of who
               pays.</dd></div>
-            <div class="irow"><dt>Region</dt><dd>The district grouping a regional manager owns. Regions
-              group states, so a region can span more than one.</dd></div>
             <div class="irow"><dt>Country</dt><dd>United States or Canada. It's the outermost scope: changing
-              it drops any state, city, region or brand it leaves with nothing to match.</dd></div>
+              it drops any state, city or brand it leaves with nothing to match.</dd></div>
             <div class="irow"><dt>State / Province</dt><dd>Where the center sits. The list is grouped under
               <b>United States</b> and <b>Canada</b> rather than gated behind Country: a state name is
               unambiguous on its own, so a gate would cost every reader two clicks to fix what a heading
@@ -1245,9 +1294,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               — Springfield and Rochester are each two different centers in this assignment.</span></dd></div>
             <div class="irow"><dt>City</dt><dd>Available once a state is chosen — an ungated city list is
               every city you can see, which is a wall rather than a filter.</dd></div>
-            <div class="irow"><dt>Timezone</dt><dd>The center's local timezone, written out rather than
-              abbreviated — the whole point of this filter is scheduling work outside opening hours, so the
-              zone has to be readable without decoding it.</dd></div>
           </dl>
           <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Filters don't have to be applied in
           order. Each list is built from the centers that pass your <em>other</em> choices, and the number
@@ -1344,61 +1390,61 @@ const staleCount   = c => c.cams.filter(isStale).length;
 // asked of a different object. It surfaces on the camera blocks themselves,
 // on the count beside them, and in the filter.
 
-/* code | state | region | timezone | cities — all fifty, because the filter
+/* code | state | timezone | cities — all fifty, because the filter
    panel has to survive a list nobody can scan, not a list of eight. */
 const US = `
-AL|Alabama|Southeast|CT|Birmingham,Huntsville
-AK|Alaska|Pacific|AKT|Anchorage,Fairbanks
-AZ|Arizona|Southwest|MT|Phoenix,Tucson
-AR|Arkansas|Southeast|CT|Little Rock,Fayetteville
-CA|California|Pacific|PT|Sacramento,Fresno
-CO|Colorado|Mountain|MT|Denver,Aurora
-CT|Connecticut|Northeast|ET|Hartford,Stamford
-DE|Delaware|Northeast|ET|Wilmington,Dover
-FL|Florida|Southeast|ET|Orlando,Tampa
-GA|Georgia|Southeast|ET|Atlanta,Savannah
-HI|Hawaii|Pacific|HT|Honolulu,Hilo
-ID|Idaho|Mountain|MT|Boise,Meridian
-IL|Illinois|Midwest|CT|Naperville,Springfield
-IN|Indiana|Midwest|ET|Indianapolis,Fort Wayne
-IA|Iowa|Midwest|CT|Des Moines,Cedar Rapids
-KS|Kansas|Midwest|CT|Overland Park,Wichita
-KY|Kentucky|Southeast|ET|Louisville,Lexington
-LA|Louisiana|Southeast|CT|Baton Rouge,Shreveport
-ME|Maine|Northeast|ET|Portland,Bangor
-MD|Maryland|Northeast|ET|Columbia,Rockville
-MA|Massachusetts|Northeast|ET|Newton,Worcester
-MI|Michigan|Midwest|ET|Ann Arbor,Grand Rapids
-MN|Minnesota|Midwest|CT|Bloomington,Rochester
-MS|Mississippi|Southeast|CT|Jackson,Gulfport
-MO|Missouri|Midwest|CT|Springfield,St. Charles
-MT|Montana|Mountain|MT|Billings,Bozeman
-NE|Nebraska|Midwest|CT|Omaha,Lincoln
-NV|Nevada|Mountain|PT|Henderson,Reno
-NH|New Hampshire|Northeast|ET|Nashua,Concord
-NJ|New Jersey|Northeast|ET|Edison,Princeton
-NM|New Mexico|Southwest|MT|Albuquerque,Las Cruces
-NY|New York|Northeast|ET|Rochester,Syracuse
-NC|North Carolina|Southeast|ET|Cary,Charlotte
-ND|North Dakota|Midwest|CT|Fargo,Bismarck
-OH|Ohio|Midwest|ET|Dublin,Columbus
-OK|Oklahoma|Southwest|CT|Edmond,Tulsa
-OR|Oregon|Pacific|PT|Beaverton,Bend
-PA|Pennsylvania|Northeast|ET|Wexford,Lancaster
-RI|Rhode Island|Northeast|ET|Warwick,Cranston
-SC|South Carolina|Southeast|ET|Greenville,Mount Pleasant
-SD|South Dakota|Midwest|CT|Sioux Falls,Rapid City
-TN|Tennessee|Southeast|CT|Franklin,Knoxville
-TX|Texas|Southwest|CT|Frisco,Katy
-UT|Utah|Mountain|MT|Lehi,Provo
-VT|Vermont|Northeast|ET|Burlington,Essex
-VA|Virginia|Southeast|ET|Ashburn,Richmond
-WA|Washington|Pacific|PT|Redmond,Spokane
-WV|West Virginia|Southeast|ET|Charleston,Morgantown
-WI|Wisconsin|Midwest|CT|Waukesha,Madison
-WY|Wyoming|Mountain|MT|Cheyenne,Casper`.trim().split("\n").map(r=>{
-  const [code,state,region,tz,cities] = r.split("|");
-  return {code, state, region, tz, country:"US", cities:cities.split(",")};
+AL|Alabama|CT|Birmingham,Huntsville
+AK|Alaska|AKT|Anchorage,Fairbanks
+AZ|Arizona|MT|Phoenix,Tucson
+AR|Arkansas|CT|Little Rock,Fayetteville
+CA|California|PT|Sacramento,Fresno
+CO|Colorado|MT|Denver,Aurora
+CT|Connecticut|ET|Hartford,Stamford
+DE|Delaware|ET|Wilmington,Dover
+FL|Florida|ET|Orlando,Tampa
+GA|Georgia|ET|Atlanta,Savannah
+HI|Hawaii|HT|Honolulu,Hilo
+ID|Idaho|MT|Boise,Meridian
+IL|Illinois|CT|Naperville,Springfield
+IN|Indiana|ET|Indianapolis,Fort Wayne
+IA|Iowa|CT|Des Moines,Cedar Rapids
+KS|Kansas|CT|Overland Park,Wichita
+KY|Kentucky|ET|Louisville,Lexington
+LA|Louisiana|CT|Baton Rouge,Shreveport
+ME|Maine|ET|Portland,Bangor
+MD|Maryland|ET|Columbia,Rockville
+MA|Massachusetts|ET|Newton,Worcester
+MI|Michigan|ET|Ann Arbor,Grand Rapids
+MN|Minnesota|CT|Bloomington,Rochester
+MS|Mississippi|CT|Jackson,Gulfport
+MO|Missouri|CT|Springfield,St. Charles
+MT|Montana|MT|Billings,Bozeman
+NE|Nebraska|CT|Omaha,Lincoln
+NV|Nevada|PT|Henderson,Reno
+NH|New Hampshire|ET|Nashua,Concord
+NJ|New Jersey|ET|Edison,Princeton
+NM|New Mexico|MT|Albuquerque,Las Cruces
+NY|New York|ET|Rochester,Syracuse
+NC|North Carolina|ET|Cary,Charlotte
+ND|North Dakota|CT|Fargo,Bismarck
+OH|Ohio|ET|Dublin,Columbus
+OK|Oklahoma|CT|Edmond,Tulsa
+OR|Oregon|PT|Beaverton,Bend
+PA|Pennsylvania|ET|Wexford,Lancaster
+RI|Rhode Island|ET|Warwick,Cranston
+SC|South Carolina|ET|Greenville,Mount Pleasant
+SD|South Dakota|CT|Sioux Falls,Rapid City
+TN|Tennessee|CT|Franklin,Knoxville
+TX|Texas|CT|Frisco,Katy
+UT|Utah|MT|Lehi,Provo
+VT|Vermont|ET|Burlington,Essex
+VA|Virginia|ET|Ashburn,Richmond
+WA|Washington|PT|Redmond,Spokane
+WV|West Virginia|ET|Charleston,Morgantown
+WI|Wisconsin|CT|Waukesha,Madison
+WY|Wyoming|MT|Cheyenne,Casper`.trim().split("\n").map(r=>{
+  const [code,state,tz,cities] = r.split("|");
+  return {code, state, tz, country:"US", cities:cities.split(",")};
 });
 
 /* Country is a two-way switch — US or Canada. The six centers that used to
@@ -1406,14 +1452,14 @@ WY|Wyoming|Mountain|MT|Cheyenne,Casper`.trim().split("\n").map(r=>{
    Canadian now, because a State list offering Greater London underneath
    Country: Canada is a demo that argues against itself. */
 const CA = `
-AB|Alberta|Canada|MT|Calgary
-BC|British Columbia|Canada|PT|Vancouver
-MB|Manitoba|Canada|CT|Winnipeg
-NS|Nova Scotia|Canada|AT|Halifax
-ON|Ontario|Canada|ET|Toronto
-QC|Quebec|Canada|ET|Montréal`.trim().split("\n").map(r=>{
-  const [code,state,region,tz,cities] = r.split("|");
-  return {code, state, region, tz, country:"CA", cities:cities.split(",")};
+AB|Alberta|MT|Calgary
+BC|British Columbia|PT|Vancouver
+MB|Manitoba|CT|Winnipeg
+NS|Nova Scotia|AT|Halifax
+ON|Ontario|ET|Toronto
+QC|Quebec|ET|Montréal`.trim().split("\n").map(r=>{
+  const [code,state,tz,cities] = r.split("|");
+  return {code, state, tz, country:"CA", cities:cities.split(",")};
 });
 
 /* One deterministic pass: camera count, how many are sick, who pays and
@@ -1447,7 +1493,7 @@ function seeds(target = 73){
       const deg = off ? (rnd() < .35 ? 1 + Math.floor(rnd()*2) : 0)
                       : (roll < .40 ? 1 + Math.floor(rnd()*2) : 0);
       out.push({ name:`${brand} — ${city}`, brand, city,
-        st:geo.code, stateName:geo.state, region:geo.region,
+        st:geo.code, stateName:geo.state,
         countryName:geo.country==="CA"?"Canada":"United States", country:geo.country, tz:geo.tz,
         store:String(store += 3), n, off:Math.min(off,n), deg:Math.min(deg, n-off),
         pay: rnd() < .58 ? "parent" : "center",
@@ -1476,7 +1522,7 @@ function seeds(target = 73){
     const deg = off ? (rnd() < .3 ? 1 + Math.floor(rnd() * 2) : 0)
                     : (roll < .27 ? 1 + Math.floor(rnd() * 2) : 0);
     out.push({ name: brand + " — " + (q ? city + " " + q : city), brand, city: q ? city + " " + q : city,
-      st:geo.code, stateName:geo.state, region:geo.region,
+      st:geo.code, stateName:geo.state,
       countryName:geo.country==="CA"?"Canada":"United States", country:geo.country, tz:geo.tz,
       store:String(store += 3), n:cams, off:Math.min(off,cams), deg:Math.min(deg, cams-off),
       pay: rnd() < .58 ? "parent" : "center",
@@ -1516,14 +1562,23 @@ function build(){
     slots.slice(s.off, s.off+s.deg).forEach(i => marks[i]="deg");
     return {
       id:"c"+ci, name:s.name, brand:s.brand, state:s.st, stateName:s.stateName, city:s.city,
-      region:s.region, country:s.country, countryName:s.countryName, tz:s.tz,
+      country:s.country, countryName:s.countryName, tz:s.tz,
       store:s.store, pay:s.pay, pub:s.pub,
       cams: marks.map((status, i) => {
         const silent = silentSite || rnd() < .006;
         return {
           id:`${s.store}-CAM${String(i+1).padStart(2,"0")}`,
           n:i+1, room:rooms[i], status,
-          since: status==="ok" ? Math.floor(rnd()*4200)+120 : Math.floor(rnd()*(status==="off"?410:180))+3,
+          /* Offline durations used to top out at seven hours, so the board could
+             never show the case the whole feature exists for: a camera nobody has
+             been to since Friday. Roughly one offline camera in five is now days
+             old rather than hours. One draw either way — splitting a single
+             random into two regimes rather than rolling twice keeps the seeded
+             stream byte-for-byte what it was, so every other field is unchanged. */
+          since: status === "ok"  ? Math.floor(rnd()*4200)+120
+               : status === "deg" ? Math.floor(rnd()*180)+3
+               : (r => r < .82 ? Math.floor(r / .82 * 410) + 3
+                               : Math.floor((r - .82) / .18 * 8600) + 1440)(rnd()),
           silent,
           // minutes since this camera's row was last assessed
           checked: silent ? ASSESS.assessStaleMin + 8 + Math.floor(rnd()*430)
@@ -1577,10 +1632,16 @@ function clockAt(minutesAgo, tz){
   const now = new Date(Date.now() + off);
   const h = at.getUTCHours(), mm = String(at.getUTCMinutes()).padStart(2, "0");
   const stamp = `${h % 12 === 0 ? 12 : h % 12}:${mm} ${h < 12 ? "AM" : "PM"} ${tz}`;
-  const sameDay = at.getUTCFullYear() === now.getUTCFullYear()
-    && at.getUTCMonth() === now.getUTCMonth() && at.getUTCDate() === now.getUTCDate();
-  // The date only earns its space once the event is no longer "today".
-  return sameDay ? stamp : `${MONTHS[at.getUTCMonth()]} ${at.getUTCDate()}, ${stamp}`;
+  /* Always say which day. "2:14 AM" on its own is the question it was meant to
+     answer — a camera that went down at 2:14 this morning and one that went
+     down at 2:14 three mornings ago are not the same call, and the reader has
+     no way to tell them apart. Today and yesterday get the word rather than the
+     date, because that is how anyone says it out loud. */
+  const dayNo = d => Math.floor(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 86400000);
+  const back = dayNo(now) - dayNo(at);
+  const day = back === 0 ? "Today" : back === 1 ? "Yesterday"
+    : `${MONTHS[at.getUTCMonth()]} ${at.getUTCDate()}`;
+  return `${day} · ${stamp}`;
 }
 const plural = (n, w) => n + " " + w + (n === 1 ? "" : "s");
 
@@ -1594,8 +1655,8 @@ const S = {
   dropOpen:false,       // the header picker's dropdown
   q:"", qDraft:"",
   // one key per facet, each an array of chosen values; empty = not filtering
-  status:[], brand:[], pay:[], access:[],
-  region:[], country:[], state:[], city:[], tz:[],
+  stale:[], status:[], brand:[], pay:[], access:[],
+  country:[], state:[], city:[],
   facet:"status", fsearch:"",          // which facet's options are open, and its search box
   sort:"rate", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
@@ -1625,7 +1686,10 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
    city list is Texas cities. `needs` is the one real dependency — an
    ungated list of ninety cities is a wall, not a filter.
    ===================================================================== */
-const FKEYS = ["status","brand","pay","access","region","country","state","city","tz"];
+/* Order matters: this is the order of the rail in the filter panel. "stale"
+   leads because a reading being out of date outranks what the reading says —
+   everything below it is a claim about the past. */
+const FKEYS = ["stale","status","brand","pay","access","country","state","city"];
 
 /* Every facet holds an array of chosen values. Empty means "not filtering
    on this"; two or more are ORed together, which is how people actually
@@ -1647,7 +1711,7 @@ const facet = (label, all, one, options, extra={}) => ({
    refresh spent recomputing one set fifty-six times.
 
    The key has to carry everything the set depends on: the search text, every
-   other facet's selection, and GEN — because the Status facet reads live camera
+   other facet's selection, and GEN — because the Camera health facet reads live camera
    state, so the pool for any other facet moves when the data does. */
 let poolSig = "", poolSet = null;
 function facetPool(skip){
@@ -1672,20 +1736,25 @@ const TZ_NAMES = {
 };
 
 const F = {
-  status: facet("Status", "Any status",
+  /* The one filter that is a yes/no rather than a list of values, and the
+     reason it is no longer an option inside Camera health: an out-of-date
+     reading is not a fourth thing a camera can be. It is a statement about the
+     reading, orthogonal to what the reading says, and sitting inside a list of
+     camera states it read as one more state. Now it is a switch above them. */
+  stale: facet("Out-of-date readings", "Any reading age", c=>staleCount(c) > 0,
+    ()=>[["stale","Has out-of-date readings"]], {bool:true}),
+  status: facet("Camera health", "Any camera health",
     (c,v)=>{ const t=tally(c);
       return v==="issues" ? !!(t.off||t.deg)
         : v==="off"   ? !!t.off
         : v==="deg"   ? !!t.deg
-        : v==="stale" ? staleCount(c) > 0
         : !(t.off||t.deg); },
-    // "Has any issue" and "All cameras healthy" remain the exact complement of
+    // "Has any issue" and "All cameras healthy" are the exact complement of
     // each other — between them they are the green square's rule stated as a
     // filter, which is what keeps the squares, this list and the first KPI
-    // agreeing. "Has stale cameras" sits alongside rather than between them:
-    // it overlaps both, because a reading can be out of date whatever it says.
+    // agreeing.
     ()=>[["issues","Has any issue"],["off","Has offline cameras"],
-         ["deg","Has degraded cameras"],["stale","Has stale cameras"],
+         ["deg","Has degraded cameras"],
          ["clean","All cameras healthy"]]),
   brand: facet("Brand", "All brands", (c,v)=>c.brand===v,
     // "No brand" is not a brand whose name happens to start with N — it is the
@@ -1696,7 +1765,6 @@ const F = {
     ()=>[["parent","Parent-pay"],["center","Center-pay"]]),
   access: facet("Parent access", "Any parent access", (c,v)=>v==="parent"?c.pub:!c.pub,
     ()=>[["parent","Parent-facing"],["internal","Internal only"]]),
-  region: facet("Region", "All regions", (c,v)=>c.region===v, ()=>uniqOpts(c=>c.region,"region")),
   country: facet("Country", "US and Canada", (c,v)=>c.country===v,
     ()=>[["US","United States"],["CA","Canada"]]),
   // Grouped, not gated. A state name is unambiguous on its own — there is
@@ -1714,12 +1782,6 @@ const F = {
     {search:true, group:v=>STATE_COUNTRY[v] || ""}),
   city: facet("City", "All cities", (c,v)=>c.city===v,
     ()=>uniqOpts(c=>c.city,"city"), {search:true, needs:"state"}),
-  // The codes are what the data stores; they are not what anyone should have
-  // to decode in a filter list — and the point of this facet is scheduling
-  // work outside opening hours, so the zone has to be readable at a glance.
-  tz: facet("Timezone", "All timezones", (c,v)=>c.tz===v,
-    ()=>uniqOpts(c=>c.tz,"tz").map(([v])=>[v, TZ_NAMES[v] || v])
-      .sort((a,b)=>a[1].localeCompare(b[1]))),
 };
 const optLabel = (k, v) => (F[k].options().find(o=>o[0]===v) || [v, String(v)])[1];
 const facetSummary = k => S[k].length === 1 ? optLabel(k, S[k][0])
@@ -1759,7 +1821,7 @@ function reconcileFilters(){
   const inCountry = c => F.country.test(c, S.country);
   // Country is the outermost scope; any value it orphans is dropped, one
   // value at a time rather than clearing the whole facet.
-  ["region","state","tz","brand"].forEach(k=>{
+  ["state","brand"].forEach(k=>{
     S[k] = S[k].filter(v => DATA.some(c => inCountry(c) && F[k].one(c, v)));
   });
   S.city = S.state.length
@@ -1812,7 +1874,7 @@ function sorted(list){
    ===================================================================== */
 const activeFilters = () => FKEYS.filter(k=>S[k].length).map(k=>({
   k,
-  // One chip per facet, not per value: nine facets times several values
+  // One chip per facet, not per value: eight facets times several values
   // each would bury the toolbar in chips.
   label: S[k].length === 1 ? optLabel(k, S[k][0]) : `${F[k].label}: ${S[k].length}`,
   title: S[k].map(v=>optLabel(k,v)).join(", ")
@@ -1905,17 +1967,35 @@ function renderTools(){
         ${S.q.trim() ? `<div class="fscope">Counts and options are within the search
           <b>“${esc(S.q.trim())}”</b>.</div>` : ""}
         <div class="ftwo">
-          <div class="frail" role="tablist" aria-label="Filter by">
-            ${FKEYS.map(k=>{
+          <div class="frail">
+            ${FKEYS.filter(k=>F[k].bool).map(k=>{
               const on = S[k].length > 0;
-              const dim = F[k].needs && !S[F[k].needs].length;
-              return `<button class="frow${S.facet===k?" on":""}${dim?" dim":""}" data-facet="${k}"
-                role="tab" aria-selected="${S.facet===k}"
-                title="${on ? esc(S[k].map(v=>optLabel(k,v)).join(", ")) : ""}">
-                <span class="fl">${esc(F[k].label)}</span>
-                <span class="fv${on?" set":""}">${on ? esc(facetSummary(k)) : (dim ? "after "+esc(F[F[k].needs].label.toLowerCase()) : "any")}</span>
+              /* The count is a pass over every center, and the rail is rebuilt
+                 on every repaint including the live refresh. Only pay for it
+                 while the panel is actually open. */
+              const n = S.filtersOpen ? facetCount(k, F[k].options()[0][0]) : null;
+              return `<button class="fbool" data-bool="${k}" aria-pressed="${on}"
+                title="${esc(F[k].options()[0][1])}">
+                <span class="ftxt"><span class="fl">${esc(F[k].label)}</span>
+                  <span class="fv">${n === null ? esc(F[k].all)
+                    : `<span class="num">${n.toLocaleString()}</span> ${n === 1 ? "center" : "centers"}`}</span>
+                </span>
+                <span class="sw2"></span>
               </button>`;
             }).join("")}
+            <div class="frailsep"></div>
+            <div class="frailtabs" role="tablist" aria-label="Filter by">
+              ${FKEYS.filter(k=>!F[k].bool).map(k=>{
+                const on = S[k].length > 0;
+                const dim = F[k].needs && !S[F[k].needs].length;
+                return `<button class="frow${S.facet===k?" on":""}${dim?" dim":""}" data-facet="${k}"
+                  role="tab" aria-selected="${S.facet===k}"
+                  title="${on ? esc(S[k].map(v=>optLabel(k,v)).join(", ")) : ""}">
+                  <span class="fl">${esc(F[k].label)}</span>
+                  <span class="fv${on?" set":""}">${on ? esc(facetSummary(k)) : (dim ? "after "+esc(F[F[k].needs].label.toLowerCase()) : "any")}</span>
+                </button>`;
+              }).join("")}
+            </div>
           </div>
           <div class="fbody">
             ${fdef.search && !gated ? `<div class="fsearch">
@@ -1991,6 +2071,11 @@ function applyView(id){
   // Views saved before categories went multi hold a single string.
   FKEYS.forEach(k=>{ const s=v[k];
     S[k] = Array.isArray(s) ? [...s] : (s && s!=="all" ? [s] : []); });
+  // ...and views saved while staleness lived inside Status carry it there.
+  if (S.status.includes("stale")){
+    S.status = S.status.filter(x=>x!=="stale");
+    S.stale  = ["stale"];
+  }
   S.sort=v.sort; S.dir=v.dir || sortRow(v.sort).def;
   S.q=v.q; S.qDraft=v.q; $("q").value=v.q; S.centerPick=null;
   $("qField").classList.remove("linked");
@@ -2113,14 +2198,15 @@ const TILE_SIZES = [                        // one group per cell
   {w:54,  h:28, full:false},
 ];
 
+/* A zoom level has to be a grouping the reader can also filter by, or the
+   drill-down lands nowhere. Region and Timezone left the filter panel, so they
+   left this control with it. */
 const DIMS = {
-  center: {label:"Center",   key:c=>c.id,        name:c=>c.name,               short:c=>c.name,  facet:null},
-  brand:  {label:"Brand",    key:c=>c.brand,     name:c=>brandOf(c),           short:c=>brandOf(c), facet:"brand"},
-  state:  {label:"State",    key:c=>c.stateName, name:c=>c.stateName,          short:c=>c.state, facet:"state"},
-  region: {label:"Region",   key:c=>c.region,    name:c=>c.region,             short:c=>c.region, facet:"region"},
-  tz:     {label:"Timezone", key:c=>c.tz,        name:c=>TZ_NAMES[c.tz]||c.tz, short:c=>c.tz,    facet:"tz"},
+  center: {label:"Center", key:c=>c.id,        name:c=>c.name,      short:c=>c.name,     facet:null},
+  brand:  {label:"Brand",  key:c=>c.brand,     name:c=>brandOf(c),  short:c=>brandOf(c), facet:"brand"},
+  state:  {label:"State",  key:c=>c.stateName, name:c=>c.stateName, short:c=>c.state,    facet:"state"},
 };
-const DIMKEYS = ["center","brand","state","region","tz"];
+const DIMKEYS = ["center","brand","state"];
 
 /* A group in the same three states its centers are in — counted, not averaged.
    Averaging is what breaks at scale: every state's camera defect rate lands
@@ -2441,12 +2527,12 @@ function patchStrip(){
 /* ---------- the control row ---------- */
 function bandCrumb(){
   const out = [];
-  ["region","state","brand","tz"].forEach(fk=>{
+  ["state","brand"].forEach(fk=>{
     if (!S[fk].length) return;
-    // The stored value is not always the readable one: a timezone is a code,
-    // and a brandless center is an empty string, which would draw a crumb with
-    // nothing in it but its own remove button.
-    const nm = v => fk === "tz" ? (TZ_NAMES[v] || v) : fk === "brand" ? (v || NO_BRAND) : v;
+    // The stored value is not always the readable one: a brandless center is
+    // an empty string, which would draw a crumb with nothing in it but its own
+    // remove button.
+    const nm = v => fk === "brand" ? (v || NO_BRAND) : v;
     out.push({fk, label: S[fk].length === 1 ? nm(S[fk][0])
       : nm(S[fk][0]) + " +" + (S[fk].length - 1)});
   });
@@ -3087,7 +3173,7 @@ function renderDrawer(){
         <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.7"><path d="M3 7.5h11v9H3z"/><path d="M14 11l6-3v8l-6-3"/></svg>
         <span class="lbl">Latest thumbnail</span></div>`;
 
-  // One headline block instead of a "Status" row buried in a table: the
+  // One headline block instead of a status row buried in a table: the
   // duration is the number someone acts on, so it gets the type size.
   const state = cam.status === "off"
     ? `<div class="dstate off">
@@ -3095,7 +3181,7 @@ function renderDrawer(){
         <div class="txt"><b>${isStale(cam)?"Last known: offline":"Offline"}</b>
           <span class="big num" id="camTime"></span>
           <button class="tmode" id="tmodeBtn"></button>
-          <p>Down since the last good heartbeat.${isStale(cam)?"":` Checked again ${ago(cam.checked)}.`}</p></div>
+          <p>Down since the last good heartbeat.${isStale(cam)?"":` Checked again <span class="nb">${ago(cam.checked)}</span>.`}</p></div>
       </div>`
     : cam.status === "deg"
     ? `<div class="dstate deg">
@@ -3103,7 +3189,7 @@ function renderDrawer(){
         <div class="txt"><b>${isStale(cam)?"Last known: degraded":"Degraded — still reporting"}</b>
           <span class="big num" id="camTime"></span>
           <button class="tmode" id="tmodeBtn"></button>
-          <p>Below target quality, not down.${isStale(cam)?"":` Checked ${ago(cam.checked)}.`}</p></div>
+          <p>Below target quality, not down.${isStale(cam)?"":` Checked <span class="nb">${ago(cam.checked)}</span>.`}</p></div>
       </div>`
     : `<div class="dstate ok">
         <span class="ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2.8"><path d="M5 13l4.5 4.5L19 7"/></svg></span>
@@ -3126,9 +3212,9 @@ function renderDrawer(){
   // the status block carries how long and since when, and the camera ID that
   // used to sit here went with the ticketing flow that wanted it.
   $("dBody").innerHTML = `${staleNote}${state}${media}
-    <div><a class="btn primary" href="#" onclick="return false" style="justify-content:center;width:100%">View live on my.wmg
+    <div><a class="btn primary" href="#" onclick="return false" style="justify-content:center;width:100%">View on my.watchmegrow.com
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a></div>
-    <p class="pgtxt">Verifying on my.wmg is the only way to confirm a camera is truly down — this page reports the heartbeat, not the picture.</p>`;
+    <p class="pgtxt">Watching the feed on my.watchmegrow.com is the only way to confirm a camera is truly down — this page reports the heartbeat, not the picture.</p>`;
 
   paintCamTime();
   $("dPos").textContent = `Camera ${S.sel.idx+1} of ${c.cams.length}`;
@@ -3157,7 +3243,7 @@ function paintCamTime(){
   b.textContent = clock ? `Show how long it has been ${what}` : `Show when it went ${what}`;
   b.title = clock
     ? "Switch back to elapsed time"
-    : `Switch to the wall clock at ${c.name} (${c.tz})`;
+    : `Switch to the wall clock at ${c.name} (${TZ_NAMES[c.tz] || c.tz})`;
 }
 
 function openCam(ci, i){
@@ -3408,7 +3494,7 @@ $("bandBar").addEventListener("click", e=>{
   const cr = e.target.closest("[data-crumb]");
   if (cr){
     const fk = cr.dataset.crumb;
-    if (fk === "__all") ["region","state","brand","tz"].forEach(k=>S[k] = []);
+    if (fk === "__all") ["state","brand"].forEach(k=>S[k] = []);
     else S[fk] = [];
     reconcileFilters();
     S.kpi = null; S.page = 1; S.bandDimPick = null;
@@ -3558,6 +3644,14 @@ document.addEventListener("click", e=>{
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
   if (t.closest("#fClear")){ clearAll(); return; }
   if (t.closest("[data-info]")){ openInfo(null, t.closest("[data-info]")); return; }
+  // A yes/no category has no option list to open, so it toggles where it sits
+  // and never becomes the selected facet.
+  const bl = t.closest("[data-bool]");
+  if (bl){
+    const k = bl.dataset.bool;
+    S[k] = S[k].length ? [] : [F[k].options()[0][0]];
+    reconcileFilters(); S.page = 1; render(); return;
+  }
   const fr = t.closest("[data-facet]");
   if (fr){ S.facet = fr.dataset.facet; S.fsearch = ""; renderTools(); return; }
   const fo = t.closest(".fopt");

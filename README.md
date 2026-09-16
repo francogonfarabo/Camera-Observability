@@ -18,8 +18,8 @@ A switcher is pinned to the bottom of both.
 ## What it does
 
 - **"Your centers"** — an always-visible overview of the whole assignment, above the list.
-  One cell is a center while that fits and a **state, brand, region or timezone once it
-  doesn't**, so the overview stays three rows tall whether you manage 73 centers or 4,000.
+  One cell is a center while that fits and a **brand or a state once it doesn't**, so the
+  overview stays three rows tall whether you manage 73 centers or 4,000.
   The `Cell` control makes that zoom explicit; `AUTO` picks the finest one that still
   draws legibly. Click a center to search it, click a group to filter to it, and the
   overview collapses to a 32px sticky strip once you scroll past it.
@@ -29,10 +29,12 @@ A switcher is pinned to the bottom of both.
 - **Four numbers** across the top — centers needing attention, cameras offline, cameras
   degraded, longest outage. Each doubles as a one-click filter, and each goes calm rather
   than alert-red when it reads zero.
-- **Filters and sort as two separate controls** — nine facets (status, brand, payment
-  model, parent access, region, country, state, city, timezone), multi-select within a
+- **Filters and sort as two separate controls** — eight facets (out-of-date readings, camera
+  health, brand, payment model, parent access, country, state, city), multi-select within a
   category and ANDed across them, with live counts computed from the centers passing your
-  *other* choices. Five sort fields, each naming a field and never an order.
+  *other* choices. Out-of-date readings is a switch rather than a list and leads the rail: a
+  reading being stale is a statement about the reading, not a fourth thing a camera can be.
+  Five sort fields, each naming a field and never an order.
 - **Saved views** — name the current filter/sort/search combination and reapply it.
   Browser-local.
 - **Auto-refresh** on a visible 30s cycle with pause and refresh-now. It stops on its own

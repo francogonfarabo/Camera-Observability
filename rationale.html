@@ -181,9 +181,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
 
     <div class="q"><span class="n num">5</span><div>
       <p><strong>Sorting and filtering became real machinery, specified from how the work is described out
-      loud.</strong> Five sorts, each with a direction and a natural default; nine facets, including the ones
-      that came from district managers ("what other schools in my region have issues") and the operational
-      ones nobody asks for until they need them — payment model, timezone for maintenance windows. The
+      loud.</strong> Five sorts, each with a direction and a natural default; eight facets, including the
+      operational ones nobody asks for until they need them — payment model, parent access. Region and
+      timezone were both built and both later cut: a category has to earn a row in the rail by being how
+      someone actually names the set they want, and neither was. The
       sequencing question — should the filters funnel — is answered <em>no, with one exception</em>
       in <em>Filtering as a funnel</em> below: every facet's options are computed from the centers
       passing your <em>other</em> choices, so the data does the funnelling instead of the user. Within a
@@ -230,9 +231,10 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   and it is still the right move — the shipped board does it too.</p>
   <p>It is not enough on its own, though, and the second fix is the one that shipped. Its single idea is
   that <strong>a cell is a zoom level, not a center</strong> — what the control changes is how high you
-  are flying over the assignment. A control says whether a cell is a center, a brand, a state, a region or
-  a timezone, and it starts on the finest one that still draws legibly in three rows: a square per center
-  at 73 and 600, a tile per state at 4,000. What deliberately does <em>not</em> change is the vocabulary —
+  are flying over the assignment. A control says whether a cell is a center, a brand or a state, and it
+  starts on the finest one that still draws legibly in three rows: a square per center at 73 and 600, a
+  tile per state at 4,000. A zoom level has to be something the reader can also filter by, or the
+  drill-down lands nowhere — so the control holds exactly the groupings the filter panel holds. What deliberately does <em>not</em> change is the vocabulary —
   the same red, orange and green, by the same rule, with the same ✕ and hatch. A board read by support
   staff mid-phone-call cannot also be a board that teaches a second scale; an earlier build graded centers
   on a five-step defect rate and came out for exactly that reason. The square-per-center version is kept
@@ -256,11 +258,12 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <p>A review pass then closed four gaps. The <strong>State</strong> list was interleaving Alberta between
   Alaska and Arizona; it is grouped under country headings now, and still not gated, because a state name is
   unambiguous on its own where a city name is not — Springfield and Rochester are each two different centers
-  here, which is why City <em>is</em> gated and State is not. <strong>Timezones</strong> are written out
-  rather than abbreviated, since the reason to filter on one is scheduling work outside opening hours and a
-  two-letter code makes the reader do the decoding. The <strong>camera modal</strong> gained a toggle between
-  how long a camera has been down and the wall-clock moment it went down — four hours sizes the problem,
-  2:14 AM is what you match against a power cut — and lost the camera ID row. And the <strong>KPI row</strong>
+  here, which is why City <em>is</em> gated and State is not. The <strong>camera modal</strong> gained a toggle
+  between how long a camera has been down and the wall-clock moment it went down — four hours sizes the
+  problem, 2:14 AM is what you match against a power cut — and lost the camera ID row. That clock later had
+  to learn to say <em>which</em> day: a camera that went down at 2:14 this morning and one that went down at
+  2:14 three mornings ago are not the same call, and a bare time cannot tell them apart. And the
+  <strong>KPI row</strong>
   stopped repeating itself: its first tile and its second were running the same filter, so the first now
   counts centers with anything wrong and the second stays on cameras offline.</p>
   <p>Then the fourth camera state arrived — <strong>out of date</strong> — with the assessor's real rules
@@ -350,7 +353,12 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   entire job is to answer one question at a glance. A center square says how much of a site is working;
   how old a reading is asks a different question of a different object, and the veil belongs where the
   object is. So the strip stays a three-state overview, and out-of-date shows on the camera blocks inside a
-  center, on the count beside them, and in the <b>Has stale cameras</b> status filter. A banner above the
+  center, on the count beside them, and in its own filter category. That category is the one yes/no on the
+  panel, and it sits above the rest: it lived inside <em>Status</em> for several rounds, where being one
+  option among <em>offline</em>, <em>degraded</em> and <em>healthy</em> made it read as a fourth thing a
+  camera could be. It is not. It is a statement about the reading, and everything below it on that panel is
+  a claim about the past for the centers it matches — which is also the order they now appear in. A banner
+  above the
   board announcing the fleet-wide count went in and came straight back out: staleness is a caveat on a
   reading, and a caveat does not earn a permanent alarm strip above the numbers it qualifies.</p>
   <p>Keeping green strict is what makes the rest of the board agree with itself. Green is the exact
@@ -398,7 +406,7 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     state.</li>
   </ul>
   <p><strong>There is no center view.</strong> B has exactly two screens: the cold-start dashboard and camera
-  health. Center names are labels, not links; the camera modal offers my.wmg and nothing else. This is the
+  health. Center names are labels, not links; the camera modal offers my.watchmegrow.com and nothing else. This is the
   sharper reading of "camera health is the only place to check cameras" — if drilling into a single center's
   camera page were one click away, the board would be a menu rather than the answer.</p>
 </section>
@@ -418,13 +426,17 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
   <p>The exception is <strong>City, which is gated on a State</strong> — ungated it lists every city in the
   assignment, which is a wall rather than a filter. The rail says so in place of the value ("after state")
   instead of hiding the row, so the dependency is discoverable rather than invisible. <strong>Country</strong>
-  is treated as the outermost scope in one respect only: changing it drops any state, city, region or brand it
+  is treated as the outermost scope in one respect only: changing it drops any state, city or brand it
   leaves with nothing to match, since those combinations are guaranteed-empty rather than merely narrow.</p>
-  <p>Everything else is a flat facet on purpose. Brand, payment model, parent access and timezone all cut
-  across geography — a brand spans states, a timezone spans half the country — so nesting them under a place
-  would be a lie about the data. Regions group states, which makes region and state two altitudes of the same
-  question rather than two steps of one: a district manager starts at their region, a compliance officer
-  starts at a state, and neither should have to pass through the other.</p>
+  <p>Everything else is a flat facet on purpose. Brand, payment model and parent access all cut across
+  geography — a brand spans states — so nesting them under a place would be a lie about the data.</p>
+  <p><strong>Two facets were removed rather than kept because they worked.</strong> Region and Timezone both
+  filtered correctly and both drew a clean zoom level in the band; neither was how anyone named the set they
+  wanted. A region is an org chart, and this board is read by support staff who were handed a center name on
+  a phone call, not a district. A timezone is a scheduling question, and scheduling is not what this screen
+  is for — the one place a zone still earns its space is the camera modal, stating the moment a camera went
+  down in the center's wall clock rather than the reader's. A category that is defensible is not the same as
+  a category that is used, and eight rows of rail that all get used beat ten that mostly do not.</p>
 </section>
 
 <section>
@@ -489,12 +501,15 @@ footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);paddin
     <div class="q"><span class="n num">3</span><div>
       <p>Where does someone go once camera health tells them a center is broken?</p>
       <p>B deliberately has no route into a single center, so the next step happens outside this screen — on
-      my.wmg, or by leaving camera health and picking the center the normal way. Worth confirming that matches
+      my.watchmegrow.com, or by leaving camera health and picking the center the normal way. Worth confirming that matches
       how the work actually continues, since it is the one thing the board stops short of.</p>
     </div></div>
     <div class="q"><span class="n num">4</span><div>
       <p>Timestamps in the viewer's timezone, or the center's?</p>
-      <p>Relative times ("27m ago") dodge the question for now; absolute timestamps will need an answer.</p>
+      <p>The modal answers <em>the center's</em>, and labels it — <em>Today · 2:14 AM CT</em>. That is the
+      only reading that is actionable when you are about to send someone to the building. It is a decision
+      taken inside the prototype rather than a confirmed one; a fleet spanning six zones may well want the
+      reader's clock as the second line rather than an alternative to it.</p>
     </div></div>
     <div class="q"><span class="n num">5</span><div>
       <p>Is camera order within a center stable and meaningful?</p>
