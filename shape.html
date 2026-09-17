@@ -1780,8 +1780,8 @@ const S = {
   sel:null,             // {ci, idx}
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" band
-  keyPick:null,         // "off" | "deg" | "ok" — which legend key the band set
-  groupPick:null,       // {fk, vals} — the drill-down the band wrote, if any
+  // No keyPick / groupPick: a key reads as pressed straight off S.cstatus, and
+  // a drill-down reads off its own facet. Nothing to keep in step.
   // the band: what a cell means, whether healthy centers are folded away,
   // and whether the collapsed strip is showing
   bandDimPick:null, bandHover:false, miniOn:false,
@@ -2188,15 +2188,11 @@ function commitSaveView(){
   const name = (inp ? inp.value : "").trim();
   if (!name){ inp && inp.focus(); return; }
   const existing = S.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
-  /* The two picks the band owns travel with the view. They are not a second
-     copy of the filter — the filter is already in FKEYS below — they record
-     that "Your centers" is what set it, which is the difference between the
-     band re-scoping itself and standing still. Without them a view saved from a
-     legend key came back with the chip lit and the key inert. */
+  /* Nothing here records where a filter came from any more. A key and the same
+     value chosen in the Filters panel do the same thing, so the facet arrays
+     below are the whole state and the view restores exactly. */
   const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
-    name, sort:S.sort, dir:S.dir, q:S.q,
-    keyPick: keyActive() ? S.keyPick : null,
-    groupPick: groupActive() ? {fk:S.groupPick.fk, vals:[...S.groupPick.vals]} : null };
+    name, sort:S.sort, dir:S.dir, q:S.q };
   FKEYS.forEach(k=>payload[k]=[...S[k]]);
   S.savedViews = existing ? S.savedViews.map(v=>v.id===existing.id?payload:v) : [...S.savedViews, payload];
   persistSavedViews(S.savedViews);
@@ -2222,10 +2218,6 @@ function applyView(id){
   }
   S.sort=v.sort; S.dir=v.dir || sortRow(v.sort).def;
   S.q=v.q; S.qDraft=v.q; $("q").value=v.q; S.centerPick=null;
-  // Both re-derive on read, so a view saved before they existed restores as
-  // null and simply behaves like a filter set from the panel.
-  S.keyPick   = v.keyPick   || null;
-  S.groupPick = v.groupPick || null;
   $("qField").classList.remove("linked");
   S.page=1; S.kpi=null; S.savingOpen=false; S.filtersOpen=false; S.sortOpen=false;
   render();
@@ -2409,68 +2401,44 @@ function buildCells(dim, scope){
   return out;
 }
 
-/* The one filter this component does not apply to itself.
+/* Every filter reaches this component, center status included. The search box
+   is the one exception, and it is the only one: clicking a cell writes a center
+   name into the search field, and letting that narrow the band would leave one
+   square on screen the instant anyone used it.
 
-   The "N centers all reporting" badge is part of the band, and a control does
-   not get to blind the component it sits in — the same reason the search box is
-   left out of the band's scope. Switching it on would otherwise re-scope the
-   band to the healthy centers and take the badge with it, which is a strange
-   way for a control to answer a click. So while the badge is on, the band
-   ignores the status it set and keeps drawing the whole assignment; the list
-   below is where the answer shows up.
+   A legend key used to be excepted too, on the argument that a control should
+   not blind the component it sits in. The argument was sound and the conclusion
+   was not: a filter that visibly empties the list and leaves the thing above it
+   untouched reads as a control that half worked. What the argument actually
+   protects is the *control*, not the band — so the keys keep their counts on the
+   full scope (see bandKeyScope) and stay switchable, while the cells beneath
+   them filter like every other cell on the page. */
+const bandPass = c => matchesFilters(c, {ignoreQ:true});
 
-   The badge being "on" is re-derived from the filters every render rather than
-   remembered, so touching any other filter turns it off and the band goes back
-   to honouring everything. Nothing has to remember to clear the flag. */
-const keyActive = () => !!S.keyPick
-  && S.cstatus.length === 1 && S.cstatus[0] === S.keyPick;
-const bandPass = c => keyActive()
-  ? FKEYS.every(k => k === "cstatus" || F[k].test(c, S[k]))
-  : matchesFilters(c, {ignoreQ:true});
+/* What the legend counts: everything the filters leave except center status
+   itself. Counting the drawn cells instead would let one key disable the other
+   two the moment it was pressed — the control eating itself, which is the real
+   form of "a control does not blind the component it sits in". */
+const bandKeyScope = () => DATA.filter(c =>
+  FKEYS.every(k => k === "cstatus" || F[k].test(c, S[k])));
 
-/* "Your centers" holds one pick at a time.
+/* One pick at a time, down to the one pair that can still contradict itself.
 
-   The component offers two ways to point at something: a center square, which
-   is a search, and the "all reporting" badge, which is a filter. The rest of
-   the board is glad to combine a search with a filter, and should keep doing
-   that. This component is the exception, because inside it the two are not
-   ingredients — they are alternatives, and combining them is never what the
-   click meant.
+   The rule was written for a band that ignored its own status filter. With the
+   band honouring it, most of the rule has nothing left to prevent: a cell you
+   can see is a cell that passes, so a key can no longer filter away the very
+   square being clicked, and a key alongside a brand is an ordinary two-facet
+   AND of the kind the whole tool is built on. Keeping the drops would now do
+   harm rather than prevent it — clearing the key under a click would rebuild
+   the band with the cell still under the pointer, which is the one thing this
+   component is careful never to do.
 
-   Left combining, each one broke the other. With the badge on, clicking a red
-   center did nothing at all: the badge's own filter excluded the very center
-   being clicked, and pickCenter bailed on its guard without a word. The other
-   way round, clicking the badge left the picked center's name sitting in the
-   search box, so the list was asked for one named center AND every healthy
-   center, and returned nothing. Two ways of asking for one thing, ANDed into
-   zero.
-
-   So each pick drops the other. Note what these two do *not* touch: any filter
-   the user set from the Filters panel, and any query they typed themselves —
-   those still combine exactly as before. The component only ever withdraws its
-   own pick. */
-function dropKeyPick(){
-  if (!keyActive()) return false;
-  S.cstatus = []; S.keyPick = null;
-  bandSig = "";
-  return true;
-}
-/* The band's own drill-down, tracked the way a center pick is: by what this
-   component wrote, not by whatever happens to be sitting in the facet. A brand
-   chosen in the Filters panel is the reader's, and the band never withdraws it.
-   Re-derived every time it is asked, like the key, so nothing has to remember
-   to clear it when the reader edits that facet by hand. */
-const groupActive = () => !!S.groupPick && S.groupPick.vals.length > 0
-  && S.groupPick.vals.every(v => S[S.groupPick.fk].includes(v));
-function dropGroupPick(){
-  if (!groupActive()) return false;
-  const fk = S.groupPick.fk, vals = S.groupPick.vals;
-  S[fk] = S[fk].filter(v => !vals.includes(v));
-  S.groupPick = null;
-  reconcileFilters();
-  bandSig = ""; bandOrder = null;
-  return true;
-}
+   What survives is the pair that can still be asked two ways at once. The band
+   deliberately ignores the search box, so a center name sitting in that field
+   is invisible here while contradicting the key: "Frisco" AND "all reporting"
+   is an empty list with nothing on screen explaining why. So a key still
+   withdraws the search this component wrote — and only that one. A query the
+   reader typed is theirs. */
 function dropCenterPick(){
   // Only the search this component wrote. A query the user typed is theirs.
   if (!S.centerPick) return false;
@@ -2783,7 +2751,9 @@ const KEY_WORDS = {
 };
 function renderBandLegend(){
   const group = bandDimNow !== "center";
-  const live  = keyActive() ? S.keyPick : null;
+  // One value selected means one key is on — whether it was pressed here or
+  // chosen in the Filters panel. Both do the same thing now, so both light up.
+  const live  = S.cstatus.length === 1 ? S.cstatus[0] : null;
   const keyBtn = (v, swc, n) => {
     const on = live === v, words = KEY_WORDS[v](n);
     return '<button class="bkey k-' + v + '" data-key="' + v + '"'
@@ -2801,8 +2771,11 @@ function renderBandLegend(){
 
   const scope = bandScopeAll ? DATA : DATA.filter(bandPass);
   const a = aggregate(scope);
-  $("bandLegend").innerHTML = keyBtn("off","off",a.red) + keyBtn("deg","attn",a.amber)
-    + keyBtn("ok","ok",a.green) + bar;
+  // The keys count what center status has not yet been applied to; the summary
+  // under them describes what is actually drawn. Two different questions.
+  const k = aggregate(bandKeyScope());
+  $("bandLegend").innerHTML = keyBtn("off","off",k.red) + keyBtn("deg","attn",k.amber)
+    + keyBtn("ok","ok",k.green) + bar;
 
   // One sentence for a screen reader, not two hundred announced cells.
   const unit = group ? DIMS[bandDimNow].label.toLowerCase() + " cells" : "center cells";
@@ -2827,7 +2800,13 @@ function renderMini(){
   m.hidden = false;
   m.innerHTML = '<div class="mini">'
     + '<span class="sevbar" role="img" aria-label="Severity across ' + plural(tot,"center") + '">' + seg + '</span>'
-    + '<span class="mtxt num">' + (a.attention
+    /* Once a filter has narrowed the band, every center in it is one the filter
+       kept, so "27 of 27 need attention" says nothing — the same tautology the
+       group tiles already sidestep. Narrowed, the useful number is simply how
+       many are in view. */
+    + '<span class="mtxt num">' + (!bandScopeAll
+        ? plural(tot, "center") + ' in view'
+        : a.attention
         ? a.attention.toLocaleString() + ' of ' + tot.toLocaleString() + ' centers need attention'
         : 'all ' + tot.toLocaleString() + ' centers reporting')
       + (a.red ? ' · ' + plural(a.red, "center") + ' fully down' : "") + '</span>'
@@ -2844,15 +2823,10 @@ function renderMini(){
 function drillDim(x, additive){
   const fk = DIMS[x.dim].facet; if (!fk) return;
   const cur = S[fk];
-  // One pick at a time: a group is an alternative to a legend key, not an
-  // ingredient alongside it.
-  dropKeyPick();
+  // A brand and a center status are two facets, ANDed the way any two facets
+  // are: "DoodleBugs that need attention" is a question, not a collision.
   if (additive) S[fk] = cur.includes(x.k) ? cur.filter(v=>v !== x.k) : [...cur, x.k];
   else          S[fk] = (cur.length === 1 && cur[0] === x.k) ? [] : [x.k];
-  // Claim only what this component put there, and only while it survives.
-  const prior = (S.groupPick && S.groupPick.fk === fk) ? S.groupPick.vals : [];
-  const claim = [...new Set([...prior, x.k])].filter(v => S[fk].includes(v));
-  S.groupPick = claim.length ? {fk, vals:claim} : null;
   reconcileFilters();
   // A center pick is a search string; a drill replaces it rather than ANDing
   // last click's center name into this click's scope.
@@ -2886,7 +2860,7 @@ function setFleet(size){
   GEN++;
   FKEYS.forEach(k => S[k] = []);
   S.q = ""; S.qDraft = ""; S.kpi = null; S.centerPick = null; S.page = 1;
-  S.sel = null; S.fsearch = ""; S.bandDimPick = null; S.keyPick = null; S.groupPick = null;
+  S.sel = null; S.fsearch = ""; S.bandDimPick = null;
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   bandSig = ""; bandOrder = null;
   $("q").value = ""; $("qField").classList.remove("linked");
@@ -2901,10 +2875,8 @@ function setFleet(size){
 function pickCenter(id){
   const c = DATA.find(x=>x.id===id); if (!c) return;
   if (S.centerPick === id) return clearCenterPick();
-  // One pick at a time: this click supersedes a legend key, if one was on. It
-  // has to happen before the guard below, or the key's own filter is what makes
-  // the guard refuse.
-  dropKeyPick();
+  // No need to withdraw a legend key here any more: the band honours it, so a
+  // square that is on screen is a square that passes it.
   // Every cell drawn here already passes the filters, so this is a backstop
   // rather than a branch anyone reaches.
   if (!matchesFilters(c, {ignoreQ:true})) return;
@@ -3712,7 +3684,6 @@ $("bandBar").addEventListener("click", e=>{
     const fk = cr.dataset.crumb;
     if (fk === "__all") ["state","brand"].forEach(k=>S[k] = []);
     else S[fk] = [];
-    S.groupPick = null;
     reconcileFilters();
     S.kpi = null; S.page = 1; S.bandDimPick = null;
     bandSig = ""; bandOrder = null;
@@ -3727,11 +3698,9 @@ $("bandBar").addEventListener("click", e=>{
 $("bandLegend").addEventListener("click", e=>{
   const b = e.target.closest("[data-key]"); if (!b || b.disabled) return;
   const v = b.dataset.key;
-  const on = keyActive() && S.keyPick === v;
-  dropCenterPick();            // one pick at a time: a key supersedes a search
-  dropGroupPick();             // ...and a drill-down
+  const on = S.cstatus.length === 1 && S.cstatus[0] === v;
+  dropCenterPick();            // the one pick a key can still contradict
   S.cstatus = on ? [] : [v];
-  S.keyPick = on ? null : v;
   S.kpi = null; S.page = 1;
   S.filtersOpen = S.sortOpen = S.savingOpen = false;
   bandSig = ""; bandOrder = null; render();
@@ -3821,7 +3790,6 @@ $("qClear").onclick = ()=>{
 function clearAll(){
   S.q=""; S.qDraft=""; FKEYS.forEach(k=>S[k]=[]);
   S.kpi=null; S.page=1; S.centerPick=null; S.fsearch="";
-  S.keyPick=null; S.groupPick=null;
   $("q").value=""; $("qField").classList.remove("linked");
   render();
 }
