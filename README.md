@@ -8,12 +8,28 @@ Camera health has its own top-level rail item, **Monitoring**, set apart from th
 center-scoped icons (Cameras, Dashboard, Users, …) by a divider: it covers the whole
 assignment and deliberately ignores the center picker in the header.
 
+Two versions of the board are live, named for what carries a distinction in each.
+
 | Page | What it is |
 |---|---|
-| [`index.html`](index.html) | The board |
+| [`index.html`](index.html) | **Tone** — hue and saturation carry the distinctions |
+| [`shape.html`](shape.html) | **Shape** — silhouette carries them |
 | [`rationale.html`](rationale.html) | Design notes: the decisions, what came out again, and why |
 
-A switcher is pinned to the bottom of both.
+A switcher is pinned to the bottom of all three.
+
+**Shape** differs from Tone in three ways, all of them about the same question — what a reader
+separates two things by:
+
+- **The two oranges are split.** Hatch means a degraded *camera* and nothing else. A center needing
+  attention is solid amber with a fixed triangular notch out of one corner. The notch never grows with
+  the defect rate; the middle bucket stays ungraded.
+- **An out-of-date reading is hollow rather than faded** — white, with a dashed stroke and its glyph in
+  the last-known status colour. Solid versus outline separates before colour is read. How far out of
+  date moves to text: a pill on the row, and one clause on the page subtitle.
+- **The band's three states are filterable, and the legend is the control.** Three keys carrying mark,
+  count and name — *2 fully down*, *27 need attention*, *44 all reporting*. Pressing one filters the list
+  and leaves the band alone.
 
 ## What it does
 

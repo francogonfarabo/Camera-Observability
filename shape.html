@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Camera health under its own Monitoring rail item — live per-camera status across every assigned center, with an overview that changes altitude as the assignment grows, filtering, sorting, saved views and a camera detail modal.">
+<meta name="description" content="A fork in which silhouette rather than hue separates the states: a notched amber square for a center needing attention, a hollow dashed square for an out-of-date reading, and a legend whose three marks are the filter.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23159deb'/%3E%3Cpath d='M6 11h13v10H6z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M19 15l7-3.5v9L19 17' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
-<title>Camera Health Board — Tone</title>
+<title>Camera Health Board — Shape</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&family=Open+Sans:wght@600&display=swap">
 <style>
 /* ============================================================
@@ -24,6 +24,11 @@
   /* semantic status — separate from the accent */
   --off:#dc2626;  --off-tint:#fff0f0;  --off-line:#fecaca;
   --deg:#f97316;  --deg-tint:#fff5e8;  --deg-line:#fed7aa;
+  /* A center needing attention and a degraded camera are different claims and
+     used to wear the same orange hatch. The center amber is pulled yellower so
+     the two do not read as one family at a glance — but the hue is the second
+     signal, not the first. The notch is the first. */
+  --attn:#f0a01e; --attn-tint:#fef3c7; --attn-line:#fde68a;
   --ok:#16a34a;   --ok-tint:#eaf7ee;   --ok-line:#bbe5c6;
   --amber-tint:#FFECB1; --amber-ink:#B45309;
 
@@ -153,6 +158,7 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:2px}
 h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-height:1.15;color:var(--ink);text-wrap:balance}
 .subtitle{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.subtitle .staleclause{color:#8a5a06;font-weight:700}
 
 /* live refresh control */
 .live{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px 7px 8px;box-shadow:var(--shadow-card)}
@@ -256,10 +262,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   font-size:11.5px;font-weight:700;white-space:nowrap;flex-shrink:0;border:1px solid var(--line);
   background:var(--fill);color:var(--ink-3)}
 .bandchip .sw{width:11px;height:11px;border-radius:3px}
-.bandchip.fold{border-color:var(--ok-line);background:var(--ok-tint);color:#15803d}
-.bandchip.fold:hover{border-color:var(--ok)}
-.bandchip.fold[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
-.bandchip.fold[aria-pressed="true"] .sw{background-color:#fff;box-shadow:none}
 .bandchip.flat{cursor:default}
 
 /* The cells. Three rows, hard — and they are sorted worst-first, so whatever
@@ -281,14 +283,29 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   background-repeat:no-repeat;background-position:center;background-size:100% 100%;
   transition:transform .11s,box-shadow .12s}
 .cell.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-.cell.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2.5px,transparent 2.5px 6px)}
+/* A center that needs attention: solid amber with a triangular notch out of the
+   top-right corner, roughly half the side. Hatch now means one thing only — a
+   degraded camera — and this silhouette reads before any hue does, which is what
+   lets it survive at the 13px floor where a hatch turns to mud.
+
+   The notch is FIXED. It is never sized or stepped by defect rate: one soft
+   camera among nineteen and nine dark out of ten are the same mark on purpose,
+   because the square answers whether a center needs looking at and the row
+   underneath answers how much. A notch that grew would be the five-step defect
+   ramp coming back through the side door.
+
+   Painted on a pseudo-element rather than the cell, because clip-path clips
+   everything an element paints — including the focus ring and the selected
+   outline, both of which are box-shadow and outline on the cell itself. */
+.cell.deg{background-color:transparent}
+.cell.deg::before{content:"";position:absolute;inset:0;border-radius:inherit;
+  background:var(--attn);clip-path:polygon(0 0, 50% 0, 100% 50%, 100% 100%, 0 100%)}
 .cell.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
 .cell:hover{transform:translateY(-2px);z-index:2}
 .cell:focus-visible{box-shadow:var(--focus);transform:translateY(-2px);z-index:3}
 .cell.picked{outline:2px solid var(--blue);outline-offset:2px;transform:translateY(-2px);z-index:2}
 /* Below 13px the hatch turns to mud and the ✕ to a smudge, so the squares
    shrink no further — the band changes zoom instead. */
-.band.tiny .cell.deg{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.92) 0 1.5px,transparent 1.5px 4px)}
 .band.tiny .cell.off{background-image:none;box-shadow:inset 0 0 0 2px rgba(69,10,10,.75)}
 
 
@@ -347,7 +364,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .tbar i{display:block;height:100%;min-width:0}
 .tbar i[hidden]{display:none}
 .tbar i.b-off{background:var(--off)}
-.tbar i.b-deg{background:var(--deg)}
+.tbar i.b-deg{background:var(--attn)}
 .tbar i.b-ok{background:var(--ok)}
 /* A single dark site inside seventy would round to nothing, and that single
    dark site is the call you are about to get — so a non-zero slice never
@@ -358,8 +375,31 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .tile.pending .tn,.tile.pending .tc{visibility:hidden}
 
 /* legend swatches reuse the product's own status swatch (.sw) */
-.bandlegend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;
+.bandlegend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;
   padding-top:8px;border-top:1px solid var(--line-2)}
+/* The legend is the control. Naming three marks under the band and then
+   offering the same three as a filter two panels away was one list written
+   twice — and a reader who can see "27 need attention" is already pointing at
+   the thing they want. Pressed, a key keeps its mark exactly as the legend
+   draws it and takes a tint and a coloured edge instead of a solid fill: it has
+   to go on teaching the mark while it is switched on. */
+.bkey{display:inline-flex;align-items:center;gap:7px;padding:4px 10px 4px 8px;border-radius:7px;
+  font-size:11.5px;font-weight:600;color:var(--ink-2);border:1px solid transparent;
+  background:var(--fill);white-space:nowrap}
+.bkey b{font-weight:700;color:var(--ink)}
+.bkey:hover{background:var(--surface);border-color:var(--line-2)}
+.bkey:focus-visible{box-shadow:var(--focus);outline:none}
+.bkey[aria-pressed="true"]{box-shadow:inset 0 0 0 1px currentColor}
+.bkey[aria-pressed="true"] b{color:inherit}
+.bkey.k-off[aria-pressed="true"]{background:var(--off-tint);border-color:var(--off);color:#991b1b}
+.bkey.k-deg[aria-pressed="true"]{background:var(--attn-tint);border-color:var(--attn);color:#8a5a06}
+.bkey.k-ok[aria-pressed="true"]{background:var(--ok-tint);border-color:var(--ok);color:#15803d}
+/* A zero here is good news, not a dead control: it stays in the row so the row
+   does not reflow, and says so quietly. */
+.bkey:disabled{background:transparent;color:var(--ink-4);cursor:default}
+.bkey:disabled b{color:var(--ink-3)}
+.bkey:disabled:hover{background:transparent;border-color:transparent}
+.bkey:disabled .sw{opacity:.45}
 .lgs{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;position:relative}
 .lgs.split{display:inline-flex;gap:1px;width:26px;border-radius:3px;overflow:hidden;height:9px}
 .lgs.split i{display:block;height:100%}
@@ -691,6 +731,12 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .sw{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
 .sw.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .sw.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 1.5px,transparent 1.5px 4px)}
+/* The center mark, kept apart from .sw.deg on purpose: one of these two is a
+   statement about a site and the other about a single camera, and they are
+   drawn in the same places often enough that sharing a class would have them
+   drift into each other again. */
+.sw.attn{background-color:var(--attn);border-radius:3px;
+  clip-path:polygon(0 0, 50% 0, 100% 50%, 100% 100%, 0 100%)}
 .sw.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.4 3.4l5.2 5.2M8.6 3.4l-5.2 5.2' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E")}
 
 /* failure banner */
@@ -708,7 +754,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    No coloured left edge: the counts column and the squares already carry
    the severity, and a third encoding of the same fact was just stripes. */
 .list{display:flex;flex-direction:column;gap:8px}
-.center{display:grid;grid-template-columns:minmax(190px,250px) 172px 1fr;gap:18px;align-items:start;
+.center{display:grid;grid-template-columns:minmax(190px,250px) 200px 1fr;gap:18px;align-items:start;
   background:var(--surface);border:1px solid var(--line);border-radius:11px;
   padding:12px 16px;box-shadow:var(--shadow-card)}
 .c-name{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);display:flex;align-items:baseline;gap:7px}
@@ -724,7 +770,19 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .stat{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .stat b{min-width:2ch;text-align:right;font-weight:700}
 .stat.off b{color:#b91c1c} .stat.deg b{color:#c2410c} .stat.ok{color:#15803d}
-.stat.stale{color:#7c4a03} .stat.stale b{color:#7c4a03}
+/* The one stat that is a pill. It is not a third count alongside offline and
+   degraded — it is the reason those two might be wrong — and the dashed border
+   is the same mark the stale squares wear, so the line and the squares it
+   describes are plainly the same subject. */
+.stat.stale{color:#7c4a03;align-self:flex-start;display:block;
+  border:1.2px dashed var(--attn-line);border-radius:7px;padding:2px 8px;
+  background:var(--attn-tint);font-size:11.5px;margin-top:1px;line-height:1.35}
+.stat.stale b{color:#7c4a03;min-width:0}
+/* Two phrases, each unbreakable. In a narrow column this drops to two tidy
+   lines rather than stacking a number, a word and a duration on three. The
+   dashed border is already the mark, so the pill does not also carry a swatch:
+   that was the same thing said twice, costing the width that broke it. */
+.stat.stale span{white-space:nowrap}
 .stat.dim{color:var(--ink-3);font-weight:500;font-size:11.5px;padding-left:21px}
 .stat.dim b{min-width:0;color:var(--ink-2)}
 .grid{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
@@ -752,10 +810,24 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 
    Cameras only. The centers strip stays a three-state overview: a veil on a
    center square would be answering a question the square was never asked. */
-.blk.stale{filter:saturate(.4) contrast(.94)}
-.blk.stale::after{content:"";position:absolute;inset:-2px;border-radius:7px;
-  border:1.5px dashed var(--ink-3);pointer-events:none}
-.sw.stale{background:var(--fill);box-shadow:none;border:1.5px dashed var(--ink-3)}
+/* Hollow, not faded. Desaturation is a discount on a colour: it needs the
+   reader to remember what full strength looked like, and across a row of twelve
+   squares at 20px the two oranges were one orange. Solid versus outline
+   separates before colour is read at all, which is the order the eye works in.
+
+   The fill goes, the status stays: the dashed stroke and the glyph inside it are
+   both drawn in the last known status colour, so the square still says both
+   things at once — what it was, and that we have not heard since. */
+.blk.stale{background-color:var(--surface);box-shadow:none}
+.blk.off.stale{border:1.8px dashed var(--off);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='%23dc2626' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E")}
+/* The hatch stays, knocked back behind the stroke: it is the one thing that
+   tells a stale degraded camera from a stale healthy one, so it cannot go —
+   but at full strength it competed with the dashes for the same 20 pixels. */
+.blk.deg.stale{border:1.8px dashed var(--deg);
+  background-image:repeating-linear-gradient(135deg,rgba(249,115,22,.32) 0 2px,transparent 2px 5px)}
+.blk.ok.stale{border:1.8px dashed var(--ok);background-image:none}
+.sw.stale{background:var(--surface);box-shadow:none;border:1.5px dashed var(--ink-3)}
 
 /* the same warning inside the camera modal, where it outranks the status */
 .dstale{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px;
@@ -1215,17 +1287,17 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <b>orange</b> for everything in between. What changes with the size of your assignment is not the
           colours — it is what one cell <em>is</em>.</p>
           <dl class="ilist">
-            <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> All cameras offline</dt><dd>
+            <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> Fully down</dt><dd>
               <code>offline = total</code>. The site is blind — no parent at that center can see anything.
               <span class="d">Almost always one cause (power, network, the recorder) rather than a list of
               separate faults, which is why it gets its own colour instead of being the top of a scale. It
               leads the sort at every zoom, so the top-left cell is always the worst thing you have.</span></dd></div>
-            <div class="irow"><dt><span class="sw deg" style="vertical-align:-1px"></span> Some offline or degraded</dt><dd>
+            <div class="irow"><dt><span class="sw attn" style="vertical-align:-1px"></span> Needs attention</dt><dd>
               <code>offline &lt; total</code> and <code>offline + degraded &gt; 0</code>. One impaired camera
               among healthy ones, half the site down, nine of ten offline with the tenth impaired.
               <span class="d">Deliberately ungraded. The square answers <em>does this center need looking
               at</em>; the row underneath answers how much, in numbers.</span></dd></div>
-            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All cameras healthy</dt><dd>
+            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All reporting</dt><dd>
               <code>offline = 0</code> and <code>degraded = 0</code>. Exactly the same rule as the
               <b>All cameras healthy</b> status filter and the first KPI, so the squares, the filter and the
               headline count never disagree.</dd></div>
@@ -1302,13 +1374,18 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               date is a statement about the reading, not a fourth thing a camera can be, and everything the
               rest of the panel filters on is a claim about the past for those centers. It used to be one
               option inside Status, where it read as a status.</span></dd></div>
-            <div class="irow"><dt>Camera health</dt><dd>What the center's cameras are doing right now: any
-              issue, offline specifically, degraded specifically, or everything healthy.
-              <b>Has any issue</b> and <b>All cameras healthy</b> are the two halves of the centers strip —
-              the first is every non-green square, the second is every green one.
-              <span class="d">Values inside a category are ORed, so <b>Has offline cameras</b> together
-              with <b>Has degraded cameras</b> asks for centers matching <em>either</em>, not both.</span>
-              </dd></div>
+            <div class="irow"><dt>Center status</dt><dd>The square's own verdict, as a filter:
+              <b>Fully down</b>, <b>Needs attention</b>, <b>All reporting</b>. The three are mutually
+              exclusive and their counts sum to the whole assignment.
+              <span class="d">It is read straight off the same rule that colours the square, so the filter
+              and the mark cannot disagree. There is no <em>Has any issue</em> option: that is
+              <b>Fully down</b> and <b>Needs attention</b> chosen together, which is what the first KPI
+              tile selects.</span></dd></div>
+            <div class="irow"><dt>Cameras inside</dt><dd>A different question from the one above —
+              <b>Has offline cameras</b>, <b>Has degraded cameras</b> — and deliberately not exclusive with
+              it, since a center needing attention can hold both.
+              <span class="d">Values inside a category are ORed, so choosing both asks for centers
+              matching <em>either</em>, not both.</span></dd></div>
             <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.
               <span class="d">About one site in twelve belongs to no chain and has an empty brand field.
               Those are offered as <b>No brand</b> — last in the list, because it is the absence of a
@@ -1420,6 +1497,10 @@ const ASSESS = {
 // Front-end only, and deliberately derived at read time: nothing persists it.
 const isStale      = cam => cam.checked >= ASSESS.assessStaleMin;
 const staleCount   = c => c.cams.filter(isStale).length;
+/* The veil is binary on purpose — an outline cannot be 40% of an outline — so
+   how far out of date the worst reading is has to be said in words instead. */
+const oldestStale  = c => c.cams.reduce((m,cam)=> isStale(cam) && cam.checked > m ? cam.checked : m, 0);
+const fleetStale   = () => DATA.reduce((n,c)=> n + staleCount(c), 0);
 // Staleness never rolls up into a center's colour: the overview answers "how
 // much of this site is working", and a reading's age is a different question
 // asked of a different object. It surfaces on the camera blocks themselves,
@@ -1690,16 +1771,17 @@ const S = {
   dropOpen:false,       // the header picker's dropdown
   q:"", qDraft:"",
   // one key per facet, each an array of chosen values; empty = not filtering
-  stale:[], status:[], brand:[], pay:[], access:[],
+  stale:[], cstatus:[], cams:[], brand:[], pay:[], access:[],
   country:[], state:[], city:[],
-  facet:"status", fsearch:"",          // which facet's options are open, and its search box
+  facet:"cstatus", fsearch:"",         // which facet's options are open, and its search box
   sort:"rate", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" band
-  wellPick:false,       // the "all reporting" badge is switched on
+  keyPick:null,         // "off" | "deg" | "ok" — which legend key the band set
+  groupPick:null,       // {fk, vals} — the drill-down the band wrote, if any
   // the band: what a cell means, whether healthy centers are folded away,
   // and whether the collapsed strip is showing
   bandDimPick:null, bandHover:false, miniOn:false,
@@ -1724,7 +1806,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 /* Order matters: this is the order of the rail in the filter panel. "stale"
    leads because a reading being out of date outranks what the reading says —
    everything below it is a claim about the past. */
-const FKEYS = ["stale","status","brand","pay","access","country","state","city"];
+const FKEYS = ["stale","cstatus","cams","brand","pay","access","country","state","city"];
 
 /* Every facet holds an array of chosen values. Empty means "not filtering
    on this"; two or more are ORed together, which is how people actually
@@ -1778,19 +1860,33 @@ const F = {
      camera states it read as one more state. Now it is a switch above them. */
   stale: facet("Out-of-date readings", "Any reading age", c=>staleCount(c) > 0,
     ()=>[["stale","Has out-of-date readings"]], {bool:true}),
-  status: facet("Camera health", "Any camera health",
-    (c,v)=>{ const t=tally(c);
-      return v==="issues" ? !!(t.off||t.deg)
-        : v==="off"   ? !!t.off
-        : v==="deg"   ? !!t.deg
-        : !(t.off||t.deg); },
-    // "Has any issue" and "All cameras healthy" are the exact complement of
-    // each other — between them they are the green square's rule stated as a
-    // filter, which is what keeps the squares, this list and the first KPI
-    // agreeing.
-    ()=>[["issues","Has any issue"],["off","Has offline cameras"],
-         ["deg","Has degraded cameras"],
-         ["clean","All cameras healthy"]]),
+  /* The band draws three states and the filter panel could not name two of
+     them. "Has offline cameras" is not "every camera offline", so a red square
+     and an amber one could not be asked for separately — the one thing anyone
+     looking at the band actually wants. Splitting the old category fixes the
+     vocabulary before anything is wired to it.
+
+     Center status is the square's own verdict, read straight off centerStatus(),
+     so the filter and the mark cannot disagree. Its three values are mutually
+     exclusive and exhaustive over the assignment: their counts always sum to
+     the whole, which is what makes the legend able to carry them as three keys.
+
+     "Has any issue" is gone as a named option, because it was Fully down +
+     Needs attention wearing a different name — and a list that offers both the
+     parts and the whole invites someone to pick all three and wonder why the
+     count did not move. It is still one click: that pair is what the first KPI
+     selects, which is also what keeps the one-number rule true. */
+  cstatus: facet("Center status", "Any center status",
+    (c,v)=>centerStatus(c) === v,
+    ()=>[["off","Fully down"],["deg","Needs attention"],["ok","All reporting"]]),
+  /* A different question, and deliberately not exclusive with the one above: a
+     center needing attention can hold both an offline camera and a degraded one,
+     and either might be the thing you are hunting. */
+  cams: facet("Cameras inside", "Any cameras", (c,v)=>{
+      const t = tally(c);
+      return v === "off" ? !!t.off : !!t.deg;
+    },
+    ()=>[["off","Has offline cameras"],["deg","Has degraded cameras"]]),
   brand: facet("Brand", "All brands", (c,v)=>c.brand===v,
     // "No brand" is not a brand whose name happens to start with N — it is the
     // absence of one, so it sits at the end of the list rather than inside it.
@@ -2092,8 +2188,15 @@ function commitSaveView(){
   const name = (inp ? inp.value : "").trim();
   if (!name){ inp && inp.focus(); return; }
   const existing = S.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
+  /* The two picks the band owns travel with the view. They are not a second
+     copy of the filter — the filter is already in FKEYS below — they record
+     that "Your centers" is what set it, which is the difference between the
+     band re-scoping itself and standing still. Without them a view saved from a
+     legend key came back with the chip lit and the key inert. */
   const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
-    name, sort:S.sort, dir:S.dir, q:S.q };
+    name, sort:S.sort, dir:S.dir, q:S.q,
+    keyPick: keyActive() ? S.keyPick : null,
+    groupPick: groupActive() ? {fk:S.groupPick.fk, vals:[...S.groupPick.vals]} : null };
   FKEYS.forEach(k=>payload[k]=[...S[k]]);
   S.savedViews = existing ? S.savedViews.map(v=>v.id===existing.id?payload:v) : [...S.savedViews, payload];
   persistSavedViews(S.savedViews);
@@ -2106,13 +2209,23 @@ function applyView(id){
   // Views saved before categories went multi hold a single string.
   FKEYS.forEach(k=>{ const s=v[k];
     S[k] = Array.isArray(s) ? [...s] : (s && s!=="all" ? [s] : []); });
-  // ...and views saved while staleness lived inside Status carry it there.
-  if (S.status.includes("stale")){
-    S.status = S.status.filter(x=>x!=="stale");
-    S.stale  = ["stale"];
+  /* Two migrations, both from views saved under an older vocabulary: staleness
+     used to live inside the status category, and that category used to be one
+     list mixing a center verdict with a question about the cameras inside. */
+  const old = Array.isArray(v.status) ? v.status : (v.status ? [v.status] : []);
+  if (old.length){
+    if (old.includes("stale")) S.stale = ["stale"];
+    if (old.includes("issues")) S.cstatus = ["off","deg"];
+    if (old.includes("clean"))  S.cstatus = [...new Set([...S.cstatus, "ok"])];
+    const cams = old.filter(x=>x==="off"||x==="deg");
+    if (cams.length) S.cams = cams;
   }
   S.sort=v.sort; S.dir=v.dir || sortRow(v.sort).def;
   S.q=v.q; S.qDraft=v.q; $("q").value=v.q; S.centerPick=null;
+  // Both re-derive on read, so a view saved before they existed restores as
+  // null and simply behaves like a filter set from the panel.
+  S.keyPick   = v.keyPick   || null;
+  S.groupPick = v.groupPick || null;
   $("qField").classList.remove("linked");
   S.page=1; S.kpi=null; S.savingOpen=false; S.filtersOpen=false; S.sortOpen=false;
   render();
@@ -2187,15 +2300,20 @@ const centerStatus = c => {
 /* The rule, in words, in one place: every caption that describes a center's
    condition comes through here, so the legend, the hover card and the screen
    reader cannot drift apart from each other or from the color. */
+const STATE_NAME = {off:"Fully down", deg:"Needs attention", ok:"All reporting"};
+
 function centerStateWords(c){
   const t = tally(c), st = centerStatus(c);
-  // The middle bucket is one colour but several situations, so the words
-  // carry the split the square deliberately doesn't.
-  const base = st === "off" ? `All ${t.total} cameras offline`
-    : st === "ok"           ? `All ${t.total} cameras healthy`
-    : t.off && t.deg        ? `${t.off} of ${t.total} cameras offline, ${t.deg} degraded`
-    : t.off                 ? `${t.off} of ${t.total} cameras offline`
-    :                         `${t.deg} of ${t.total} cameras degraded`;
+  // The state is named first and the detail follows it, so the word on the
+  // legend, the word in the filter and the word a screen reader hears are the
+  // same word. The middle bucket is one mark but several situations, so the
+  // detail carries the split the mark deliberately doesn't.
+  const base = STATE_NAME[st] + " — " + (
+      st === "off" ? `all ${t.total} cameras offline`
+    : st === "ok"  ? `${t.total} cameras, none offline or degraded`
+    : t.off && t.deg ? `${t.off} of ${t.total} cameras offline, ${t.deg} degraded`
+    : t.off          ? `${t.off} of ${t.total} cameras offline`
+    :                  `${t.deg} of ${t.total} cameras degraded`);
   // Deliberately silent about staleness. A center block answers one question —
   // how much of this site is working — and reading age is a camera-level fact
   // that belongs beside the cameras, not folded into the overview's summary.
@@ -2304,10 +2422,10 @@ function buildCells(dim, scope){
    The badge being "on" is re-derived from the filters every render rather than
    remembered, so touching any other filter turns it off and the band goes back
    to honouring everything. Nothing has to remember to clear the flag. */
-const wellActive = () => S.wellPick
-  && S.status.length === 1 && S.status[0] === "clean";
-const bandPass = c => wellActive()
-  ? FKEYS.every(k => k === "status" || F[k].test(c, S[k]))
+const keyActive = () => !!S.keyPick
+  && S.cstatus.length === 1 && S.cstatus[0] === S.keyPick;
+const bandPass = c => keyActive()
+  ? FKEYS.every(k => k === "cstatus" || F[k].test(c, S[k]))
   : matchesFilters(c, {ignoreQ:true});
 
 /* "Your centers" holds one pick at a time.
@@ -2331,10 +2449,26 @@ const bandPass = c => wellActive()
    the user set from the Filters panel, and any query they typed themselves —
    those still combine exactly as before. The component only ever withdraws its
    own pick. */
-function dropWellPick(){
-  if (!wellActive()) return false;
-  S.status = []; S.wellPick = false;
+function dropKeyPick(){
+  if (!keyActive()) return false;
+  S.cstatus = []; S.keyPick = null;
   bandSig = "";
+  return true;
+}
+/* The band's own drill-down, tracked the way a center pick is: by what this
+   component wrote, not by whatever happens to be sitting in the facet. A brand
+   chosen in the Filters panel is the reader's, and the band never withdraws it.
+   Re-derived every time it is asked, like the key, so nothing has to remember
+   to clear it when the reader edits that facet by hand. */
+const groupActive = () => !!S.groupPick && S.groupPick.vals.length > 0
+  && S.groupPick.vals.every(v => S[S.groupPick.fk].includes(v));
+function dropGroupPick(){
+  if (!groupActive()) return false;
+  const fk = S.groupPick.fk, vals = S.groupPick.vals;
+  S[fk] = S[fk].filter(v => !vals.includes(v));
+  S.groupPick = null;
+  reconcileFilters();
+  bandSig = ""; bandOrder = null;
   return true;
 }
 function dropCenterPick(){
@@ -2427,7 +2561,7 @@ function renderStrip(){
     empty.innerHTML = 'No centers match these filters. <b>All '
       + DATA.length.toLocaleString() + '</b> are filtered out.'
       + '<button id="bandClear">Clear the filters</button>';
-    renderBandBar({healthy:0, over:0});
+    renderBandBar({over:0});
     renderBandHead(); renderBandLegend(); renderMini();
     return;
   }
@@ -2442,10 +2576,6 @@ function renderStrip(){
 
   const withIssues = cells.filter(x=>x.a.attention > 0);
   const drawn  = withIssues.length ? withIssues : cells;
-  // What the badge offers: every center in view with nothing wrong, whatever
-  // the cells happen to be right now.
-  let healthy = 0;
-  for (const c of scope) if (!tally(c).bad) healthy++;
   bandPlan = planFor(dim, drawn.length, width);
 
   /* Churn under the pointer causes mis-clicks, so while the band is being used
@@ -2499,7 +2629,7 @@ function renderStrip(){
     bandSig = sig;
   }
   patchStrip();
-  renderBandBar({healthy, over});
+  renderBandBar({over});
   renderBandHead();
   renderBandLegend();
   renderMini();
@@ -2511,7 +2641,7 @@ function cellWords(x){
     return c.name + ". " + centerStateWords(c) + ".";
   }
   const a = x.a, bits = [];
-  if (a.red)   bits.push(plural(a.red, "center") + " with every camera offline");
+  if (a.red)   bits.push(plural(a.red, "center") + " fully down");
   if (a.amber) bits.push(a.amber + " partly affected");
   bits.push(a.green + " all healthy");
   return x.name + ". " + plural(a.n, "center") + ": " + bits.join(", ") + ".";
@@ -2614,13 +2744,9 @@ function renderBandBar(info){
      4,000 centers no single *state* is entirely healthy, so a cell count said
      nothing while 2,975 centers sat behind it. Centers are also what the filter
      it applies acts on, so the number and the result are the same number. */
-  const on = wellActive();
-  const fold = info.healthy
-    ? '<button class="bandchip fold" id="foldChip" aria-pressed="' + on + '"'
-      + ' title="' + (on ? "Stop showing these below" : "Show these in the list below") + '">'
-      + '<span class="sw ok"></span>' + info.healthy.toLocaleString()
-      + (info.healthy === 1 ? " center" : " centers") + " all reporting</button>"
-    : "";
+  // The green badge that used to sit here is gone: it was one of three states
+  // wearing a control the other two did not have. All three are keys on the
+  // legend now, which is the same control with three values instead of one.
   const over = info.over
     ? '<span class="bandchip flat" title="Cells are sorted worst first, so these are the least urgent.">'
       + "+" + info.over.toLocaleString() + " below the fold</span>"
@@ -2629,7 +2755,7 @@ function renderBandBar(info){
   const filteredOut = outn
     ? '<span class="bandchip flat">' + outn.toLocaleString() + ' filtered out</span>' : "";
   $("bandBar").innerHTML = '<span class="dimsel" role="group" aria-label="What one cell is">' + dims + '</span>'
-    + crumbHtml + fold + over + filteredOut;
+    + crumbHtml + over + filteredOut;
 }
 
 function renderBandHead(){
@@ -2645,24 +2771,44 @@ function renderBandHead(){
 
 /* The legend names what is on screen and nothing that isn't: the tile bar and
    the filtered-out dot only appear once something is wearing them. */
+/* Counts for the keys come from the band's scope, which — while a key is on —
+   is the scope with center status taken back out. So the three numbers hold
+   still while one of them is switched on, which is what a reader expects of a
+   control they are looking at and the reason the key does not re-scope the band
+   in the first place. */
+const KEY_WORDS = {
+  off: n => "fully down",
+  deg: n => n === 1 ? "needs attention" : "need attention",
+  ok:  n => n === 1 ? "reporting" : "all reporting",
+};
 function renderBandLegend(){
   const group = bandDimNow !== "center";
-  const three = '<span class="lg"><span class="sw off"></span>All cameras offline</span>'
-    + '<span class="lg"><span class="sw deg"></span>Some offline or degraded</span>'
-    + '<span class="lg"><span class="sw ok"></span>All cameras healthy</span>';
+  const live  = keyActive() ? S.keyPick : null;
+  const keyBtn = (v, swc, n) => {
+    const on = live === v, words = KEY_WORDS[v](n);
+    return '<button class="bkey k-' + v + '" data-key="' + v + '"'
+      + ' aria-pressed="' + on + '"' + (n ? "" : " disabled")
+      + ' aria-label="' + n.toLocaleString() + ' ' + words + '. '
+      + (on ? "Selected; the list below holds these centers."
+            : n ? "Not selected." : "None in view.") + '">'
+      + '<span class="sw ' + swc + '"></span><b class="num">' + n.toLocaleString()
+      + '</b> ' + words + '</button>';
+  };
   const bar = group
     ? '<span class="lg"><span class="lgs split"><i style="flex:1;background:var(--off)"></i>'
-      + '<i style="flex:2;background:var(--deg)"></i><i style="flex:5;background:var(--ok)"></i></span>'
+      + '<i style="flex:2;background:var(--attn)"></i><i style="flex:5;background:var(--ok)"></i></span>'
       + 'how a group splits across the three</span>' : "";
-  $("bandLegend").innerHTML = three + bar;
 
-  // One sentence for a screen reader, not two hundred announced cells.
   const scope = bandScopeAll ? DATA : DATA.filter(bandPass);
   const a = aggregate(scope);
+  $("bandLegend").innerHTML = keyBtn("off","off",a.red) + keyBtn("deg","attn",a.amber)
+    + keyBtn("ok","ok",a.green) + bar;
+
+  // One sentence for a screen reader, not two hundred announced cells.
   const unit = group ? DIMS[bandDimNow].label.toLowerCase() + " cells" : "center cells";
   const txt = "Band showing " + CELLS.length.toLocaleString() + " " + unit + ". "
     + a.attention.toLocaleString() + " of " + a.n.toLocaleString()
-    + " centers need attention, " + a.red.toLocaleString() + " with every camera offline.";
+    + " centers need attention, " + a.red.toLocaleString() + " fully down.";
   const sum = $("bandSum");
   if (sum.textContent !== txt) sum.textContent = txt;
 }
@@ -2673,7 +2819,7 @@ function renderMini(){
   if (S.loading || !S.miniOn){ m.hidden = true; return; }
   const scope = bandScopeAll ? DATA : DATA.filter(bandPass);
   const a = aggregate(scope), tot = a.n || 1;
-  const seg = [["var(--off)", a.red], ["var(--deg)", a.amber], ["var(--ok)", a.green]]
+  const seg = [["var(--off)", a.red], ["var(--attn)", a.amber], ["var(--ok)", a.green]]
     .filter(x=>x[1])
     .map(x=>'<i style="flex:' + x[1] + ';min-width:4px;background:' + x[0] + '"></i>').join("");
   const crumbs = bandCrumb().map(c=>c.label);
@@ -2698,8 +2844,15 @@ function renderMini(){
 function drillDim(x, additive){
   const fk = DIMS[x.dim].facet; if (!fk) return;
   const cur = S[fk];
+  // One pick at a time: a group is an alternative to a legend key, not an
+  // ingredient alongside it.
+  dropKeyPick();
   if (additive) S[fk] = cur.includes(x.k) ? cur.filter(v=>v !== x.k) : [...cur, x.k];
   else          S[fk] = (cur.length === 1 && cur[0] === x.k) ? [] : [x.k];
+  // Claim only what this component put there, and only while it survives.
+  const prior = (S.groupPick && S.groupPick.fk === fk) ? S.groupPick.vals : [];
+  const claim = [...new Set([...prior, x.k])].filter(v => S[fk].includes(v));
+  S.groupPick = claim.length ? {fk, vals:claim} : null;
   reconcileFilters();
   // A center pick is a search string; a drill replaces it rather than ANDing
   // last click's center name into this click's scope.
@@ -2733,7 +2886,7 @@ function setFleet(size){
   GEN++;
   FKEYS.forEach(k => S[k] = []);
   S.q = ""; S.qDraft = ""; S.kpi = null; S.centerPick = null; S.page = 1;
-  S.sel = null; S.fsearch = ""; S.bandDimPick = null; S.wellPick = false;
+  S.sel = null; S.fsearch = ""; S.bandDimPick = null; S.keyPick = null; S.groupPick = null;
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   bandSig = ""; bandOrder = null;
   $("q").value = ""; $("qField").classList.remove("linked");
@@ -2748,10 +2901,10 @@ function setFleet(size){
 function pickCenter(id){
   const c = DATA.find(x=>x.id===id); if (!c) return;
   if (S.centerPick === id) return clearCenterPick();
-  // One pick at a time: this click supersedes the badge, if the badge was on.
-  // It has to happen before the guard below, or the badge's own filter is what
-  // makes the guard refuse.
-  dropWellPick();
+  // One pick at a time: this click supersedes a legend key, if one was on. It
+  // has to happen before the guard below, or the key's own filter is what makes
+  // the guard refuse.
+  dropKeyPick();
   // Every cell drawn here already passes the filters, so this is a backstop
   // rather than a branch anyone reaches.
   if (!matchesFilters(c, {ignoreQ:true})) return;
@@ -3018,7 +3171,8 @@ function centerHtml(c, absIndex){
   // the other two numbers might be wrong.
   const stale = staleCount(c);
   const staleStat = stale
-    ? `<span class="stat stale"><span class="sw stale"></span><b class="num">${stale}</b> out of date</span>`
+    ? `<span class="stat stale"><span><b class="num">${stale}</b> out of date</span>`
+      + ` <span>· oldest <b class="num">${dur(oldestStale(c))}</b></span></span>`
     : "";
   const sick = t.off || t.deg;
   const stats = (sick
@@ -3166,8 +3320,18 @@ function renderLive(){
   $("liveState").textContent = S.paused ? "Paused" : S.error ? "Retrying" : "Live";
   $("liveSub").textContent = S.paused ? "showing a frozen view" : `next refresh in ${S.tick}s`;
   // Never let the page imply it is current when it isn't.
-  $("asof").textContent = "Every camera's most recent heartbeat · read "
-    + (S.age < 5 ? "just now" : S.age < 60 ? S.age + "s ago" : dur(Math.round(S.age/60)) + " ago");
+  /* One clause, inline, on the line that already says how fresh the page is —
+     not a banner. The count is of the whole assignment rather than the filtered
+     view, because this sentence describes the read itself, the way "read just
+     now" beside it does; the KPI row below is where the filtered numbers live.
+     It appears only when something is actually out of date and it does not
+     dismiss, because it is not an alert, it is a qualification on everything
+     underneath it. */
+  const nstale = fleetStale();
+  $("asof").innerHTML = "Every camera's most recent heartbeat · read "
+    + (S.age < 5 ? "just now" : S.age < 60 ? S.age + "s ago" : dur(Math.round(S.age/60)) + " ago")
+    + (nstale ? ' · <span class="staleclause">' + nstale.toLocaleString()
+        + (nstale === 1 ? " reading" : " readings") + " over an hour old</span>" : "");
   prog.setAttribute("stroke-dashoffset", String(C - C * (S.tick/30)));
   $("pauseBtn").setAttribute("aria-pressed", String(S.paused));
   $("pauseBtn").title = S.paused ? "Resume auto-refresh" : "Pause auto-refresh";
@@ -3457,7 +3621,7 @@ function showCenterTip(b){
   tip.innerHTML = '<b>' + esc(x.name) + '</b>'
     + '<em class="num">' + DIMS[x.dim].label + ' · ' + plural(a.n, "center")
       + ' · ' + a.total.toLocaleString() + ' cameras</em>'
-    + row("off", a.red,   a.red === 1 ? "center with every camera offline" : "centers with every camera offline")
+    + row("off", a.red,   a.red === 1 ? "center fully down" : "centers fully down")
     + row("deg", a.amber, a.amber === 1 ? "center partly affected" : "centers partly affected")
     + row("ok",  a.green, a.green === 1 ? "center all healthy" : "centers all healthy")
     + (a.outage ? '<em class="num">Longest outage ' + dur(a.outage) + '</em>' : "")
@@ -3548,6 +3712,7 @@ $("bandBar").addEventListener("click", e=>{
     const fk = cr.dataset.crumb;
     if (fk === "__all") ["state","brand"].forEach(k=>S[k] = []);
     else S[fk] = [];
+    S.groupPick = null;
     reconcileFilters();
     S.kpi = null; S.page = 1; S.bandDimPick = null;
     bandSig = ""; bandOrder = null;
@@ -3555,20 +3720,24 @@ $("bandBar").addEventListener("click", e=>{
     $("announce").textContent = "Back to all " + DATA.length.toLocaleString() + " centers.";
     return;
   }
-  if (e.target.closest("#foldChip")){
-    // Exactly the filter the badge describes.
-    const on = wellActive();
-    S.status   = on ? [] : ["clean"];
-    S.wellPick = !on;
-    dropCenterPick();          // one pick at a time: this supersedes a center
-    S.kpi = null; S.page = 1;
-    S.filtersOpen = S.sortOpen = S.savingOpen = false;
-    bandSig = ""; bandOrder = null; render();
-    $("announce").textContent = on
-      ? "Filter cleared. Showing every center again."
-      : "Showing the centers with all cameras healthy. "
-        + plural(filtered().length, "center") + " in the list.";
-  }
+});
+/* A legend key applies exactly the filter it describes, and nothing else moves:
+   the band keeps drawing the whole scope, because a control does not get to
+   blind the component it sits in. The list below is where the answer appears. */
+$("bandLegend").addEventListener("click", e=>{
+  const b = e.target.closest("[data-key]"); if (!b || b.disabled) return;
+  const v = b.dataset.key;
+  const on = keyActive() && S.keyPick === v;
+  dropCenterPick();            // one pick at a time: a key supersedes a search
+  dropGroupPick();             // ...and a drill-down
+  S.cstatus = on ? [] : [v];
+  S.keyPick = on ? null : v;
+  S.kpi = null; S.page = 1;
+  S.filtersOpen = S.sortOpen = S.savingOpen = false;
+  bandSig = ""; bandOrder = null; render();
+  $("announce").textContent = on
+    ? "Center status filter cleared. " + plural(filtered().length, "center") + " in the list."
+    : STATE_NAME[v] + ". " + plural(filtered().length, "center") + " in the list.";
 });
 $("bandEmpty").addEventListener("click", e=>{ if (e.target.closest("#bandClear")) clearAll(); });
 $("bandHeadSlot").addEventListener("click", e=>{
@@ -3652,6 +3821,7 @@ $("qClear").onclick = ()=>{
 function clearAll(){
   S.q=""; S.qDraft=""; FKEYS.forEach(k=>S[k]=[]);
   S.kpi=null; S.page=1; S.centerPick=null; S.fsearch="";
+  S.keyPick=null; S.groupPick=null;
   $("q").value=""; $("qField").classList.remove("linked");
   render();
 }
@@ -3660,13 +3830,18 @@ function clearAll(){
 $("kpis").addEventListener("click", e=>{
   const b = e.target.closest("[data-kpi]"); if (!b) return;
   const k = b.dataset.kpi;
-  if (S.kpi === k){ S.kpi=null; S.status=[]; S.sort="rate"; S.dir="desc"; }
+  if (S.kpi === k){ S.kpi=null; S.cstatus=[]; S.cams=[]; S.sort="rate"; S.dir="desc"; }
   else {
     S.kpi = k;
-    if (k==="issues"){ S.status=["issues"]; }
-    if (k==="off"){ S.status=["off"]; }
-    if (k==="deg"){ S.status=["deg"]; }
-    if (k==="longest"){ S.status=["off"]; S.sort="outage"; S.dir="desc"; }
+    S.cstatus = []; S.cams = [];
+    // The first tile counts centers with anything offline or impaired, which is
+    // every non-green square — so it selects exactly those two states. This is
+    // the one-number rule expressed as a click: the tile, the squares it matches
+    // and the set the filter leaves are all the same set.
+    if (k==="issues"){ S.cstatus=["off","deg"]; }
+    if (k==="off"){ S.cams=["off"]; }
+    if (k==="deg"){ S.cams=["deg"]; }
+    if (k==="longest"){ S.cams=["off"]; S.sort="outage"; S.dir="desc"; }
   }
   S.page=1; render();
 });
@@ -3718,7 +3893,7 @@ document.addEventListener("click", e=>{
     } else {
       S[f] = v;
     }
-    if (f === "status") S.kpi = null;
+    if (f === "cstatus" || f === "cams") S.kpi = null;
     // A field's natural direction comes with it: nobody picks "Defect Rate"
     // wanting the healthiest centers first, or "Center Name" wanting Z–A.
     if (f === "sort") S.dir = sortRow(S.sort).def;
@@ -3730,7 +3905,7 @@ document.addEventListener("click", e=>{
   if (cf){
     const k = cf.dataset.clearFilter;
     S[k]=[];
-    if (k === "status") S.kpi=null;
+    if (k === "cstatus" || k === "cams") S.kpi=null;
     reconcileFilters(); S.page=1; render(); return;
   }
 
@@ -3942,8 +4117,8 @@ document.querySelector(".proto").addEventListener("click", e=>{
 </script>
 <nav class="vsw" aria-label="Prototype version">
   <b>Version</b>
-  <a href="index.html" aria-current="page">Tone</a>
-  <a href="shape.html">Shape</a>
+  <a href="index.html">Tone</a>
+  <a href="shape.html" aria-current="page">Shape</a>
   <a class="doc" href="rationale.html">Design notes</a>
 </nav>
 </body>
