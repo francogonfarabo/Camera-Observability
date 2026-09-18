@@ -218,7 +218,8 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink-2)}
 /* The rule behind the three colors is one click away rather than three lines
    of caption nobody reads twice. */
-.lginfo{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
+.lginfo{display:inline-flex;align-items:center;justify-content:center;
+  width:var(--keyh,18px);height:var(--keyh,18px);flex-shrink:0;border-radius:50%;
   border:1px solid var(--line-2);background:var(--surface);color:var(--ink-3);cursor:pointer;flex-shrink:0}
 .lginfo:hover{border-color:var(--blue);color:var(--blue-ink)}
 .lginfo:focus-visible{box-shadow:var(--focus);outline:none}
@@ -383,9 +384,13 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    the thing they want. Pressed, a key keeps its mark exactly as the legend
    draws it and takes a tint and a coloured edge instead of a solid fill: it has
    to go on teaching the mark while it is switched on. */
-.bkey{display:inline-flex;align-items:center;gap:7px;padding:4px 10px 4px 8px;border-radius:7px;
-  font-size:11.5px;font-weight:600;color:var(--ink-2);border:1px solid transparent;
-  background:var(--fill);white-space:nowrap}
+/* --keyh is the height of a legend key and therefore of the info button beside
+   them: the button is a circle the same height as the things it explains, not a
+   dot floating near them. One number, so they cannot drift apart. */
+.bandlegend{--keyh:28px}
+.bkey{display:inline-flex;align-items:center;gap:7px;height:var(--keyh);padding:0 10px 0 8px;
+  border-radius:7px;font-size:11.5px;font-weight:600;color:var(--ink-2);
+  border:1px solid transparent;background:var(--fill);white-space:nowrap}
 .bkey b{font-weight:700;color:var(--ink)}
 .bkey:hover{background:var(--surface);border-color:var(--line-2)}
 .bkey:focus-visible{box-shadow:var(--focus);outline:none}
@@ -928,6 +933,13 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 /* tooltip */
 .tip{position:fixed;z-index:70;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-pop);padding:8px 10px;font-size:12px;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s;max-width:250px}
 .tip.show{opacity:1;transform:none}
+/* Three states, each a rule and a sentence. Wider than a cell tooltip because
+   it is read once to learn the board rather than glanced at to read it. */
+.tip.states{max-width:296px}
+.tip.states .row{margin-top:8px}
+.tip.states .row:first-of-type{margin-top:6px}
+.tip.states code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+  background:var(--fill);border-radius:4px;padding:0 4px;color:var(--ink-2)}
 .tip b{display:block;font-size:12.5px;font-weight:700}
 .tip em{font-style:normal;color:var(--ink-3);display:block;margin-top:1px}
 .tip .row{display:flex;align-items:center;gap:6px;margin-top:5px;font-weight:600}
@@ -2730,11 +2742,10 @@ function renderBandHead(){
   const cams = bandScopeAll
     ? DATA.reduce((s,c)=>s+c.cams.length, 0)
     : DATA.filter(bandPass).reduce((s,c)=>s+c.cams.length, 0);
+  // The info button used to sit here, beside the count. It explains the three
+  // states, so it now sits beside them — see renderBandLegend.
   $("bandHeadSlot").innerHTML = '<span class="lg num">' + bandScopeN.toLocaleString() + ' centers · '
-    + cams.toLocaleString() + ' cameras</span>'
-    + '<button class="lginfo" id="colorInfo" aria-label="How this band is read">'
-    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">'
-    + '<path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg></button>';
+    + cams.toLocaleString() + ' cameras</span>';
 }
 
 /* The legend names what is on screen and nothing that isn't: the tile bar and
@@ -2774,8 +2785,20 @@ function renderBandLegend(){
   // The keys count what center status has not yet been applied to; the summary
   // under them describes what is actually drawn. Two different questions.
   const k = aggregate(bandKeyScope());
+  const info = '<button class="lginfo" id="colorInfo" aria-label="How the three states are decided">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">'
+    + '<path d="M12 11v6" stroke-linecap="round"/>'
+    + '<circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg></button>';
   $("bandLegend").innerHTML = keyBtn("off","off",k.red) + keyBtn("deg","attn",k.amber)
-    + keyBtn("ok","ok",k.green) + bar;
+    + keyBtn("ok","ok",k.green) + info + bar;
+  /* The button the pointer is on was just replaced, and mouseout never fires
+     for a node that is gone — so the card it opened would sit there until
+     something else cleared it. Re-anchor to the button that took its place
+     rather than stranding it. The card is static, so this is invisible. */
+  if (tip.classList.contains("states") && tip.classList.contains("show")){
+    const again = $("colorInfo");
+    if (again) showStatesTip(again); else tip.classList.remove("show","states");
+  }
 
   // One sentence for a screen reader, not two hundred announced cells.
   const unit = group ? DIMS[bandDimNow].label.toLowerCase() + " cells" : "center cells";
@@ -3601,6 +3624,27 @@ function showCenterTip(b){
       + "Click to filter to this group · ⌘/Ctrl-click to add" + '</em>';
   placeTip(b);
 }
+/* The three rules, on hover, in the same card every other hover on this page
+   uses. The button still opens the full notes on click; this is the answer to
+   the question that does not need the notes — what decides the colour. Each
+   state gets its rule and one sentence, and nothing else: a tooltip long enough
+   to need scanning is a tooltip nobody finishes. */
+function showStatesTip(b){
+  if (S.sel){ tip.classList.remove("show","states"); return; }   // the modal owns the screen
+  tip.classList.add("states");
+  const row = (cls, name, rule, text) =>
+    '<span class="row"><span class="sw ' + cls + '" style="width:11px;height:11px"></span>'
+    + name + ' <code>' + rule + '</code></span><em>' + text + '</em>';
+  tip.innerHTML = '<b>What decides a center\u2019s colour</b>'
+    + row("off", "Fully down", "offline = total",
+        "Every camera at the site is dark \u2014 almost always one cause, not a list of faults.")
+    + row("attn", "Needs attention", "offline + degraded &gt; 0",
+        "Something is wrong but not everything. Ungraded on purpose; the row below carries how much.")
+    + row("ok", "All reporting", "offline = 0, degraded = 0",
+        "Nothing offline and nothing impaired.");
+  placeTip(b);
+}
+
 /* Which camera block the pointer is on, so a re-render can put the
    tooltip back where it was instead of orphaning it. */
 let hoverBlk = null;
@@ -3695,7 +3739,21 @@ $("bandBar").addEventListener("click", e=>{
 /* A legend key applies exactly the filter it describes, and nothing else moves:
    the band keeps drawing the whole scope, because a control does not get to
    blind the component it sits in. The list below is where the answer appears. */
+$("bandLegend").addEventListener("mouseover", e=>{
+  const i = e.target.closest("#colorInfo"); if (i) showStatesTip(i);
+});
+$("bandLegend").addEventListener("focusin", e=>{
+  const i = e.target.closest("#colorInfo"); if (i) showStatesTip(i);
+});
+$("bandLegend").addEventListener("mouseout", e=>{
+  if (e.target.closest("#colorInfo")) tip.classList.remove("show","states");
+});
+$("bandLegend").addEventListener("focusout", e=>{
+  if (e.target.closest("#colorInfo")) tip.classList.remove("show","states");
+});
 $("bandLegend").addEventListener("click", e=>{
+  const i = e.target.closest("#colorInfo");
+  if (i){ tip.classList.remove("show","states"); openInfo("infoColors", i); return; }
   const b = e.target.closest("[data-key]"); if (!b || b.disabled) return;
   const v = b.dataset.key;
   const on = S.cstatus.length === 1 && S.cstatus[0] === v;
@@ -3709,9 +3767,7 @@ $("bandLegend").addEventListener("click", e=>{
     : STATE_NAME[v] + ". " + plural(filtered().length, "center") + " in the list.";
 });
 $("bandEmpty").addEventListener("click", e=>{ if (e.target.closest("#bandClear")) clearAll(); });
-$("bandHeadSlot").addEventListener("click", e=>{
-  const b = e.target.closest("#colorInfo"); if (b) openInfo("infoColors", b);
-});
+
 
 /* The collapsed strip. It costs the page no layout — a zero-height sticky
    box with the bar absolutely positioned inside it — so it can appear and
