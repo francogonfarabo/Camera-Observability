@@ -464,6 +464,10 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 /* two dropdowns — filters and sort — both far right */
 .tools{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .fchip{display:inline-flex;align-items:center;gap:1px;background:var(--blue);color:#fff;border-radius:20px;padding:3px 3px 3px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+/* The chip carries its category and its values now, so it can get long. The
+   three it enumerates fit; this is the backstop for a selection that runs past
+   them, and the title always has the lot. */
+.fchip .t{overflow:hidden;text-overflow:ellipsis;max-width:min(38ch,44vw)}
 .fchip .x{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;color:#fff}
 .fchip .x:hover{background:rgba(255,255,255,.28)}
 .pop{position:relative}
@@ -990,6 +994,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   h1{font-size:20px}
   .field{flex:1 1 100%;max-width:none}
   .tools{margin-left:0;width:100%;justify-content:flex-start}
+  /* There is no width here for a chip that names a category and two values, and
+     a truncated chip is the thing this label was written to stop being. It wraps
+     to two lines instead — a taller pill costs a row of a panel that already
+     scrolls, where an ellipsis costs the half of the sentence that matters. */
+  .fchip{white-space:normal;padding:4px 4px 4px 11px}
+  .fchip .t{max-width:none;overflow:visible;text-overflow:clip}
   /* A dropdown anchored to the toolbar opens past the bottom of the page
      and, being absolutely positioned, can't be scrolled to. On a phone it
      becomes a bottom sheet that owns its own scrolling instead. */
@@ -2012,12 +2022,33 @@ function sorted(list){
    burying the sort inside a panel called "Filters" made the current sort
    invisible. The sort trigger now states the active sort on its face.
    ===================================================================== */
+/* Still one chip per facet, never one per value — eight facets times several
+   values each would bury the toolbar. What changed is what the one chip says.
+
+   It used to print the bare value when there was one ("Needs attention") and a
+   count when there were more ("Center status: 2"). Both lose something. A bare
+   value is a word from somewhere: fine while you are still holding the click
+   that made it, useless ten minutes later, and ambiguous the moment two
+   categories share a word. A count is worse — it names the category and then
+   withholds the only part the reader wanted, so the panel has to be opened to
+   find out which two.
+
+   So: category, then the values, always. Capped at three so a fifty-six-state
+   selection stays a chip rather than a paragraph; the remainder is counted, and
+   the full list is in the title either way. A yes/no category has exactly one
+   value whose name restates the category, so it shows the category alone rather
+   than "Out-of-date readings: Has out-of-date readings". */
+const CHIP_VALUES = 3;
+const chipNames = k => S[k].map(v => optLabel(k, v));
+const chipTitle = k => F[k].label + ": " + chipNames(k).join(", ");
+function chipLabel(k){
+  if (F[k].bool) return F[k].label;
+  const names = chipNames(k), extra = names.length - CHIP_VALUES;
+  return F[k].label + ": " + names.slice(0, CHIP_VALUES).join(", ")
+    + (extra > 0 ? " +" + extra + " more" : "");
+}
 const activeFilters = () => FKEYS.filter(k=>S[k].length).map(k=>({
-  k,
-  // One chip per facet, not per value: eight facets times several values
-  // each would bury the toolbar in chips.
-  label: S[k].length === 1 ? optLabel(k, S[k][0]) : `${F[k].label}: ${S[k].length}`,
-  title: S[k].map(v=>optLabel(k,v)).join(", ")
+  k, label: chipLabel(k), title: chipTitle(k)
 }));
 // The search box shows its own text, so it gets no chip — but it still
 // narrows the set, so it counts toward the KPI scope line.
@@ -2076,7 +2107,7 @@ function renderTools(){
       <span class="ol">${esc(label)}</span>${extra}</button>`;
 
   const chips = activeFilters().map(f => `
-    <span class="fchip" title="${esc(f.title)}">${esc(f.label)}
+    <span class="fchip" title="${esc(f.title)}"><span class="t">${esc(f.label)}</span>
       <button class="x" data-clear-filter="${f.k}" aria-label="Remove ${esc(F[f.k].label)} filter">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
       </button></span>`).join("");
@@ -2185,9 +2216,12 @@ function persistSavedViews(views){
   try { localStorage.setItem(VIEWS_KEY, JSON.stringify(views)); } catch(e){ /* storage unavailable */ }
 }
 function viewSummary(v){
+  // The same shape as a chip with nothing held back: this is only ever a title,
+  // so there is no width to protect.
   const bits = FKEYS.filter(k=>Array.isArray(v[k]) ? v[k].length : (v[k] && v[k]!=="all"))
     .map(k=>{ const s=v[k]; const arr = Array.isArray(s)?s:[s];
-      return arr.length===1 ? optLabel(k,arr[0]) : `${F[k].label}: ${arr.length}`; });
+      return F[k].bool ? F[k].label
+        : `${F[k].label}: ${arr.map(x=>optLabel(k,x)).join(", ")}`; });
   if (v.q) bits.push(`"${v.q}"`);
   bits.push(dirLabel(v.sort, v.dir || "desc"));
   return bits.join(" · ");
@@ -2723,9 +2757,21 @@ function renderBandBar(info){
   // The green badge that used to sit here is gone: it was one of three states
   // wearing a control the other two did not have. All three are keys on the
   // legend now, which is the same control with three values instead of one.
+  /* What is on screen, not what is missing from it. "+866 below the fold" made
+     the band report its own shortfall — a number the reader can do nothing with,
+     phrased as though something had gone wrong. The band is three rows by
+     design, and the cells it drops are the least urgent ones by design, so the
+     honest line is how far down the order it got. The reason lives in the title,
+     available once and not in the way afterwards. */
+  const shown = CELLS.length;
+  const held  = shown + info.over;
+  const unit  = DIMS[bandDimNow].label.toLowerCase() + "s";
   const over = info.over
-    ? '<span class="bandchip flat" title="Cells are sorted worst first, so these are the least urgent.">'
-      + "+" + info.over.toLocaleString() + " below the fold</span>"
+    ? '<span class="bandchip flat" title="The band is three rows tall, and cells are ordered'
+      + ' worst first — so these are the most urgent ' + shown.toLocaleString()
+      + ' of the ' + held.toLocaleString() + ' it holds.">'
+      + "Showing " + shown.toLocaleString() + " of " + held.toLocaleString()
+      + " " + unit + "</span>"
     : "";
   const outn = bandScopeAll ? 0 : DATA.length - bandScopeN;
   const filteredOut = outn
