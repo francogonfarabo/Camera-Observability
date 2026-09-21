@@ -22,8 +22,7 @@ A switcher is pinned to the bottom of all three.
 separates two things by:
 
 - **The two oranges are split.** Hatch means a degraded *camera* and nothing else. A center needing
-  attention is solid amber with a fixed triangular notch out of one corner. The notch never grows with
-  the defect rate; the middle bucket stays ungraded.
+  attention is solid amber, in the same square as the other two states.
 - **An out-of-date reading is hollow rather than faded** — white, with a dashed stroke and its glyph in
   the last-known status colour. Solid versus outline separates before colour is read. How far out of
   date moves to text: a pill on the row, and one clause on the page subtitle.

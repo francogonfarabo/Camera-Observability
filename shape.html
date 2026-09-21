@@ -25,9 +25,10 @@
   --off:#dc2626;  --off-tint:#fff0f0;  --off-line:#fecaca;
   --deg:#f97316;  --deg-tint:#fff5e8;  --deg-line:#fed7aa;
   /* A center needing attention and a degraded camera are different claims and
-     used to wear the same orange hatch. The center amber is pulled yellower so
-     the two do not read as one family at a glance — but the hue is the second
-     signal, not the first. The notch is the first. */
+     used to wear the same orange hatch. Hatch now means the camera and nothing
+     else, and the center amber is pulled yellower so the two do not read as one
+     family at a glance. With the notch gone this hue is the only thing telling
+     this state from the next one, so it should not drift back toward --deg. */
   --attn:#f0a01e; --attn-tint:#fef3c7; --attn-line:#fde68a;
   --ok:#16a34a;   --ok-tint:#eaf7ee;   --ok-line:#bbe5c6;
   --amber-tint:#FFECB1; --amber-ink:#B45309;
@@ -284,30 +285,27 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   background-repeat:no-repeat;background-position:center;background-size:100% 100%;
   transition:transform .11s,box-shadow .12s}
 .cell.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-/* A center that needs attention: solid amber with a triangular notch out of the
-   top-right corner, roughly half the side. Hatch now means one thing only — a
-   degraded camera — and this silhouette reads before any hue does, which is what
-   lets it survive at the 13px floor where a hatch turns to mud.
+/* A center that needs attention: solid amber, same square and same corners as
+   the other two states. It carried a triangular notch out of the top-right
+   corner for a while — the silhouette read before the hue did, which is what the
+   fork was named for — and the notch came off because a cut corner reads as a
+   folded page rather than as a state.
 
-   The notch is FIXED. It is never sized or stepped by defect rate: one soft
-   camera among nineteen and nine dark out of ten are the same mark on purpose,
-   because the square answers whether a center needs looking at and the row
-   underneath answers how much. A notch that grew would be the five-step defect
-   ramp coming back through the side door.
-
-   Painted on a pseudo-element rather than the cell, because clip-path clips
-   everything an element paints — including the focus ring and the selected
-   outline, both of which are box-shadow and outline on the cell itself. */
-.cell.deg{background-color:transparent}
-.cell.deg::before{content:"";position:absolute;inset:0;border-radius:inherit;
-  background:var(--attn);clip-path:polygon(0 0, 50% 0, 100% 50%, 100% 100%, 0 100%)}
+   What that costs is worth knowing: amber and green are now told apart by hue
+   alone. Red still has its ✕, so red is safe against any colour vision, but the
+   amber/green pair is not. Putting a texture back — the hatch this state used to
+   share with a degraded camera, or anything else that is not a corner — is the
+   way to restore it without bringing the notch back. */
+.cell.deg{background-color:var(--attn)}
 .cell.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
 .cell:hover{transform:translateY(-2px);z-index:2}
 .cell:focus-visible{box-shadow:var(--focus);transform:translateY(-2px);z-index:3}
 .cell.picked{outline:2px solid var(--blue);outline-offset:2px;transform:translateY(-2px);z-index:2}
-/* Below 13px the hatch turns to mud and the ✕ to a smudge, so the squares
-   shrink no further — the band changes zoom instead. */
-.band.tiny .cell.off{background-image:none;box-shadow:inset 0 0 0 2px rgba(69,10,10,.75)}
+/* Below 13px a mark turns to mud, so the squares shrink no further — the band
+   changes zoom instead. At 13px itself the ✕ still holds, so it stays: this rule
+   used to swap it for a dark inner ring at that one size, which made the smallest
+   red squares the only ones on the board wearing a stroke. One mark per state,
+   whatever the size. */
 
 
 .cell.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
@@ -740,8 +738,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    statement about a site and the other about a single camera, and they are
    drawn in the same places often enough that sharing a class would have them
    drift into each other again. */
-.sw.attn{background-color:var(--attn);border-radius:3px;
-  clip-path:polygon(0 0, 50% 0, 100% 50%, 100% 100%, 0 100%)}
+.sw.attn{background-color:var(--attn)}
 .sw.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.4 3.4l5.2 5.2M8.6 3.4l-5.2 5.2' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E")}
 
 /* failure banner */
@@ -2589,7 +2586,6 @@ function renderStrip(){
   }
   el.style.setProperty("--cgap", CGAP + "px");
   el.style.setProperty("--bleed", BAND_BLEED + "px");
-  el.classList.toggle("tiny", bandPlan.mode === "sq" && bandPlan.size < 16);
 
   // Rebuild only when the set of cells or their size actually changed; patch
   // otherwise. These nodes are focusable and hoverable, and replacing one
