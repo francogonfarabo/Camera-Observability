@@ -71,9 +71,11 @@ been that way and when each was last assessed all come from one fixed seed, and 
 refresh so the live behaviour can be judged. 20,710 cameras across the roster.
 
 The dashed strip at the bottom of the page forces first-load, refresh-failure and all-healthy
-states, and cuts the assignment to **60 / 400 / all 1,231 centers**. It is scaffolding, not part of
-the design — it exists so the overview can be judged at the altitudes a smaller assignment puts it
-in.
+states, and switches the assignment between three sets of brands — **6 brands / 57 centers**,
+**4 brands / 398**, and **all 13 / 1,231**. Brands rather than counts, because nobody is assigned
+"the first four hundred centers in the file"; you cover some chains and you get however many
+centers they have. It is scaffolding, not part of the design — it exists so the overview can be
+judged at the altitudes a smaller assignment puts it in.
 
 Not production code. These exist to settle the interaction design before anyone writes a
 query.
