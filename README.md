@@ -38,7 +38,7 @@ centers are invented — see *What these are and aren't* below.
   degraded, longest outage. Each doubles as a one-click filter, and each goes calm rather
   than alert-red when it reads zero.
 - **Filters and sort as two separate controls** — nine facets (out-of-date readings, center
-  status, cameras inside, brand, payment model, parent access, country, state, city),
+  status, camera health, brand, payment model, parent access, country, state, city),
   multi-select within a category and ANDed across them, with live counts computed from the
   centers passing your *other* choices. A category that has only one value left in it is
   dropped from the rail rather than offered: Country is the live case, since the roster is

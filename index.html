@@ -1383,7 +1383,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               and the mark cannot disagree. There is no <em>Has any issue</em> option: that is
               <b>Fully down</b> and <b>Needs attention</b> chosen together, which is what the first KPI
               tile selects.</span></dd></div>
-            <div class="irow"><dt>Cameras inside</dt><dd>A different question from the one above —
+            <div class="irow"><dt>Camera health</dt><dd>A different question from the one above —
               <b>Has offline cameras</b>, <b>Has degraded cameras</b> — and deliberately not exclusive with
               it, since a center needing attention can hold both.
               <span class="d">Values inside a category are ORed, so choosing both asks for centers
@@ -3171,7 +3171,7 @@ const F = {
   /* A different question, and deliberately not exclusive with the one above: a
      center needing attention can hold both an offline camera and a degraded one,
      and either might be the thing you are hunting. */
-  cams: facet("Cameras inside", "Any cameras", (c,v)=>{
+  cams: facet("Camera health", "Any camera health", (c,v)=>{
       const t = tally(c);
       return v === "off" ? !!t.off : !!t.deg;
     },
