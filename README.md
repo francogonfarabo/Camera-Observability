@@ -8,33 +8,26 @@ Camera health has its own top-level rail item, **Monitoring**, set apart from th
 center-scoped icons (Cameras, Dashboard, Users, …) by a divider: it covers the whole
 assignment and deliberately ignores the center picker in the header.
 
-Two versions of the board are live, named for what carries a distinction in each.
+One board is live.
 
 | Page | What it is |
 |---|---|
-| [`index.html`](index.html) | **Tone** — hue and saturation carry the distinctions |
-| [`shape.html`](shape.html) | **Shape** — silhouette carries them |
+| [`index.html`](index.html) | The board |
 | [`rationale.html`](rationale.html) | Design notes: the decisions, what came out again, and why |
 
-A switcher is pinned to the bottom of all three.
+Nothing links between them any more. The board carries no version bar; the notes are built and
+reachable at their own address, and that is deliberate — a prototype handed to someone should open
+on the thing being judged, not on a menu of alternatives.
 
-**Shape** differs from Tone in three ways, all of them about the same question — what a reader
-separates two things by:
-
-- **The two oranges are split.** Hatch means a degraded *camera* and nothing else. A center needing
-  attention is solid amber, in the same square as the other two states.
-- **An out-of-date reading is hollow rather than faded** — white, with a dashed stroke and its glyph in
-  the last-known status colour. Solid versus outline separates before colour is read. How far out of
-  date moves to text: a pill on the row, and one clause on the page subtitle.
-- **The band's three states are filterable, and the legend is the control.** Three keys carrying mark,
-  count and name — *2 fully down*, *27 need attention*, *44 all reporting*. Pressing one filters the list
-  and leaves the band alone.
+It carries the **real roster**: 1,231 Learning Care Group centers as of 21 September 2026, with their
+brands, store numbers, cities and states. Thirteen brands, 41 states, 698 cities. The cameras on those
+centers are invented — see *What these are and aren't* below.
 
 ## What it does
 
 - **"Your centers"** — an always-visible overview of the whole assignment, above the list.
   One cell is a center while that fits and a **brand or a state once it doesn't**, so the
-  overview stays three rows tall whether you manage 73 centers or 4,000.
+  overview stays three rows tall whether you manage sixty centers or the whole 1,231.
   The `Cell` control makes that zoom explicit; `AUTO` picks the finest one that still
   draws legibly. Click a center to search it, click a group to filter to it, and the
   overview collapses to a 32px sticky strip once you scroll past it.
@@ -44,10 +37,12 @@ separates two things by:
 - **Four numbers** across the top — centers needing attention, cameras offline, cameras
   degraded, longest outage. Each doubles as a one-click filter, and each goes calm rather
   than alert-red when it reads zero.
-- **Filters and sort as two separate controls** — eight facets (out-of-date readings, camera
-  health, brand, payment model, parent access, country, state, city), multi-select within a
-  category and ANDed across them, with live counts computed from the centers passing your
-  *other* choices. Out-of-date readings is a switch rather than a list and leads the rail: a
+- **Filters and sort as two separate controls** — nine facets (out-of-date readings, center
+  status, cameras inside, brand, payment model, parent access, country, state, city),
+  multi-select within a category and ANDed across them, with live counts computed from the
+  centers passing your *other* choices. A category that has only one value left in it is
+  dropped from the rail rather than offered: Country is the live case, since the roster is
+  entirely US. It reappears on its own the day a second country does. Out-of-date readings is a switch rather than a list and leads the rail: a
   reading being stale is a statement about the reading, not a fourth thing a camera can be.
   Five sort fields, each naming a field and never an order.
 - **Saved views** — name the current filter/sort/search combination and reapply it.
@@ -61,24 +56,36 @@ separates two things by:
 
 ## What these are and aren't
 
-Front-end prototypes with **stand-in data** — no API, no database. Statuses come from a
-fixed seed and mutate on each refresh so the live behaviour can be judged. The centers,
-store numbers, room names and brands are invented; roughly one site in twelve deliberately
-has no brand at all, because a grouped overview has to survive that.
+A front-end prototype with **no API and no database**.
 
-The dashed strip at the bottom of the page forces first-load, refresh-failure and
-all-healthy states, and switches the synthetic fleet between **73 / 600 / 4,000 centers**.
-It is scaffolding, not part of the design — it exists so the overview can be judged at the
-scale it claims to survive.
+The **centers are real**: names, brands, store numbers, cities and states come from the Learning
+Care Group roster of 21 September 2026. Brand is read from the centernumber prefix rather than the
+name, because thirty-three sites do not lead with their brand — thirty Montessori Unlimited
+locations named for a neighbourhood, a typo, and two La Petite sites inside a partner — and every
+one of them knows its prefix. Two edits were made and are visible in the source: sites with a
+missing or duplicated store number were given the next free code in their brand's block, and the
+235 sites sharing a name with another now carry their store number in brackets.
+
+The **cameras are invented**. How many a site has, which are dark or impaired, how long they have
+been that way and when each was last assessed all come from one fixed seed, and mutate on each
+refresh so the live behaviour can be judged. 20,710 cameras across the roster.
+
+The dashed strip at the bottom of the page forces first-load, refresh-failure and all-healthy
+states, and cuts the assignment to **60 / 400 / all 1,231 centers**. It is scaffolding, not part of
+the design — it exists so the overview can be judged at the altitudes a smaller assignment puts it
+in.
 
 Not production code. These exist to settle the interaction design before anyone writes a
 query.
 
 ## Archived versions
 
-Two earlier shapes are still deployed so no link ever breaks, but are not linked from
-anywhere and carry an "Archived — superseded" bar instead of the switcher:
+Three earlier shapes are still deployed so no link ever breaks, but are not linked from
+anywhere and carry an "Archived — superseded" bar:
 
+- [`tone.html`](tone.html) — the fork in which hue and saturation rather than silhouette separated
+  the states, on the synthetic fleet. Archived 21 Sep 2026, kept because the question it was built
+  to answer is still open.
 - [`nested.html`](nested.html) — one square per center in the overview, ordered worst-first
   with the healthy tail folded into a count. The right move, and not enough on its own past
   a few hundred centers.
@@ -106,5 +113,5 @@ Keyboard: each grid is one tab stop with arrow-key navigation, not one stop per 
 
 Static site, no build step in CI. Every page here is generated from the sources in
 `../UX/Claude` by a local wrapper script that adds the doctype, charset, viewport meta,
-favicon and switcher. Pushes to `main` deploy automatically via the Vercel GitHub
-integration.
+favicon and, on archived pages only, the superseded banner. Pushes to `main` deploy
+automatically via the Vercel GitHub integration.

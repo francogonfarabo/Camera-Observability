@@ -6,7 +6,7 @@
 <meta name="description" content="Camera health under its own Monitoring rail item — live per-camera status across every assigned center, with an overview that changes altitude as the assignment grows, filtering, sorting, saved views and a camera detail modal.">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23159deb'/%3E%3Cpath d='M6 11h13v10H6z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M19 15l7-3.5v9L19 17' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3C/svg%3E">
-<title>Camera Health Board — Tone</title>
+<title>Camera Health Board — Shape</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&family=Open+Sans:wght@600&display=swap">
 <style>
 /* ============================================================
@@ -24,6 +24,12 @@
   /* semantic status — separate from the accent */
   --off:#dc2626;  --off-tint:#fff0f0;  --off-line:#fecaca;
   --deg:#f97316;  --deg-tint:#fff5e8;  --deg-line:#fed7aa;
+  /* A center needing attention and a degraded camera are different claims and
+     used to wear the same orange hatch. Hatch now means the camera and nothing
+     else, and the center amber is pulled yellower so the two do not read as one
+     family at a glance. With the notch gone this hue is the only thing telling
+     this state from the next one, so it should not drift back toward --deg. */
+  --attn:#f0a01e; --attn-tint:#fef3c7; --attn-line:#fde68a;
   --ok:#16a34a;   --ok-tint:#eaf7ee;   --ok-line:#bbe5c6;
   --amber-tint:#FFECB1; --amber-ink:#B45309;
 
@@ -153,6 +159,7 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:2px}
 h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-height:1.15;color:var(--ink);text-wrap:balance}
 .subtitle{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.subtitle .staleclause{color:#8a5a06;font-weight:700}
 
 /* live refresh control */
 .live{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px 7px 8px;box-shadow:var(--shadow-card)}
@@ -212,7 +219,8 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .lg{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink-2)}
 /* The rule behind the three colors is one click away rather than three lines
    of caption nobody reads twice. */
-.lginfo{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;
+.lginfo{display:inline-flex;align-items:center;justify-content:center;
+  width:var(--keyh,18px);height:var(--keyh,18px);flex-shrink:0;border-radius:50%;
   border:1px solid var(--line-2);background:var(--surface);color:var(--ink-3);cursor:pointer;flex-shrink:0}
 .lginfo:hover{border-color:var(--blue);color:var(--blue-ink)}
 .lginfo:focus-visible{box-shadow:var(--focus);outline:none}
@@ -256,10 +264,6 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   font-size:11.5px;font-weight:700;white-space:nowrap;flex-shrink:0;border:1px solid var(--line);
   background:var(--fill);color:var(--ink-3)}
 .bandchip .sw{width:11px;height:11px;border-radius:3px}
-.bandchip.fold{border-color:var(--ok-line);background:var(--ok-tint);color:#15803d}
-.bandchip.fold:hover{border-color:var(--ok)}
-.bandchip.fold[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
-.bandchip.fold[aria-pressed="true"] .sw{background-color:#fff;box-shadow:none}
 .bandchip.flat{cursor:default}
 
 /* The cells. Three rows, hard — and they are sorted worst-first, so whatever
@@ -281,15 +285,27 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
   background-repeat:no-repeat;background-position:center;background-size:100% 100%;
   transition:transform .11s,box-shadow .12s}
 .cell.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
-.cell.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2.5px,transparent 2.5px 6px)}
+/* A center that needs attention: solid amber, same square and same corners as
+   the other two states. It carried a triangular notch out of the top-right
+   corner for a while — the silhouette read before the hue did, which is what the
+   fork was named for — and the notch came off because a cut corner reads as a
+   folded page rather than as a state.
+
+   What that costs is worth knowing: amber and green are now told apart by hue
+   alone. Red still has its ✕, so red is safe against any colour vision, but the
+   amber/green pair is not. Putting a texture back — the hatch this state used to
+   share with a degraded camera, or anything else that is not a corner — is the
+   way to restore it without bringing the notch back. */
+.cell.deg{background-color:var(--attn)}
 .cell.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
 .cell:hover{transform:translateY(-2px);z-index:2}
 .cell:focus-visible{box-shadow:var(--focus);transform:translateY(-2px);z-index:3}
 .cell.picked{outline:2px solid var(--blue);outline-offset:2px;transform:translateY(-2px);z-index:2}
-/* Below 13px the hatch turns to mud and the ✕ to a smudge, so the squares
-   shrink no further — the band changes zoom instead. */
-.band.tiny .cell.deg{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.92) 0 1.5px,transparent 1.5px 4px)}
-.band.tiny .cell.off{background-image:none;box-shadow:inset 0 0 0 2px rgba(69,10,10,.75)}
+/* Below 13px a mark turns to mud, so the squares shrink no further — the band
+   changes zoom instead. At 13px itself the ✕ still holds, so it stays: this rule
+   used to swap it for a dark inner ring at that one size, which made the smallest
+   red squares the only ones on the board wearing a stroke. One mark per state,
+   whatever the size. */
 
 
 .cell.pending{background:var(--fill);box-shadow:inset 0 0 0 1px var(--line-2);pointer-events:none}
@@ -347,7 +363,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .tbar i{display:block;height:100%;min-width:0}
 .tbar i[hidden]{display:none}
 .tbar i.b-off{background:var(--off)}
-.tbar i.b-deg{background:var(--deg)}
+.tbar i.b-deg{background:var(--attn)}
 .tbar i.b-ok{background:var(--ok)}
 /* A single dark site inside seventy would round to nothing, and that single
    dark site is the call you are about to get — so a non-zero slice never
@@ -358,8 +374,35 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .tile.pending .tn,.tile.pending .tc{visibility:hidden}
 
 /* legend swatches reuse the product's own status swatch (.sw) */
-.bandlegend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;
+.bandlegend{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:9px;
   padding-top:8px;border-top:1px solid var(--line-2)}
+/* The legend is the control. Naming three marks under the band and then
+   offering the same three as a filter two panels away was one list written
+   twice — and a reader who can see "27 need attention" is already pointing at
+   the thing they want. Pressed, a key keeps its mark exactly as the legend
+   draws it and takes a tint and a coloured edge instead of a solid fill: it has
+   to go on teaching the mark while it is switched on. */
+/* --keyh is the height of a legend key and therefore of the info button beside
+   them: the button is a circle the same height as the things it explains, not a
+   dot floating near them. One number, so they cannot drift apart. */
+.bandlegend{--keyh:28px}
+.bkey{display:inline-flex;align-items:center;gap:7px;height:var(--keyh);padding:0 10px 0 8px;
+  border-radius:7px;font-size:11.5px;font-weight:600;color:var(--ink-2);
+  border:1px solid transparent;background:var(--fill);white-space:nowrap}
+.bkey b{font-weight:700;color:var(--ink)}
+.bkey:hover{background:var(--surface);border-color:var(--line-2)}
+.bkey:focus-visible{box-shadow:var(--focus);outline:none}
+.bkey[aria-pressed="true"]{box-shadow:inset 0 0 0 1px currentColor}
+.bkey[aria-pressed="true"] b{color:inherit}
+.bkey.k-off[aria-pressed="true"]{background:var(--off-tint);border-color:var(--off);color:#991b1b}
+.bkey.k-deg[aria-pressed="true"]{background:var(--attn-tint);border-color:var(--attn);color:#8a5a06}
+.bkey.k-ok[aria-pressed="true"]{background:var(--ok-tint);border-color:var(--ok);color:#15803d}
+/* A zero here is good news, not a dead control: it stays in the row so the row
+   does not reflow, and says so quietly. */
+.bkey:disabled{background:transparent;color:var(--ink-4);cursor:default}
+.bkey:disabled b{color:var(--ink-3)}
+.bkey:disabled:hover{background:transparent;border-color:transparent}
+.bkey:disabled .sw{opacity:.45}
 .lgs{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;position:relative}
 .lgs.split{display:inline-flex;gap:1px;width:26px;border-radius:3px;overflow:hidden;height:9px}
 .lgs.split i{display:block;height:100%}
@@ -421,6 +464,10 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 /* two dropdowns — filters and sort — both far right */
 .tools{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .fchip{display:inline-flex;align-items:center;gap:1px;background:var(--blue);color:#fff;border-radius:20px;padding:3px 3px 3px 11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+/* The chip carries its category and its values now, so it can get long. The
+   three it enumerates fit; this is the backstop for a selection that runs past
+   them, and the title always has the lot. */
+.fchip .t{overflow:hidden;text-overflow:ellipsis;max-width:min(38ch,44vw)}
 .fchip .x{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;color:#fff}
 .fchip .x:hover{background:rgba(255,255,255,.28)}
 .pop{position:relative}
@@ -691,6 +738,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .sw{display:inline-block;width:13px;height:13px;border-radius:4px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
 .sw.ok{background-color:var(--ok);box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)}
 .sw.deg{background-color:var(--deg);background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 1.5px,transparent 1.5px 4px)}
+/* The center mark, kept apart from .sw.deg on purpose: one of these two is a
+   statement about a site and the other about a single camera, and they are
+   drawn in the same places often enough that sharing a class would have them
+   drift into each other again. */
+.sw.attn{background-color:var(--attn)}
 .sw.off{background-color:var(--off);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3.4 3.4l5.2 5.2M8.6 3.4l-5.2 5.2' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E")}
 
 /* failure banner */
@@ -708,7 +760,7 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
    No coloured left edge: the counts column and the squares already carry
    the severity, and a third encoding of the same fact was just stripes. */
 .list{display:flex;flex-direction:column;gap:8px}
-.center{display:grid;grid-template-columns:minmax(190px,250px) 172px 1fr;gap:18px;align-items:start;
+.center{display:grid;grid-template-columns:minmax(190px,250px) 200px 1fr;gap:18px;align-items:start;
   background:var(--surface);border:1px solid var(--line);border-radius:11px;
   padding:12px 16px;box-shadow:var(--shadow-card)}
 .c-name{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;line-height:1.25;color:var(--ink);display:flex;align-items:baseline;gap:7px}
@@ -724,7 +776,19 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .stat{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
 .stat b{min-width:2ch;text-align:right;font-weight:700}
 .stat.off b{color:#b91c1c} .stat.deg b{color:#c2410c} .stat.ok{color:#15803d}
-.stat.stale{color:#7c4a03} .stat.stale b{color:#7c4a03}
+/* The one stat that is a pill. It is not a third count alongside offline and
+   degraded — it is the reason those two might be wrong — and the dashed border
+   is the same mark the stale squares wear, so the line and the squares it
+   describes are plainly the same subject. */
+.stat.stale{color:#7c4a03;align-self:flex-start;display:block;
+  border:1.2px dashed var(--attn-line);border-radius:7px;padding:2px 8px;
+  background:var(--attn-tint);font-size:11.5px;margin-top:1px;line-height:1.35}
+.stat.stale b{color:#7c4a03;min-width:0}
+/* Two phrases, each unbreakable. In a narrow column this drops to two tidy
+   lines rather than stacking a number, a word and a duration on three. The
+   dashed border is already the mark, so the pill does not also carry a swatch:
+   that was the same thing said twice, costing the width that broke it. */
+.stat.stale span{white-space:nowrap}
 .stat.dim{color:var(--ink-3);font-weight:500;font-size:11.5px;padding-left:21px}
 .stat.dim b{min-width:0;color:var(--ink-2)}
 .grid{display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
@@ -752,10 +816,24 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 
    Cameras only. The centers strip stays a three-state overview: a veil on a
    center square would be answering a question the square was never asked. */
-.blk.stale{filter:saturate(.4) contrast(.94)}
-.blk.stale::after{content:"";position:absolute;inset:-2px;border-radius:7px;
-  border:1.5px dashed var(--ink-3);pointer-events:none}
-.sw.stale{background:var(--fill);box-shadow:none;border:1.5px dashed var(--ink-3)}
+/* Hollow, not faded. Desaturation is a discount on a colour: it needs the
+   reader to remember what full strength looked like, and across a row of twelve
+   squares at 20px the two oranges were one orange. Solid versus outline
+   separates before colour is read at all, which is the order the eye works in.
+
+   The fill goes, the status stays: the dashed stroke and the glyph inside it are
+   both drawn in the last known status colour, so the square still says both
+   things at once — what it was, and that we have not heard since. */
+.blk.stale{background-color:var(--surface);box-shadow:none}
+.blk.off.stale{border:1.8px dashed var(--off);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='%23dc2626' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E")}
+/* The hatch stays, knocked back behind the stroke: it is the one thing that
+   tells a stale degraded camera from a stale healthy one, so it cannot go —
+   but at full strength it competed with the dashes for the same 20 pixels. */
+.blk.deg.stale{border:1.8px dashed var(--deg);
+  background-image:repeating-linear-gradient(135deg,rgba(249,115,22,.32) 0 2px,transparent 2px 5px)}
+.blk.ok.stale{border:1.8px dashed var(--ok);background-image:none}
+.sw.stale{background:var(--surface);box-shadow:none;border:1.5px dashed var(--ink-3)}
 
 /* the same warning inside the camera modal, where it outranks the status */
 .dstale{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:10px 12px;
@@ -856,6 +934,13 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 /* tooltip */
 .tip{position:fixed;z-index:70;background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow-pop);padding:8px 10px;font-size:12px;pointer-events:none;opacity:0;transform:translateY(3px);transition:opacity .1s,transform .1s;max-width:250px}
 .tip.show{opacity:1;transform:none}
+/* Three states, each a rule and a sentence. Wider than a cell tooltip because
+   it is read once to learn the board rather than glanced at to read it. */
+.tip.states{max-width:296px}
+.tip.states .row{margin-top:8px}
+.tip.states .row:first-of-type{margin-top:6px}
+.tip.states code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;
+  background:var(--fill);border-radius:4px;padding:0 4px;color:var(--ink-2)}
 .tip b{display:block;font-size:12.5px;font-weight:700}
 .tip em{font-style:normal;color:var(--ink-3);display:block;margin-top:1px}
 .tip .row{display:flex;align-items:center;gap:6px;margin-top:5px;font-weight:600}
@@ -909,6 +994,12 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   h1{font-size:20px}
   .field{flex:1 1 100%;max-width:none}
   .tools{margin-left:0;width:100%;justify-content:flex-start}
+  /* There is no width here for a chip that names a category and two values, and
+     a truncated chip is the thing this label was written to stop being. It wraps
+     to two lines instead — a taller pill costs a row of a panel that already
+     scrolls, where an ellipsis costs the half of the sentence that matters. */
+  .fchip{white-space:normal;padding:4px 4px 4px 11px}
+  .fchip .t{max-width:none;overflow:visible;text-overflow:clip}
   /* A dropdown anchored to the toolbar opens past the bottom of the page
      and, being absolutely positioned, can't be scrolled to. On a phone it
      becomes a bottom sheet that owns its own scrolling instead. */
@@ -947,27 +1038,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .drawer{width:auto;max-height:88dvh;border-radius:14px 14px 0 0}
   .pager{justify-content:center}
 }
-</style>
-<style>
-.vsw{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:80;display:flex;align-items:center;gap:4px;
-  background:rgba(255,255,255,.96);border:1px solid #e0e3e8;border-radius:9999px;padding:4px;
-  box-shadow:0 6px 24px rgba(0,0,0,.16);backdrop-filter:blur(6px);font-family:'DM Sans',system-ui,sans-serif}
-.vsw b{font-family:'Titillium Web',sans-serif;font-size:9.5px;font-weight:700;letter-spacing:.09em;
-  text-transform:uppercase;color:#9ca3af;padding:0 8px 0 10px;white-space:nowrap}
-.vsw a{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:9999px;font-size:12.5px;
-  font-weight:700;color:#374151;text-decoration:none;white-space:nowrap}
-.vsw a:hover{background:#f4f5f7}
-.vsw a.doc{color:#6b7280}
-.vsw a[aria-current="page"]{background:#159deb;color:#fff}
-.vsw.archived{background:rgba(55,65,81,.96);border-color:#374151}
-.vsw.archived b{color:#fcd34d}
-.vsw.archived .was{font-size:11.5px;color:#d1d5db;padding-right:4px;white-space:nowrap}
-.vsw.archived a{color:#fff;background:rgba(255,255,255,.14)}
-.vsw.archived a:hover{background:rgba(255,255,255,.26)}
-@media (max-width:640px){ .vsw.archived .was{display:none} }
-.page-inner{padding-bottom:82px}
-.wrap{padding-bottom:70px}
-@media (max-width:640px){ .vsw b{display:none} .vsw a{padding:6px 10px;font-size:12px} }
 </style>
 </head>
 <body>
@@ -1128,10 +1198,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
             <button data-demo="fail">Refresh failure</button>
             <button data-demo="healthy">All healthy</button>
             <button data-demo="reset">Reset data</button>
-            <span class="tag" style="margin-left:6px">Fleet size</span>
-            <button data-fleet="73">73</button>
-            <button data-fleet="600">600</button>
-            <button data-fleet="4000">4,000</button>
+            <span class="tag" style="margin-left:6px">Assignment size</span>
+            <button data-fleet="60">60</button>
+            <button data-fleet="400">400</button>
+            <button data-fleet="0">All 1,231</button>
             <span class="pgtxt">Not part of the design — these force states you'd otherwise have to wait for.</span>
           </div>
         </div>
@@ -1215,25 +1285,25 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           <b>orange</b> for everything in between. What changes with the size of your assignment is not the
           colours — it is what one cell <em>is</em>.</p>
           <dl class="ilist">
-            <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> All cameras offline</dt><dd>
+            <div class="irow"><dt><span class="sw off" style="vertical-align:-1px"></span> Fully down</dt><dd>
               <code>offline = total</code>. The site is blind — no parent at that center can see anything.
               <span class="d">Almost always one cause (power, network, the recorder) rather than a list of
               separate faults, which is why it gets its own colour instead of being the top of a scale. It
               leads the sort at every zoom, so the top-left cell is always the worst thing you have.</span></dd></div>
-            <div class="irow"><dt><span class="sw deg" style="vertical-align:-1px"></span> Some offline or degraded</dt><dd>
+            <div class="irow"><dt><span class="sw attn" style="vertical-align:-1px"></span> Needs attention</dt><dd>
               <code>offline &lt; total</code> and <code>offline + degraded &gt; 0</code>. One impaired camera
               among healthy ones, half the site down, nine of ten offline with the tenth impaired.
               <span class="d">Deliberately ungraded. The square answers <em>does this center need looking
               at</em>; the row underneath answers how much, in numbers.</span></dd></div>
-            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All cameras healthy</dt><dd>
+            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All reporting</dt><dd>
               <code>offline = 0</code> and <code>degraded = 0</code>. Exactly the same rule as the
               <b>All cameras healthy</b> status filter and the first KPI, so the squares, the filter and the
               headline count never disagree.</dd></div>
             <div class="irow"><dt>One cell is a zoom level, not a center</dt><dd>
               The <b>Center / Brand / State</b> control above the cells switches between them, and <b>AUTO</b> picks the
-              finest one that still draws at a readable size inside three rows: a square per center at 73
-              and at 600, a tile per state at 4,000.
-              <span class="d">Four thousand squares at a size anyone can read is eleven rows of nothing.
+              finest one that still draws at a readable size inside three rows: a square per center for a
+              few hundred, a tile per state across the whole 1,231.
+              <span class="d">Twelve hundred squares at a size anyone can read is eleven rows of nothing.
               Squares stop shrinking at 13px, because below that the hatch is mud and the ✕ a smudge, and
               colour on its own is not an encoding.</span></dd></div>
             <div class="irow"><dt>A group is a mix, so it gets a tile</dt><dd>
@@ -1302,13 +1372,18 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               date is a statement about the reading, not a fourth thing a camera can be, and everything the
               rest of the panel filters on is a claim about the past for those centers. It used to be one
               option inside Status, where it read as a status.</span></dd></div>
-            <div class="irow"><dt>Camera health</dt><dd>What the center's cameras are doing right now: any
-              issue, offline specifically, degraded specifically, or everything healthy.
-              <b>Has any issue</b> and <b>All cameras healthy</b> are the two halves of the centers strip —
-              the first is every non-green square, the second is every green one.
-              <span class="d">Values inside a category are ORed, so <b>Has offline cameras</b> together
-              with <b>Has degraded cameras</b> asks for centers matching <em>either</em>, not both.</span>
-              </dd></div>
+            <div class="irow"><dt>Center status</dt><dd>The square's own verdict, as a filter:
+              <b>Fully down</b>, <b>Needs attention</b>, <b>All reporting</b>. The three are mutually
+              exclusive and their counts sum to the whole assignment.
+              <span class="d">It is read straight off the same rule that colours the square, so the filter
+              and the mark cannot disagree. There is no <em>Has any issue</em> option: that is
+              <b>Fully down</b> and <b>Needs attention</b> chosen together, which is what the first KPI
+              tile selects.</span></dd></div>
+            <div class="irow"><dt>Cameras inside</dt><dd>A different question from the one above —
+              <b>Has offline cameras</b>, <b>Has degraded cameras</b> — and deliberately not exclusive with
+              it, since a center needing attention can hold both.
+              <span class="d">Values inside a category are ORed, so choosing both asks for centers
+              matching <em>either</em>, not both.</span></dd></div>
             <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.
               <span class="d">About one site in twelve belongs to no chain and has an empty brand field.
               Those are offered as <b>No brand</b> — last in the list, because it is the absence of a
@@ -1365,10 +1440,17 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
 <script>
 /* =====================================================================
-   Data — a deterministic stand-in for the read-replica query.
+   Data — the real roster, with invented cameras on it.
+
+   The centers, their brands, store numbers, cities and states are the
+   Learning Care Group list of 21 Sep 2026: 1,231 sites, thirteen brands,
+   41 states. Nothing below invents a center or moves one.
+
+   What is invented is everything a camera assessor would have written:
+   how many cameras a site has, which of them are dark or impaired, how
+   long they have been that way, and when each row was last assessed. Those
+   come out of one seeded stream, so every reload tells the same story.
    One row per camera = its latest assessment (max assessed_at).
-   73 centers across eight brands: enough that the board has to survive a
-   real regional manager's assignment rather than a demo-sized one.
    ===================================================================== */
 let seed = 20260820;
 const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -1378,15 +1460,33 @@ const ROOMS = ["Infant A","Infant B","Toddler A","Toddler B","Twos","Threes","Pr
   "Nap room A","Nap room B","Hallway","Lobby","Playground East","Playground West","Gym","Art room",
   "Music room","Front entry","Back entry","Cubbies","Bus loop","Sink area","Office","Kitchen"];
 
-const BRANDS = ["Bright Path Academy","Cedar Grove","DoodleBugs","Kiddie Academy",
-  "Little Acorns","Maple Street Kids","Riverbend Early Learning","Sunrise Learning"];
+/* The brand a center trades under, keyed by the centernumber prefix the
+   roster carries beside every site.
 
-/* One-off sites that belong to no chain. They have names like anyone else —
-   what they don't have is a brand, which is a different fact from not having
-   a name, and the board has to keep the two apart. */
-const INDIE = ["Acorn House","The Learning Tree","Wildflower Cottage","Harborview Kids",
-  "Stepping Stones","Cornerstone Kids","Bright Beginnings","Wee Care","Maple Lane",
-  "Riverstone Nursery","Sandbox Studio","Hollyhock House"];
+   The prefix decides, not the name. Most names do lead with their brand
+   ("Everbrook Academy of Plano"), and wherever one does it agrees with the
+   prefix on all 1,198 of them — but thirty-three do not, and reading those
+   off the name would be wrong rather than merely unassigned. Thirty are
+   Montessori Unlimited sites named for their neighbourhood ("Longwood
+   Montessori", "Cinco Ranch Montessori"); one is a typo in the source
+   ("Everbook Academy of Sunterra"); two are La Petite sites operating inside
+   a partner ("doTERRA Kids at La Petite Academy"). Every one of them knows
+   its own prefix. */
+const BRAND_BY_PREFIX = {
+  6:   "Children's Courtyard",                 324: "Childtime",
+  327: "Tutor Time",                            339: "La Petite",
+  357: "Everbrook",                             369: "Montessori Unlimited",
+  436: "Cornerstone Children's Learning Center", 445: "Mountain View Private Elementary",
+  446: "Creative Kids",                         479: "Pathways Learning Academy",
+  617: "U-Gro",                                 622: "Young School",
+  698: "Gilden Woods",                          699: "AppleTree",
+};
+/* A prefix nobody has mapped yet. Every center in the current roster has a
+   brand, so this group is empty — it exists so that a site added under an
+   unknown prefix lands somewhere visible instead of vanishing from a
+   grouped view. "Others" is a bucket and says so; it is not a claim that the
+   site is independent. */
+const OTHER_BRAND = "Others";
 /* Shown wherever a brand would be. Deliberately "No brand" rather than
    "Independent": the record says the field is empty, not that the business is
    unaffiliated, and a board read by support staff should not upgrade a blank
@@ -1420,6 +1520,10 @@ const ASSESS = {
 // Front-end only, and deliberately derived at read time: nothing persists it.
 const isStale      = cam => cam.checked >= ASSESS.assessStaleMin;
 const staleCount   = c => c.cams.filter(isStale).length;
+/* The veil is binary on purpose — an outline cannot be 40% of an outline — so
+   how far out of date the worst reading is has to be said in words instead. */
+const oldestStale  = c => c.cams.reduce((m,cam)=> isStale(cam) && cam.checked > m ? cam.checked : m, 0);
+const fleetStale   = () => DATA.reduce((n,c)=> n + staleCount(c), 0);
 // Staleness never rolls up into a center's colour: the overview answers "how
 // much of this site is working", and a reading's age is a different question
 // asked of a different object. It surfaces on the camera blocks themselves,
@@ -1435,6 +1539,7 @@ AR|Arkansas|CT|Little Rock,Fayetteville
 CA|California|PT|Sacramento,Fresno
 CO|Colorado|MT|Denver,Aurora
 CT|Connecticut|ET|Hartford,Stamford
+DC|District of Columbia|ET|Washington
 DE|Delaware|ET|Wilmington,Dover
 FL|Florida|ET|Orlando,Tampa
 GA|Georgia|ET|Atlanta,Savannah
@@ -1497,84 +1602,1295 @@ QC|Quebec|ET|Montréal`.trim().split("\n").map(r=>{
   return {code, state, tz, country:"CA", cities:cities.split(",")};
 });
 
-/* One deterministic pass: camera count, how many are sick, who pays and
-   whether parents can watch all come from the same seeded stream, so every
-   reload of the prototype tells the same story. */
-/* Qualifiers, so a fleet that outgrows its city list still reads as a list of
-   places rather than a list of duplicates. */
-const QUAL = ["","North","South","East","West","Central","Park","Heights","Ridge","Commons",
-  "Crossing","Village","Station","Landing","Meadows","Hollow","Springs","Grove","Point","Trace",
-  "Bend","Mills","Bluff","Terrace","Harbor","Summit","Junction","Prairie","Orchard","Glen",
-  "Brook","Field","Court","Gardens","Lake","Valley","Hill","Creek","Pines","Downs"];
+/* State code to its row in the tables above, so the roster can carry a
+   two-letter code and still say "District of Columbia" in a filter. */
+const GEO = {}; [...US, ...CA].forEach(g => GEO[g.code] = g);
 
-function seeds(target = 73){
+/* ---------------------------------------------------------------------
+   The roster. One line per center: name | prefix | store | city | state.
+
+   Two edits were made to the source list and both are visible here. Five
+   sites carried no store number and two pairs shared one; since the store
+   number keys every camera id, each was given the next free code in its
+   brand's block. And 235 sites share a name with at least one other — two
+   Brookline Everbrooks, two Cave Creek Tutor Times — so every member of such
+   a group carries its store number in brackets. Suffixing only the later
+   ones would have made the first look like the real one. The roster already
+   did this by hand in a few places; this finishes the job.
+
+   One row was dropped: "LCG Jump server", which has no store number because
+   it is a server. The roster is a query, not a list of sites.
+   --------------------------------------------------------------------- */
+const ROSTER = `
+AppleTree Walker East|699|0672|Walker|MI
+Everbrook Academy of Park Ridge|357|4813|Park Ridge|IL
+Pathways Learning Academy at Cross Point Church|479|9327|Nashville|TN
+Everbrook Academy of Baltimore Peninsula|357|4003|Baltimore|MD
+Tutor Time of Saddle Brook|327|6683|Saddle Brook|NJ
+Tutor Time of Phoenix (6070)|327|6070|Phoenix|AZ
+Everbrook Academy of Brookline (4827)|357|4827|Brookline|MA
+Everbrook Academy of Plano|357|4847|Plano|TX
+Tutor Time of Simi Valley|327|6021|Simi Valley|CA
+Childtime at Covenant Health|324|9068|Saginaw|MI
+Young School of Meadow Creek|622|4852|Westminster|MD
+Childtime of Detroit (0642)|324|0642|Detroit|MI
+River Valley Montessori of Excelsior|369|7756|Excelsior|MN
+Pathways Learning Academy at Crossroads Church in Mason|479|9316|Mason|OH
+Longwood Montessori|369|7344|Cypress|TX
+U-Gro of Harrisburg East|617|4836|Harrisburg|PA
+Everbrook Academy of Murfreesboro|357|4898|Murfreesboro|TN
+Everbrook Academy of Wake Forest (4803)|357|4803|Raleigh|NC
+Gilden Woods Okemos|698|0661|Okemos|MI
+Everbrook Academy of Closter|357|4808|Closter|NJ
+AppleTree Kentwood|699|0656|Kentwood|MI
+Childtime of Clermont|324|0344|Clermont|FL
+Tutor Time of Grand Rapids (6299)|327|6299|Grand Rapids|MI
+Pathways Learning Academy at Faith Promise Pellissippi|479|9323|Knoxville|TN
+Gilden Woods Caledonia|698|0668|Caledonia|MI
+Everbrook Academy of Brookline (4828)|357|4828|Brookline|MA
+Childtime of Somerset|324|1509|Somerset|NJ
+U-Gro of Lebanon|617|4839|Lebanon|PA
+Tutor Time of West Chester (6195)|327|6195|West Chester|OH
+Tutor Time of Pittsburgh|327|6061|Pittsburgh|PA
+Tutor Time of Walled Lake|327|6303|Walled Lake|MI
+Everbrook Academy of Apple Valley|357|4861|Apple Valley|MN
+Childtime of Houston|324|1272|Houston|TX
+Medlock Bridge Montessori|369|7335|Johns Creek|GA
+Cornerstone Children's Learning Center|436|9108|Chicago|IL
+AppleTree Rockford|699|0658|Rockford|MI
+Everbrook Academy of Perry Hall|357|4818|Perry Hall|MD
+Everbrook Academy of Montvale|357|4846|Montvale|NJ
+Mansfield Montessori|369|7730|Mansfield|TX
+Everbrook Academy of Wayne|357|4812|Wayne|NJ
+Tutor Time of Wilmington (6323)|327|6323|Wilimington|DE
+Everbrook Academy of Eagan|357|4863|Eagan|MN
+Childtime of Troy (645)|324|0645|Troy|MI
+Everbrook Academy of Charlotte|357|4608|Charlotte|NC
+Everbrook Academy of St. Charles|357|4609|St. Charles|IL
+Tutor Time of Downingtown|327|6353|Downingtown|PA
+Childtime of Lawrenceville (1117)|324|1117|Lawrenceville|GA
+Everbrook Academy of Lincoln Park|357|4809|Chicago|IL
+Tutor Time of Agoura Hills|327|6605|Agoura Hills|CA
+Pathways Learning Academy Chase Oaks Church|479|9314|Plano|TX
+Everbrook Academy of Woodbridge (4867)|357|4867|Woodbridge|VA
+Childtime of Virginia Beach (1021)|324|1021|Virginia Beach|VA
+Childtime of Hauppauge|324|0060|Hauppauge|NY
+Childtime of Wildwood|324|2205|Wildwood|MO
+Pathways Learning Academy of Northview Church|479|9301|Indianapolis|IN
+Everbrook Academy of Wellesley|357|4880|Wellesley|MA
+Tutor Time of East Rockaway|327|6647|East Rockaway|NY
+Childtime of Martinez (222)|324|0222|Martinez|CA
+Childtime of St. Marys|324|1121|St. Marys|GA
+Childtime of Gaithersburg|324|0802|Gaithersburg|MD
+Childtime of Liverpool (0041)|324|0041|Liverpool|NY
+Childtime of Oklahoma City (0405)|324|0405|Oklahoma City|OK
+Childtime of Phoenix (1408)|324|1408|Phoenix|AZ
+Childtime of North Olmsted|324|0521|North Olmsted|OH
+Childtime of Phoenix (1409)|324|1409|Phoenix|AZ
+Childtime of Phoenix (1414)|324|1414|Phoenix|AZ
+Childtime of Williamsville (0020)|324|0020|Williamsville|NY
+Tutor Time of Melville|327|6686|Melville|NY
+Childtime of Northville|324|0618|Northville|MI
+Everbrook Academy of Eden Prairie|357|4864|Eden Prairie|MN
+Childtime of Anaheim|324|0209|Anaheim|CA
+Childtime of Fairborn|324|0535|Fairborn|OH
+Gilden Woods Howell|698|0677|Howell|MI
+Childtime of Troy|324|0611|Troy|MI
+Childtime of Fort Worth (3005)|324|3005|Fort Worth|TX
+Childtime on N. 179th Plaza Circle|324|1705|Omaha|NE
+Preston Ridge Montessori|369|7333|Alpharetta|GA
+Childtime of Washingtonville|324|0048|Washingtonville|NY
+Childtime of Tuscon|324|1421|Tuscon|AZ
+Tutor Time of Tinley Park|327|6427|Tinley Park|IL
+Childtime of Grand Ledge|324|0683|Grand Ledge|MI
+Childtime of Bakersfield|324|0228|Bakersfield|CA
+Childtime of Riverside|324|0265|Riverside|CA
+Montessori Unlimited of Irvine (7704)|369|7704|Irvine|CA
+Childtime of Mesa (1436)|324|1436|Mesa|AZ
+AppleTree Knapp Corner|699|0657|Grand Rapids|MI
+Childtime of Granite Bay|324|0261|Granite Bay|CA
+Childtime of Redmond|324|0907|Redmond|WA
+Pathways Learning Academy at Faith Promise Knoxville|479|9324|Knoxville|TN
+Childtime of Medford Township|324|1515|Medford Township|NJ
+Childtime of Flemington|324|1512|Flemington|NJ
+Everbrook Academy of Chino Hills|357|4872|Chino Hills|CA
+Pathways Learning Academy at Willow Creek Church|479|9315|South Barrington|IL
+Tutor Time of Anaheim Hills|327|6001|Anaheim Hills|CA
+Young School of Ellicott City|622|4848|Ellicott City|MD
+Childtime of Farmington Hills|324|0621|Farmington Hills|MI
+Everbrook Academy of Brookline (4829)|357|4829|Brookline|MA
+Tutor Time of Portage|327|6271|Portage|MI
+Pathways Learning Academy at Chase Oaks - Woodbridge|479|9322|Sachse|TX
+Childtime of Spotswood|324|1523|Spotswood|NJ
+Childtime of Tamarac|324|0342|Tamarac|FL
+Childtime of Ellicott City (812)|324|0812|Ellicott City|MD
+Childtime of Mesquite|324|1212|Mesquite|TX
+Childtime of Las Vegas|324|1803|Las Vegas|NV
+Childtime of Gilbert|324|1445|Gilbert|AZ
+Childtime of Jamestown|324|2008|Jamestown|NC
+Creative Kids of Las Vegas (6707)|446|6707|Las Vegas|NV
+Childtime of Hilliard|324|0541|Hilliard|OH
+Childtime of Belcamp|324|0824|Belcamp|MD
+Childtime of Jacksonville (317)|324|0317|Jacksonville|FL
+Everbrook Academy of Arvada|357|4856|Arvada|CO
+Everbrook Academy of Missouri City|357|4875|Missouri City|TX
+Everbrook Academy of Harrisburg|357|4887|Charlotte|NC
+Childtime of Akron (0513)|324|0513|Akron|OH
+Tutor Time of Phoenix (6062)|327|6062|Phoenix|AZ
+Gilden Woods Commerce Twp|698|0676|Commerce Charter Twp|MI
+Tutor Time of Anthem|327|6078|Anthem|AZ
+Tutor Time of Jenison|327|6319|Jenison|MI
+Tutor Time of Dewitt|327|6504|Dewitt|MI
+Gilden Woods Breton Village|698|0674|Grand Rapids|MI
+Montessori Unlimited of Tustin|369|7705|Tustin|CA
+Tutor Time of Phoenix (6095)|327|6095|Phoenix|AZ
+Childtime of Huntersville (2009)|324|2009|Huntersville|NC
+Childtime of Duluth|324|1107|Duluth|GA
+Tutor Time of Edison|327|6108|Edison|NJ
+Everbrook Academy of Urbandale|357|4907|Urbandale|IA
+Tutor Time of Charlotte (6045)|327|6045|Charlotte|NC
+Childtime of Dearborn (633)|324|0633|Dearborn|MI
+Everbrook Academy of North Rockwall|357|4892|Rockwall|TX
+Everbook Academy of Sunterra|357|4903|Katy|TX
+Childtime of Indian Trail|324|2014|Indian Trail|NC
+Everbrook Academy of Brighton|357|4877|Brighton|MA
+Gilden Woods Portage|698|0669|Portage|MI
+Gilden Woods New Hudson|698|0678|New Hudson|MI
+Childtime of Holland|324|0646|Holland|MI
+Childtime of Queensbury|324|0054|Queensbury|NY
+Childtime on Poppleton Avenue|324|1706|Omaha|NE
+Everbrook of Rancho Santa Margarita (6284)|357|6284|Rancho Santa Margarita|CA
+Tutor Time of Downers Grove (6379)|327|6379|Downers Grove|IL
+Everbrook Academy of Metuchen|357|4823|Metuchen|NJ
+Everbrook Academy of Gainesville|357|4606|Gainesville|VA
+Tutor Time of Chandler|327|6067|Chandler|AZ
+Everbrook Academy of Holly Springs|357|4886|Holly Springs|NC
+Childtime of Hampton (1012)|324|1012|Hampton|VA
+Childtime of Bel Air (0825)|324|0825|Bel Air|MD
+Everbrook Academy of Murphy|357|4895|Murphy|TX
+Childtime of Elkhorn|324|1707|Omaha|NE
+Childtime of Huntington Beach (205)|324|0205|Huntington Beach|CA
+U-Gro of HACC Lancaster|617|4835|Lancaster|PA
+Creative Kids of Las Vegas (6702)|446|6702|Las Vegas|NV
+Childtime of High Point|324|2015|High Point|NC
+Childtime of Commerce Township|324|0627|Commerce Township|MI
+Creative Kids of Las Vegas (6709)|446|6709|Las Vegas|NV
+Childtime of Herndon|324|1060|Herndon|VA
+Childtime of Arnold|324|2202|Arnold|MO
+U-Gro of Hempfield|617|4837|Lancaster|PA
+Childtime of North Ridgeville|324|0567|North Ridgeville|OH
+Everbrook Academy of Boise|357|4901|Meridian|ID
+Childtime of Rye Brook|324|0068|Rye Brook|NY
+Childtime of Dewitt|324|0682|DeWitt|MI
+Everbrook Academy of Bristow|357|4605|Bristow|VA
+Everbrook Academy of Eastvale|357|4873|Eastvale|CA
+River Valley Montessori of Bloomington|369|7755|Bloomington|MN
+Childtime of Canton (631)|324|0631|Canton|MI
+Gilden Woods Midland|698|0680|Midland|MI
+Tutor Time of Fairfield|327|6509|Fairfield|CA
+Childtime of Natomas|324|0262|Sacramento|CA
+Everbrook Academy of Albertville|357|4906|Albertville|MN
+Everbrook Academy of Ann Arbor (LCG 6203)|357|6203|Ann Arbor|MI
+Childtime of Amherst|324|0565|Amherst|OH
+Childtime of Virginia Beach (1001)|324|1001|Virginia Beach|VA
+Pathways Learning Academy at Crossroads Florence|479|9318|Florence|KY
+Childtime of Macomb Township|324|0639|Macomb Township|MI
+Childtime of Swartz Creek|324|0654|Swartz Creek|MI
+Childtime of Kingwood (1253)|324|1253|Kingwood|TX
+Everbrook Academy of Clayton|357|4893|Clayton|NC
+Childtime of Doylestown|324|1602|Doylestown|PA
+Childtime of Williamsville (0067)|324|0067|Williamsville|NY
+Childtime of Lathrup Village|324|0638|Lathrup Village|MI
+Everbrook Academy of Otsego|357|4902|Otsego|MN
+Childtime of Chesterfield Twp MI|324|0632|Chesterfield Twp|MI
+Childtime of Oklahoma City (0406)|324|0406|Oklahoma City|OK
+Creative Kids of Las Vegas (6710)|446|6710|Las Vegas,|NV
+U-Gro of Mechanicsburg|617|4840|Mechanicsburg|PA
+Childtime of Avon (1650)|324|1650|Avon|IN
+Bethany Village Montessori|369|7342|Portland|OR
+Childtime on Johnson Road|324|0070|Latham|NY
+Tutor Time of Jacksonville (6042)|327|6042|Jacksonville|FL
+Montessori at The Courtyard|369|3900|Bedford|TX
+Childtime of Chesterfield|324|1015|Chesterfield|VA
+Childtime of Midlothian (1016)|324|1016|Midlothian|VA
+Childtime of Camby|324|1653|Camby|IN
+Childtime of Midlothian (1017)|324|1017|Midlothian|VA
+Everbrook Academy of Fuquay Varina|357|4894|FUQUAY VARINA|NC
+Tutor Time of Austin|327|6035|Austin|TX
+Everbrook Academy of Holmdel|357|4804|Holmdel|NJ
+Everbrook Academy of West Windsor|357|4815|West Windsor|NJ
+Childtime of Chesapeake|324|1005|Chesapeake|VA
+Colleyville Montessori|369|7352|Colleyville|TX
+Childtime on Vly Road|324|0071|Schenectady|NY
+Childtime of Longview|324|0911|Longview|WA
+Childtime at Bedford Falls|324|2016|Raleigh|NC
+Everbrook Academy of Woodbridge (4869)|357|4869|Woodbridge|VA
+Pathways Learning Academy at Crossroads in Lexington|479|9317|Lexington|KY
+Three Village Montessori School|369|7330|Weston|FL
+Childtime of Arlington (1280)|324|1280|Arlington|TX
+Everbrook Academy of Aurora|357|4857|Aurora|CO
+Corinth Montessori|369|7350|Corinth|TX
+Tutor Time of Lake Zurich|327|6512|Lake Zurich|IL
+Childtime of Chula Vista|324|0255|Chula Vista|CA
+Childtime of Virginia Beach (1020)|324|1020|Virginia Beach|VA
+Childtime of Akron (506)|324|0506|Akron|OH
+Tutor Time of Stevenson Ranch|327|6012|Stevenson Ranch|CA
+Everbrook Academy of Clarksburg|357|4890|Clarksburg|MD
+Tutor Time of Phoenix (6072)|327|6072|Phoenix|AZ
+U-Gro of Union Deposit|617|4843|Harrisburg|PA
+Childtime of Midlothian|324|1006|Midlothian|VA
+Childtime of La Mesa|324|0252|La Mesa|CA
+Tutor Time of Wilmington|327|6585|Wilmington|DE
+Everbrook Academy of Maple Grove|357|4865|Maple Grove|MN
+Tutor Time of Holbrook|327|6085|Holbrook|NY
+River Valley Montessori of Shakopee|369|7758|Shakopee|MN
+Tutor Time of Lacey|327|6130|Lacey|WA
+Everbrook Academy of Carlsbad|357|4870|Carlsbad|CA
+Tutor Time of Baldwin|327|6680|Baldwin|NY
+Tutor Time of Gilbert (6066)|327|6066|Gilbert|AZ
+Naperville Montessori School|369|7337|Naperville|IL
+Childtime of Orange|324|0202|Orange|CA
+Childtime of Lewisville (1206)|324|1206|Lewisville|TX
+Everbrook Academy of South Lakes|357|4900|Fuquay Varina|NC
+Tutor Time of Walnut|327|6016|Walnut|CA
+Tutor Time of Shelby Township|327|6401|Shelby Township|MI
+Everbrook Academy of Apex (4881)|357|4881|Apex|NC
+Childtime of Brea (230)|324|0230|Brea|CA
+Tutor Time of Eastvale|327|6005|Eastvale|CA
+Tutor Time of Canyon Country|327|6659|Canyon Country|CA
+Tutor Time of Santa Clarita|327|6658|Santa Clarita|CA
+Childtime of Liverpool (0047)|324|0047|Liverpool|NY
+Childtime of Orange Park|324|0314|Orange Park|FL
+Childtime of North Chili|324|0007|North Chili|NY
+Tutor Time of Irvine|327|6019|Irvine|CA
+Pathways Learning Academy at Kingsway|479|9312|Avon|IN
+Tutor Time of Bloomingdale|327|6384|Bloomingdale|IL
+Childtime of Alhambra|324|0211|Alhambra|CA
+Young School of Perry Hall|622|4849|Perry Hall|MD
+Childtime of Laguna Niguel|324|0204|Laguna Niguel|CA
+Childtime of Yorktown (1011)|324|1011|Yorktown|VA
+Tutor Time of Queen Creek|327|6090|Queen Creek|AZ
+Tutor Time of Ventura|327|6014|Ventura|CA
+AppleTree East Lansing|699|0662|East Lansing|MI
+Tutor Time of Highland|327|6191|Highland|CA
+Tutor Time of Strongsville|327|6596|Strongsville|OH
+Tutor Time of Plantation|327|6146|Plantation|FL
+Tutor Time of Sterling Heights (6348)|327|6348|Sterling Heights|MI
+Tutor Time of Sterling Heights (6363)|327|6363|Sterling Heights|MI
+Childtime of Chino|324|0218|Chino|CA
+Tutor Time of Cottage Grove|327|6399|Cottage Grove|MN
+Childtime of San Diego (251)|324|0251|San Diego|CA
+Tutor Time of Aurora|327|6364|Aurora|IL
+Pathways Learning Academy Northfield Church|479|9311|Gallatin|TN
+Tutor Time of Castaic|327|6002|Castaic|CA
+Everbrook Academy Powered by Danfoss|357|9906|Ames|IA
+Childtime of Des Moines|324|1701|Des Moines|IA
+Childtime of Delmar|324|0031|Delmar|NY
+Pathways Learning Academy of Northview Church - Carmel Campus|479|9305|Carmel|IN
+Childtime of Roseville (234)|324|0234|Roseville|CA
+Childtime of Stow|324|0510|Stow|OH
+Everbrook Academy of Grimes|357|4909|Grimes|IA
+River Valley Montessori of Savage|369|7757|Savage|MN
+Childtime of Glen Ellyn|324|0104|Glen Ellyn|IL
+Pathways Learning Academy at Crossroads Church in Dayton|479|9320|Dayton|OH
+West Montessori School of Copperfield|369|7345|Houston|TX
+Tutor Time of Fontana|327|6004|Fontana|CA
+Childtime of Canton (613)|324|0613|Canton|MI
+Childtime of Shelby Township (643)|324|0643|Shelby Charter Township|MI
+Tutor Time of Matthews|327|6034|Matthews|NC
+Tutor Time of Rancho Cucamonga (6009)|327|6009|Rancho Cucamonga|CA
+AppleTree Cascade (665B Building 2)|699|0665B|Grand Rapids|MI
+Childtime of Hillsborough (1514)|324|1514|Hillsborough|NJ
+Childtime of Mechanicville|324|0056|Mechanicville|NY
+Tutor Time of Vestal|327|6201|Vestal|NY
+Childtime of Syracuse (0040)|324|0040|Syracuse|NY
+Tutor Time of Smyrna (LCG 6038)|327|6038|Smyrna|GA
+Tutor Time of Santee|327|6216|Santee|CA
+Tutor Time of Corona|327|6018|Corona|CA
+Childtime of Kentwood (637)|324|0637|Kentwood|MI
+Childtime of Akron (512)|324|0512|Akron|OH
+Childtime of Grosse Pointe Woods|324|0635|Grosse Pointe Woods|MI
+Childtime of Cincinnati|324|0552|Cincinnati|OH
+Childtime of Pataskala|324|0563|Pataskala|OH
+Tutor Time of Wichita (6366)|327|6366|Wichita|KS
+Tutor Time of Mooresville (6033)|327|6033|Mooresville|NC
+Childtime of Kentwood (636)|324|0636|Kentwood|MI
+Childtime of Bethesda|324|0809|Bethesda|MD
+Tutor Time of Jacksonville (6041)|327|6041|Jacksonville|FL
+Tutor Time of Commack|327|6049|Commack|NY
+Tutor Time of Mesa|327|6064|Mesa|AZ
+AppleTree Monroe Avenue|699|0666|Grand Rapids|MI
+Gilden Woods Grand Ledge|698|0663|Grand Ledge|MI
+AppleTree Grandville/Wyoming|699|0670|Wyoming|MI
+Pathways Learning Academy at NorthPoint Church|479|9321|Johnston|IA
+AppleTree Walker West|699|0673|Walker|MI
+Childtime of Rochester (0003)|324|0003|Rochester|NY
+AppleTree Hudsonville|699|0671|Hudsonville|MI
+Tutor Time of Glendale (6076)|327|6076|Glendale|AZ
+U-Gro of Webstaurant|617|9908|Lititz|PA
+Tutor Time of Chandler (6080)|327|6080|Chandler|AZ
+Tutor Time of Concord (6027)|327|6027|Concord|NC
+Childtime of Albany (0030)|324|0030|Albany|NY
+Childtime of Oklahoma City (0404)|324|0404|Oklahoma City|OK
+Gilden Woods Troy|698|0679|Troy|MI
+Childtime of Detroit (0640)|324|0640|Detroit|MI
+Childtime of Bel Air (0823)|324|0823|Bel Air|MD
+Tutor Time of Andover|327|6177|Andover|MN
+Childtime of Baldwinsville|324|0043|Baldwinsville|NY
+Tutor Time of White Bear Lake|327|6178|White Bear Lake|MN
+Childtime of Garden Grove|324|0207|Garden Grove|CA
+Childtime of Fresno|324|0217|Fresno|CA
+Tutor Time of Upland|327|6248|Upland|CA
+Tutor Time of Grand Rapids|327|6300|Grand Rapids|MI
+Childtime of Roseville|324|0263|Roseville|CA
+Childtime of Moreno Valley|324|0224|Moreno Valley|CA
+Childtime of Oxnard|324|0259|Oxnard|CA
+Childtime of Edmond (0401)|324|0401|Edmond|OK
+Childtime of Oklahoma City (0402)|324|0402|Oklahoma City|OK
+Childtime of Edmond (0408)|324|0408|Edmond|OK
+Childtime of Fairlawn|324|0505|Fairlawn|OH
+Childtime of Mansfield|324|0508|Mansfield|OH
+Childtime of Katy (1254)|324|1254|Katy|TX
+Childtime of Blue Ash|324|0533|Blue Ash|OH
+Childtime of Liberty Township (Infant/Toddler)|324|0539|Liberty Township|OH
+Childtime of Westland|324|0614|Westland|MI
+Childtime of Moorestown|324|1522|Moorestown|NJ
+Childtime of Waldorf|324|0808|Waldorf|MD
+Childtime of Baltimore|324|0814|Baltimore|MD
+Childtime of Renton|324|0906|Renton|WA
+Tutor Time of Blaine|327|6378|Blaine|MN
+Childtime of Chester|324|1007|Chester|VA
+Childtime of Mechanicsville (1013)|324|1013|Mechanicsville|VA
+Childtime of Lithonia|324|1112|Lithonia|GA
+Tutor Time of New City|327|6687|New City|NY
+Tutor Time of Powell|327|6194|Powell|OH
+Childtime of Brook Park|324|0522|Brook Park|OH
+U-Gro of Rohrerstown|617|4842|Lancaster|PA
+Childtime of Albany (0063)|324|0063|Albany|NY
+Childtime of Sierra Vista|324|1433|Sierra Vista|AZ
+Childtime of Bedford|324|0530|Bedford|OH
+Tutor Time of East Greenbush|327|6288|East Greenbush|NY
+Everbrook Academy of South Lyon|357|4817|South Lyon|MI
+Childtime of Temecula|324|0258|Temecula|CA
+U-Gro of Bent Creek|617|4832|Lititz|PA
+Tutor Time of Selden|327|6685|Coram|NY
+Pathways Learning Academy at Liquid Church|479|9313|Parsippany|NJ
+Childtime of Manassas|324|1052|Manassas|VA
+Tutor Time of Colleyville|327|6579|Colleyville|TX
+Aurora Montessori School (7338)|369|7338|Aurora|IL
+Tutor Time of Gilbert (6068)|327|6068|Gilbert|AZ
+Tutor Time of Lakeville|327|6335|Lakeville|MN
+Tutor Time of Rancho Cucamonga (6008)|327|6008|Rancho Cucamonga|CA
+Tutor Time of Armonk|327|6052|Armonk|NY
+Childtime of Garland|324|1208|Garland|TX
+Childtime of Ann Arbor (628)|324|0628|Ann Arbor|MI
+Greatwood Montessori|369|7348|Sugar Land|TX
+Tutor Time of Highland Village|327|6039|Highland Village|TX
+Tutor Time of Dublin|327|6193|Dublin|OH
+Childtime of Arlington|324|1233|Arlington|TX
+Everbrook Academy of Oakhurst|357|4889|Charlotte|NC
+Pathways Learning Academy Grace Community|479|9310|Arlington|VA
+Tutor Time of Phoenix (6093)|327|6093|Phoenix|AZ
+Tutor Time of Schaumburg|327|6480|Schaumburg|IL
+Tutor Time of Phoenix (6088)|327|6088|Phoenix|AZ
+Childtime of Bridgewater|324|1511|Bridgewater|NJ
+Childtime of Centerville|324|0534|Centerville|OH
+Childtime of Phoenix (1425)|324|1425|Phoenix|AZ
+Montessori Unlimited of Irvine (7703)|369|7703|Irvine|CA
+Sugarloaf Montessori|369|7332|Duluth|GA
+Tutor Time of Santa Ana|327|6010|Santa Ana|CA
+Everbrook Academy of Irvine|357|4874|Irvine|CA
+Childtime of Lilburn|324|1102|Lilburn|GA
+U-Gro of Hershey|617|4838|Hummelstown|PA
+Childtime of Lewisville (1204)|324|1204|Lewisville|TX
+Childtime of Fairfax|324|1053|Fairfax|VA
+Tutor Time of Torrance|327|6013|Torrance|CA
+Everbrook Academy of Foggy Bottom|357|4708|Washington|DC
+Childtime of Marietta|324|1104|Marietta|GA
+Tutor Time of Chandler (6096)|327|6096|Chandler|AZ
+Everbrook Academy of Royal Oak|357|4002|Royal Oak|MI
+Everbrook Academy of Parker|357|4824|Parker|CO
+Childtime of Bedminster|324|1513|Bedminster|NJ
+Childtime of Liberty Township (Preschool/School Age)|324|0540|Liberty Township|OH
+Pathways Learning Academy Grace Commons Church|479|9303|Boulder|CO
+Childtime of Clifton Park (0064)|324|0064|Halfmoon|NY
+Tutor Time of Middle Island|327|6684|Middle Island|NY
+Everbrook Academy of South Riding|357|4811|Chantilly|VA
+Childtime of Reston|324|1057|Reston|VA
+Tutor Time of Brooklyn Park|327|6357|Brooklyn Park|MN
+Tutor Time of Massapequa|327|6629|Massapequa|NY
+Tutor Time of Lindenhurst|327|6681|Lindenhurst|NY
+Everbrook Academy of Coraopolis|357|9601|Coraopolis|PA
+Everbrook Academy of Fort Mill|357|4806|Fort Mill|SC
+Everbrook Academy of Claremont|357|4871|Claremont|CA
+Everbrook Academy of Ashburn|357|4604|Ashburn|VA
+Cascade Summit Montessori|369|7341|West Linn|OR
+Childtime of Mohegan Lake|324|0069|Mohegan Lake|NY
+Childtime of Rahway|324|1506|Rahway|NJ
+Childtime of Alexandria|324|1055|Alexandria|VA
+Childtime of Naperville|324|0105|Naperville|IL
+Tutor Time of Troy|327|6426|Troy|NY
+Childtime of Virginia Beach (1002)|324|1002|Virginia Beach|VA
+Blue Valley Montessori|369|7339|Overland Park|KS
+Childtime of Clifton Park (0053)|324|0053|Clifton Park|NY
+First Colony Montessori South|369|7355|Sugar Land|TX
+Childtime of Snellville (1150)|324|1150|Snellville|GA
+U-Gro of Brethren Village|617|4833|Lititz|PA
+Childtime of Clovis|324|0221|Clovis|CA
+Tutor Time of Sewell|327|6333|Sewell|NJ
+Tutor Time of Pleasantville|327|6032|Pleasantville|NY
+Childtime of Oceanside|324|0256|Oceanside|CA
+Childtime of Flagstaff (1460)|324|1460|Flagstaff|AZ
+Tutor Time of Newport Beach|327|6020|Newport Beach|CA
+Creative Kids of Las Vegas (6705)|446|6705|Las Vegas|NV
+Everbrook Academy of Reunion|357|4821|Commerce City|CO
+Atascocita Montessori|369|7353|Humble|TX
+Everbrook Academy of DuPont|357|4707|Washington|DC
+Childtime of Pine Brook|324|1525|Pine Brook|NJ
+Tutor Time of Glendale Heights|327|6420|Glendale Heights|IL
+Childtime of Arlington (3032)|324|3032|Arlington|TX
+AppleTree Standale/Allendale|699|0659|Grand Rapids|MI
+Childtime of Tucson (1450)|324|1450|Tucson|AZ
+AppleTree Cascade (665A)|699|0665A|Grand Rapids|MI
+Childtime of Clifton Park (0033)|324|0033|Clifton Park|NY
+Tutor Time of Surprise (6087)|327|6087|Surprise|AZ
+Tutor Time of Norwalk|327|6662|Norwalk|CT
+Young School of Kendall Ridge|622|4850|Columbia|MD
+Tutor Time of Goodyear|327|6082|Goodyear|AZ
+Childtime of Plymouth|324|0653|Plymouth|MI
+AppleTree at Wolverine Worldwide|699|9067|Rockford|MI
+Everbrook Academy of Savage|357|4816|Savage|MN
+Tutor Time of Glendale (6081)|327|6081|Glendale|AZ
+Everbrook Academy of Sterling|357|4868|Sterling|VA
+Everbrook Academy of Woodbury|357|4601|Woodbury|MN
+Childtime of Monroe|324|2010|Monroe|NC
+Childtime of Brooklyn|324|0065|Brooklyn|NY
+Childtime of Lawrenceville (1110)|324|1110|Lawrenceville|GA
+Everbrook Academy of McKinney|357|4830|McKinney|TX
+Childtime of Limerick|324|1604|Limerick|PA
+Childtime of Vacaville|324|0231|Vacaville|CA
+Preston Meadows Montessori|369|7354|Plano|TX
+Childtime of Cuyahoga Falls (0502)|324|0502|Cuyahoga Falls|OH
+Childtime of Syracuse (0042)|324|0042|Syracuse|NY
+Tutor Time of Newark|327|6642|Newark|DE
+Gilden Woods Holland|698|0675|Holland|MI
+Everbrook Academy of West Bloomfield|357|6206|West Bloomfield|MI
+Tutor Time of Ronkonkoma|327|6025|Ronkonkoma|NY
+Childtime of Tucson (1413)|324|1413|Tucson|AZ
+Childtime of Sugar Land|324|1265|Sugar Land|TX
+Tutor Time of Canton (6457)|327|6457|Canton|MI
+Childtime of Columbia|324|0811|Columbia|MD
+Childtime of Winston - Salem|324|2005|Winston - Salem|NC
+Childtime of Modesto (0220)|324|0220|Modesto|CA
+Childtime of Penfield|324|0005|Penfield|NY
+Childtime of Byron Center|324|0647|Byron Center|MI
+Childtime of Delmar (52)|324|0052|Delmar|NY
+Tutor Time of Laguna Niguel|327|6597|Laguna Niguel|CA
+New Territory Montessori School|369|7672|Sugar Land|TX
+Childtime of Santa Ana|324|0201|Santa Ana|CA
+Childtime of Plymouth (0641)|324|0641|Plymouth|MI
+Childtime of Fort Worth (3002)|324|3002|Fort Worth|TX
+Creative Kids of Las Vegas (6706)|446|6706|Las Vegas|NV
+U-Gro of Masonic Village|617|4841|Elizabethtown|PA
+Everbrook Academy of Broomfield|357|4822|Broomfield|CO
+Childtime of Mason|324|0555|Mason|OH
+Childtime of Villa Park|324|0101|Villa Park|IL
+Childtime of Rowlett (LCG 1215)|324|1215|Rowlett|TX
+Childtime of Hanover|324|0810|Hanover|MD
+Childtime of Irvine|324|0206|Irvine|CA
+U-Gro of HACC Harrisburg|617|4834|Harrisburg|PA
+Childtime of Raleigh|324|2013|Raleigh|NC
+Tutor Time of Commerce|327|6307|Commerce Township|MI
+Tutor Time of East Northport|327|6682|East Northport|NY
+Everbrook Academy of Fort Collins|357|4801|Fort Collins|CO
+Childtime of Midlothian (1018)|324|1018|Midlothian|VA
+Everbrook Academy of Novi|357|4602|Novi|MI
+Tutor Time of Brooklyn|327|6243|Brooklyn|NY
+Childtime of Orchard Park (0021)|324|0021|Orchard Park|NY
+Tutor Time of West Haven|327|6272|West Haven|CT
+Childtime of Kingsland|324|1122|Kingsland|GA
+Tutor Time of Phoenix (6086)|327|6086|Phoenix|AZ
+Everbrook Academy of Manhattan|357|6538|New York City|NY
+Young School of Waugh Chapel|622|4853|Gambrills|MD
+The Woodlands Montessori|369|7351|The Woodlands|TX
+Creative Kids of Henderson|446|6704|Henderson|NV
+Childtime of Clarksburg|324|0826|Clarksburg|MD
+Childtime of Long Beach|324|0229|Long Beach|CA
+Tutor Time of Peoria|327|6075|Peoria|AZ
+Tutor Time of Shelton|327|6663|Shelton|CT
+Everbrook Academy of Apex (4611)|357|4611|Apex|NC
+Everbrook Academy of Denver|357|4859|Denver|CO
+Tutor Time of East Dundee|327|6385|East Dundee|IL
+Childtime of Clifton|324|1051|Clifton|VA
+Creative Kids of North Las Vegas|446|6703|North Las Vegas|NV
+Tutor Time of Islandia|327|6024|Islandia|NY
+Tutor Time of Cypress|327|6003|Cypress|CA
+Childtime of Beachwood|324|0532|Beachwood|OH
+Tutor Time of Scottsdale (6071)|327|6071|Scottsdale|AZ
+Tutor Time of Itasca|327|6472|Itasca|IL
+Childtime of Kennesaw (1115)|324|1115|Kennesaw|GA
+Childtime of Jacksonville|324|0318|Jacksonville|FL
+Tutor Time of Glendale (6084)|327|6084|Glendale|AZ
+Childtime of Lansing|324|9030|Lansing|MI
+Childtime of Newport Beach|324|0203|Newport Beach|CA
+Childtime of Sacramento|324|0236|Sacramento|CA
+Childtime of Southfield|324|0644|Southfield|MI
+Childtime of Spring|324|1276|Spring|TX
+Childtime of Montgomeryville|324|1603|Montgomeryville|PA
+Childtime of Elk Grove|324|0232|Elk Grove|CA
+Tutor Time of Gilbert (6083)|327|6083|Gilbert|AZ
+Everbrook Academy of Arlington|357|4001|Arlington|VA
+Everbrook Academy of Glen Head|357|4802|Glen Head|NY
+Montessori of Las Colinas|369|7356|Irving|TX
+Childtime of Washington|324|0106|Washington|IL
+Tutor Time of Scottsdale (6063)|327|6063|Scottsdale|AZ
+Childtime of Greensboro|324|2004|Greensboro|NC
+Childtime of Silverdale|324|0902|Silverdale|WA
+Childtime of Mechanicsville (1014)|324|1014|Mechanicsville|VA
+Childtime of Whiteland|324|1654|Whiteland|IN
+Childtime of Kingwood (1250)|324|1250|Kingwood|TX
+Tutor Time of Jacksonville (6208)|327|6208|Jacksonville|FL
+Everbrook Academy of Brooklyn Park|357|4862|Brooklyn Park|MN
+Tutor Time of Murrieta|327|6007|Murrieta|CA
+Montessori at Brookstone|369|7336|Acworth|GA
+Tutor Time of Apple Valley|327|6131|Apple Valley|MN
+Childtime of Latham|324|0050|Latham|NY
+Childtime of Virginia Beach (1019)|324|1019|Virginia Beach|VA
+Tutor Time of Levittown|327|6210|Levittown|NY
+Childtime of Winter Park|324|0308|Winter Park|FL
+Childtime of Silver Spring|324|0813|Silver Spring|MD
+Tutor Time of Okemos|327|6266|Okemos|MI
+Young School of Kings Contrivance|622|4851|Columbia|MD
+Tutor Time of Farmington Hills|327|6444|Farmington Hills|MI
+Tutor Time of St. Augustine|327|6043|St. Augustine|FL
+Everbrook Academy of Englewood|357|4860|Englewood|CO
+Tutor Time of Maple Grove|327|6550|Maple Grove|MN
+Childtime of Commerce|324|0210|Commerce|CA
+Childtime of Buffalo|324|0049|Buffalo|NY
+Everbrook Academy of Minnetonka|357|4866|Minnetonka|MN
+Everbrook Academy of Waxhaw|357|4814|Waxhaw|NC
+Childtime of Shelby Township (617)|324|0617|Shelby Township|MI
+Childtime of Cuyahoga Falls (0503)|324|0503|Cuyahoga Falls|OH
+Creative Kids of Las Vegas (6708)|446|6708|Las Vegas|NV
+Tutor Time of Oakdale|327|6603|Oakdale|NY
+Childtime of Cuyahoga Falls (0501)|324|0501|Cuyahoga Falls|OH
+Childtime of Rochester (0004)|324|0004|Rochester|NY
+Tutor Time of Cave Creek (6074)|327|6074|Cave Creek|AZ
+Creative Kids of Las Vegas (6701)|446|6701|Las Vegas|NV
+Tutor Time of Wichita (6367)|327|6367|Wichita|KS
+Tutor Time of Jacksonville (6209)|327|6209|Jacksonville|FL
+Childtime of Modesto (0225)|324|0225|Modesto|CA
+Childtime of Oklahoma City (0403)|324|0403|Oklahoma City|OK
+Childtime of Monroe (538)|324|0538|Monroe|OH
+Childtime of Katy (1263)|324|1263|Katy|TX
+Tutor Time of Milford|327|6661|Milford|CT
+Tutor Time of Mint Hill (6670)|327|6670|Mint Hill|NC
+Childtime of Rochester (13)|324|0013|Rochester|NY
+Childtime of Evanston|324|9107|Evanston|IL
+Childtime of Fairport|324|0002|Fairport|NY
+Everbrook Academy of Frankfort|357|4883|Frankfort|IL
+Childtime of Federal Way|324|0903|Federal Way|WA
+Tutor Time of Phoenix (6065)|327|6065|Phoenix|AZ
+Childtime of Stone Mountain|324|1101|Stone Mountain|GA
+Tutor Time of Cave Creek (6077)|327|6077|Cave Creek|AZ
+Childtime of Mesa (1438)|324|1438|Mesa|AZ
+Childtime of Glendale (1404)|324|1404|Glendale|AZ
+Childtime of Ankeny|324|1704|Ankeny|IA
+Childtime of Winterville|324|2011|Winterville|NC
+Everbrook Academy of Kirkland|357|4876|Kirkland|WA
+Childtime of Branchburg|324|1524|Branchburg|NJ
+Tutor Time of Charlotte (6120)|327|6120|Charlotte|NC
+Tutor Time of Canton (6238)|327|6238|Canton|MI
+Childtime of Orchard Park (0066)|324|0066|Orchard Park|NY
+Childtime of Saratoga Springs|324|0051|Saratoga Springs|NY
+Tutor Time of West Orange|327|6320|West Orange|NJ
+Cinco Ranch Montessori|369|7346|Katy|TX
+Tutor Time of Woodland Hills|327|6499|Woodland Hills|CA
+U-Gro of York|617|4844|York|PA
+Everbrook Academy of Woodbridge (4820)|357|4820|Woodbridge|VA
+Childtime of Akron (0507)|324|0507|Akron|OH
+Everbrook Academy of Smithtown|357|4819|Smithtown|NY
+Childtime of Chandler|324|1435|Chandler|AZ
+West Glades Montessori|369|7331|Boca Raton|FL
+Childtime of Chesterfield (1009)|324|1009|Chesterfield|VA
+Tutor Time of Plymouth Township|327|6274|Plymouth Township|MI
+Childtime of Ballston Spa|324|0055|Ballston Spa|NY
+Tutor Time of Phoenix (6092)|327|6092|Phoenix|AZ
+Childtime of Monroe Township|324|0264|Monroe Township|NJ
+Childtime of Folsom|324|0260|Folsom|CA
+Gilden Woods Haslett|698|0664|Haslett|MI
+Tutor Time of Denver|327|6671|Denver|NC
+Childtime of Virginia Beach|324|1022|Virginia Beach|VA
+Childtime of Columbus|324|0561|Columbus|OH
+Pathways Learning Academy St. Thomas of Canterbury|479|9309|Temecula|CA
+Everbrook Academy at Westlake|357|9710|Houston|TX
+Childtime of Avon (0566)|324|0566|Avon|OH
+U-Gro of Brownstown|617|4845|Ephrata|PA
+Childtime of Painsville|324|0564|Painsville|OH
+Childtime of Fredericksburg|324|1058|Fredericksburg|VA
+La Petite Academy of Memphis (7599)|339|7599|Memphis|TN
+La Petite Academy of Marietta (7413)|339|7413|Marietta|GA
+La Petite Academy of Ormond Beach|339|7494|Ormond Beach|FL
+La Petite Academy of Federal Way (7316)|339|7316|Federal Way|WA
+La Petite Academy of Conyers|339|7425|Conyers|GA
+La Petite Academy of Hobart|339|7753|Hobart|WI
+La Petite Academy of Chalfont|339|7095|Chalfont|PA
+La Petite Academy of Jacksonville (7439)|339|7439|Jacksonville|FL
+La Petite Academy of Columbia|339|7501|Columbia|SC
+La Petite Academy of Charleston (7511)|339|7511|Charleston|SC
+La Petite Academy of Miami (7519)|339|7519|Miami|FL
+La Petite Academy of Lynnwood (7325)|339|7325|Lynnwood|WA
+La Petite Academy of Houston (7578)|339|7578|Houston|TX
+La Petite Academy of Horn Lake|339|7592|Horn Lake|MS
+La Petite Academy of Collierville|339|7601|Collierville|TN
+La Petite Academy of Moore|339|7606|Moore|OK
+La Petite Academy of Norman (7609)|339|7609|Norman|OK
+La Petite Academy of Kissimmee (7375)|339|7375|Kissimmee|FL
+La Petite Academy of Exton|339|7096|Exton|PA
+La Petite Academy of Oklahoma|339|7612|Oklahoma City|OK
+La Petite Academy of Fayetteville|339|7617|Fayetteville|AR
+Children's Courtyard of Keller (3028)|6|3028|Keller|TX
+La Petite Academy of Royal Palm Beach|339|7392|Royal Palm Beach|FL
+La Petite Academy of San Antonio (7631)|339|7631|San Antonio|TX
+La Petite Academy of Aurora (7661)|339|7661|Aurora|IL
+La Petite Academy of Winston Salem|339|7475|Winston Salem|NC
+La Petite Academy of North Las Vegas|339|7307|North Las Vegas|NV
+La Petite Academy of Sugar Land|339|7589|Sugar Land|TX
+La Petite Academy of Redmond|339|7327|Redmond|WA
+La Petite Academy of Murfreesboro|339|7457|Murfreesboro|TN
+La Petite Academy of Jacksonville (7442)|339|7442|Jacksonville|FL
+La Petite Academy of Ventura|339|7209|Ventura|CA
+La Petite Academy of Glendale|339|7167|Glendale|AZ
+La Petite Academy of Pickerington|339|7073|Pickerington|OH
+La Petite Academy of Orlando (7495)|339|7495|Orlando|FL
+La Petite Academy of Leesburg|339|7715|Leesburg|VA
+La Petite Academy of Sun Prairie|339|7153|Sun Prairie|WI
+Children's Courtyard of Pflugerville (3056A)|6|3056|Pflugerville|TX
+La Petite Academy of Huntersville (7470)|339|7470|Huntersville|NC
+La Petite Academy of Oceanside|339|7237|Oceanside|CA
+La Petite Academy of Aurora (7253)|339|7253|Aurora|CO
+La Petite Academy of Columbia (7054)|339|7054|Columbia|MD
+La Petite Academy of Charlotte (7468)|339|7468|Charlotte|NC
+La Petite Academy of Tempe|339|7181|Tempe|AZ
+Children's Courtyard of Irving (3013)|6|3013|Irving|TX
+La Petite Academy of Champaign|339|7010|Champaign|IL
+La Petite Academy of Springfield (7133)|339|7133|Springfield|VA
+Children's Courtyard of Fort Worth (3046)|6|3046|Fort Worth|TX
+Children's Courtyard of Austin|6|3019|Austin|TX
+La Petite Academy of Port St Lucie|339|7390|Port St Lucie|FL
+La Petite Academy of Alamo Heights|339|7645|Alamo Heights|TX
+Children's Courtyard of Suwanee (3214A)|6|3214|Suwanee|GA
+La Petite Academy of Virginia Beach (7140)|339|7140|Virginia Beach|VA
+La Petite Academy of Albuquerque (7283)|339|7283|Albuquerque|NM
+La Petite Academy of Albuquerque (7284)|339|7284|Albuquerque|NM
+La Petite Academy of San Antonio (7634)|339|7634|San Antonio|TX
+Children's Courtyard of Melissa|6|3110|Melissa|TX
+La Petite Academy of Memphis (7596)|339|7596|Memphis|TN
+Children's Courtyard of Lacey|6|3221 / 3222|Lacey|WA
+La Petite Academy of Pembroke Pines (7518)|339|7518|Pembroke Pines|FL
+La Petite Academy of Lakeland|339|7376|Lakeland|FL
+La Petite Academy of Stafford|339|7113|Stafford|VA
+Children's Courtyard of Coppell (3070A)|6|3070|Coppell|TX
+La Petite Academy of Huntsville|339|7370|Huntsville|AL
+La Petite Academy of Prospect|339|7077|Prospect|KY
+La Petite Academy of Austin|339|7529|Austin|TX
+La Petite Academy of Cary (7476)|339|7476|Cary|NC
+Children's Courtyard of Yorkville|6|3254|Yorkville|IL
+Children's Courtyard of Fargo|6|3261|Fargo|ND
+La Petite Academy of San Antonio (7643)|339|7643|San Antonio|TX
+Children's Courtyard of Boiling Springs|6|3255|Boiling Springs|SC
+La Petite Academy of Pelham|339|7369|Pelham|AL
+Children's Courtyard of Austin (3030B)|6|3030B|Austin|TX
+La Petite Academy of Layton|339|7319|Layton|UT
+La Petite Academy of Bedford|339|7554|Bedford|TX
+La Petite Academy of The Colony|339|7545|The Colony|TX
+La Petite Academy of Orlando (7379)|339|7379|Orlando|FL
+La Petite Academy of Summerville (7515)|339|7515|Summerville|SC
+La Petite Academy of Durham (7479)|339|7479|Durham|NC
+La Petite Academy of Durham (7478)|339|7478|Durham|NC
+La Petite Academy of Puyallup (7314)|339|7314|Puyallup|WA
+La Petite Academy of Albuquerque (7286)|339|7286|Albuquerque|NM
+La Petite Academy of Shawnee (7049)|339|7049|Shawnee|KS
+Children's Courtyard of The Woodlands (3050)|6|3050|The Woodlands|TX
+La Petite Academy of Portsmouth (7139)|339|7139|Portsmouth|VA
+La Petite Academy of Stanley|339|7029|Stanley|KS
+La Petite Academy of Cary (7477)|339|7477|Cary|NC
+La Petite Academy of Waldorf|339|7066|Waldorf|MD
+La Petite Academy of Houston (7566)|339|7566|Houston|TX
+La Petite Academy of Bradenton (7399)|339|7399|Bradenton|FL
+La Petite Academy of Baltimore|339|7053|Baltimore|MD
+La Petite Academy of Fort Worth (7553)|339|7553|Fort Worth|TX
+La Petite Academy of Manassas|339|7130|Manassas|VA
+La Petite Academy of Blacklick|339|7067|Blacklick|OH
+La Petite Academy of Powder Springs|339|7420|Powder Springs|GA
+La Petite Academy of Henderson (7737)|339|7737|Henderson|NV
+La Petite Academy of Towson|339|7063|Towson|MD
+La Petite Academy of Meridian|339|7735|Meridian|ID
+La Petite Academy of Winchester|339|7736|Winchester|CA
+La Petite Academy of Mesquite|339|7547|Mesquite|TX
+La Petite Academy of Danville|339|7738|Danville|CA
+La Petite Academy of Elmhurst|339|7742|Elmhurst|IL
+La Petite Academy of Albuquerque (7287B)|339|7287B|Albuquerque|NM
+La Petite Academy of Nottingham|339|7746|Nottingham|MD
+La Petite Academy on N. Owasso Expy|339|7752|Owasso|OK
+La Petite Academy of Norman (7610)|339|7610|Norman|OK
+Children's Courtyard of Grand Prairie (3018B)|6|3018B|Grand Prairie|TX
+La Petite Academy of Tampa (7410)|339|7410|Tampa|FL
+La Petite Academy of Ellicott City|339|7057|Ellicott City|MD
+La Petite Academy of Iowa City|339|7263|Iowa City|IA
+La Petite Academy of Schertz|339|7538|Schertz|TX
+La Petite Academy of Fort Worth (7557)|339|7557|Fort Worth|TX
+La Petite Academy of Raleigh (7484)|339|7484|Raleigh|NC
+La Petite Academy of Citrus Heights|339|7211|Citrus Heights|CA
+First Flight Child Development Center at La Petite Academy|339|9706|Los Angeles|CA
+La Petite Academy of Valrico|339|7397|Valrico|FL
+La Petite Academy at Bed Bath & Beyond|339|7751|Midvale|UT
+La Petite Academy of Diamond Bar|339|7202|Diamond Bar|CA
+La Petite Academy of North Las Vegas (7306)|339|7306|North Las Vegas|NV
+La Petite Academy of St. Cloud Technical College|339|7891|St. Cloud|MN
+La Petite Academy of Omaha (7273)|339|7273|Omaha|NE
+Children's Courtyard of Houston (3052A)|6|3052A|Houston|TX
+La Petite Academy on Linder Road|339|7760|Meridian|ID
+La Petite Academy of Westminster|339|7250|Westminster|CO
+La Petite Academy of Sarasota|339|7398|Sarasota|FL
+La Petite Academy of Jacksonville (7438)|339|7438|Jacksonville|FL
+La Petite Academy of Belleville (7099)|339|7099|Belleville|IL
+La Petite Academy of Midwest City|339|7607|Midwest City|OK
+La Petite Academy of Oswego|339|7012|Oswego|IL
+La Petite Academy of Milton|339|7324|Milton|WA
+Childrens Courtyard of Stockbridge|6|3210|Stockbridge|GA
+Children's Courtyard of Austin (3039)|6|3039|Austin|TX
+La Petite Academy of West Columbia|339|7503|Columbia|SC
+La Petite Academy of Sandy|339|7320|Sandy|UT
+La Petite Academy of San Ramon (7230)|339|7230|San Ramon|CA
+Children's Courtyard of Bedford (3011B)|6|3011B|Bedford|TX
+La Petite Academy of Albuquerque (7287A)|339|7287A|Albuquerque|NM
+La Petite Academy of Naperville|339|7013|Naperville|IL
+La Petite Academy of Lake in the Hills|339|7003|Lake In The Hills|IL
+Children's Courtyard of Arlington (3004)|6|3004|Arlington|TX
+La Petite Academy of Chesapeake (7134)|339|7134|Chesapeake|VA
+Children's Courtyard of Lewisville (3024)|6|3024|Lewisville|TX
+La Petite Academy of Oakdale|339|7710|Oakdale|MN
+La Petite Academy of Chesapeake (7135)|339|7135|Chesapeake|VA
+La Petite Academy of Shawnee|339|7048|Shawnee|KS
+La Petite Academy of Rio Rancho (7289)|339|7289|Rio Rancho|NM
+Children's Courtyard of Mission Viejo|6|3233|Mission Viejo|CA
+La Petite Academy of Sartell|339|7889|Sartell|MN
+La Petite Academy of Alexandria|339|7125|Alexandria|VA
+La Petite Academy of Albuquerque (7279)|339|7279|Albuquerque|NM
+Children's Courtyard of Issaquah|6|3241|Issaquah|WA
+La Petite Academy of Oregon|339|7151|Oregon|WI
+La Petite Academy of La Porte|339|7584|La Porte|TX
+La Petite Academy of Lenexa|339|7040|Lenexa|KS
+Children's Courtyard of Pflugerville (3056B)|6|3056B|Pflugerville|TX
+La Petite Academy of San Antonio (7636)|339|7636|San Antonio|TX
+Children's Courtyard of Fort Worth (3008)|6|3008|Fort Worth|TX
+La Petite Academy of Cedar Park (7533)|339|7533|Cedar Park|TX
+La Petite Academy of Lancaster|339|7192|Lancaster|CA
+Children's Courtyard of Land O' Lakes|6|3232|Land O' Lakes|FL
+La Petite Academy of Parker|339|7260|Parker|CO
+La Petite Academy of Kirkland|339|7323|Kirkland|WA
+La Petite Academy of Hockessin|339|7091|Hockessin|DE
+La Petite Academy of Littleton (7244)|339|7244|Littleton|CO
+La Petite Academy of Colorado Springs (7258)|339|7258|Colorado Springs|CO
+La Petite Academy of Tampa (7406)|339|7406|Tampa|FL
+Children's Courtyard of Kernersville|6|3219|Kernersville|NC
+La Petite Academy of Rialto|339|7194|Rialto|CA
+doTERRA Kids at La Petite Academy|339|9907|Pleasant Grove|UT
+Children's Courtyard of Dupont|6|3220|Dupont|WA
+Children's Courtyard of New Braunfels|6|3229|New Braunfels|TX
+La Petite Academy of Riverside (7191)|339|7191|Riverside|CA
+La Petite Academy of Lakewood|339|7246|Lakewood|CO
+Children's Courtyard of Sherman Oaks|6|3240|Sherman Oaks|CA
+Children's Courtyard of Morgan Hill (3223)|6|3223|Morgan Hill|CA
+Children's Courtyard of Spring (3049)|6|3049|Spring|TX
+Children's Courtyard of NRH/Keller|6|3252|North Richland Hills|TX
+Children's Courtyard of Round Rock (3062B)|6|3062B|Round Rock|TX
+La Petite Academy of Memphis (7598)|339|7598|Memphis|TN
+La Petite Academy of Plano|339|7551|Plano|TX
+Children's Courtyard of Arlington (3003 B)|6|3003 B|Arlington|TX
+La Petite Academy of Henderson (7294)|339|7294|Henderson|NV
+La Petite Academy of Castle Rock|339|7255|Castle Rock|CO
+La Petite Academy of Fort Worth (7558)|339|7558|Fort Worth|TX
+La Petite Academy of Williamsburg|339|7145|Williamsburg|VA
+La Petite Academy of Columbia (7056)|339|7056|Columbia|MD
+La Petite Academy of Evansville|339|9076|Evansville|IN
+La Petite Academy of Cypress (7582)|339|7582|Cypress|TX
+La Petite Academy of Lexington (7716)|339|7716|Lexington|KY
+La Petite Academy of Lithonia|339|7429|Lithonia|GA
+Children's Courtyard of Lake Forest|6|3238|Lake Forest|CA
+La Petite Academy of Fitchburg|339|7147|Fitchburg|WI
+Children's Courtyard of Southern Pines|6|3249|Carthage|NC
+La Petite Academy of Chesterton|339|7017|Chesterton|IN
+La Petite Academy of Olathe (7047)|339|7047|Olathe|KS
+La Petite Academy of Las Vegas (7305)|339|7305|Las Vegas|NV
+La Petite Academy of Bentonville|339|7616|Bentonville|AR
+La Petite Academy of Mesa|339|7172|Mesa|AZ
+La Petite Academy on Linder Road (B Building)|339|7760B|Meridian|ID
+Children's Courtyard of Bluffdale|6|3258|Bluffdale|UT
+La Petite Academy of O'Fallon|339|7717|O'Fallon|IL
+La Petite Academy of Margate (7520)|339|7520|Margate|FL
+La Petite Academy of Lawrence (7042)|339|7042|Lawrence|KS
+Children's Courtyard of Austin (3042A)|6|3042|Austin|TX
+La Petite Academy of Raleigh (7486)|339|7486|Raleigh|NC
+La Petite Academy of Lake Mary|339|7493|Lake Mary|FL
+La Petite Academy of Sioux Falls (7694)|339|7694|Sioux Falls|SD
+La Petite Academy of Santa Fe|339|7292|Santa Fe|NM
+La Petite Academy of Puyallup|339|7317|Puyallup|WA
+Children's Courtyard of West Jordan|6|3263|West Jordan|UT
+La Petite Academy of Kenosha (7006)|339|7006|Kenosha|WI
+La Petite Academy of Westerville (7075)|339|7075|Westerville|OH
+La Petite Academy of Port St. Lucie|339|7389|Port St Lucie|FL
+Children's Courtyard of Citrus Park|6|3256|Tampa|FL
+Children's Courtyard of South Jordan|6|3264|South Jordan|UT
+La Petite Academy of Grafton|339|7709|Grafton|VA
+La Petite Academy of St. Cloud South|339|7890|St. Cloud|MN
+La Petite Academy of Altamonte Springs|339|7489|Altamonte Springs|FL
+La Petite Academy of Orange Park|339|7490|Orange Park|FL
+Children's Courtyard of Hope Mills|6|3247|Fayetteville|NC
+La Petite Academy of Plainfield|339|7011|Plainfield|IL
+La Petite Academy of Fenton|339|7109|Fenton|MO
+Children's Courtyard of Southlake - Preschool Building|6|3040|Southlake|TX
+La Petite Academy of Oak Ridge|339|7463|Oak Ridge|TN
+Children's Courtyard of Fort Worth (3038)|6|3038|Fort Worth|TX
+La Petite Academy of North Port|339|7689|North Port|FL
+La Petite Academy of San Ramon|339|7739|San Ramon|CA
+La Petite Academy of Birmingham (7358)|339|7358|Birmingham|AL
+La Petite Academy of Smyrna|339|7464|Smyrna|TN
+La Petite Academy of Bowling Green|339|7447|Bowling Green|KY
+La Petite Academy of Deltona Beach|339|7492|Deltona Beach|FL
+Children's Courtyard of Grand Prairie|6|3059|Grand Praire|TX
+La Petite Academy of Doughert Valley|339|7740|San Ramon|CA
+La Petite Academy of Bloomington|339|7009|Bloomington|IL
+La Petite Academy of Yukon (7628)|339|7628|Yukon|OK
+La Petite Academy of Birmingham (7363)|339|7363|Birmingham|AL
+La Petite Academy of Sterling (7708)|339|7708|Sterling|VA
+Children's Courtyard of Houston (3052B)|6|3052B|Houston|TX
+La Petite Academy of Old Hickory|339|7462|Old Hickory|TN
+La Petite Academy of Des Moines|339|7264|Des Moines|IA
+La Petite Academy of Birmingham (7362)|339|7362|Birmingham|AL
+La Petite Academy of Margate|339|7523|Margate|FL
+La Petite Academy of Lynnwood (7326)|339|7326|Lynnwood|WA
+La Petite Academy of West Chester|339|7083|West Chester|OH
+La Petite Academy of Dumfries|339|7131|Dumfries|VA
+La Petite Academy of Florence|339|7504|Florence|SC
+La Petite Academy of Lee's Summit|339|7039|Lee's Summit|MO
+La Petite Academy of Orlando (7496)|339|7496|Orlando|FL
+La Petite Academy of Suamico|339|7741|Suamico|WI
+La Petite Academy of Clearwater|339|7401|Clearwater|FL
+Children's Courtyard of Austin (3044 B)|6|3044 B|Austin|TX
+Children's Courtyard of Round Rock (3062A)|6|3062A|Round Rock|TX
+Children's Courtyard of Victorville|6|3234|Victorville|CA
+La Petite Academy of Round Lake Beach|339|7004|Round Lake Beach|IL
+La Petite Academy of Columbus|339|7068|Columbus|OH
+La Petite Academy of Louisville (7079)|339|7079|Louisville|KY
+La Petite Academy of San Antonio (7642)|339|7642|San Antonio|TX
+La Petite Academy of Omaha (7275)|339|7275|Omaha|NE
+La Petite Academy of Powell (7660)|339|7660|Powell|OH
+La Petite Academy of Knoxville (7455)|339|7455|Knoxville|TN
+La Petite Academy of Charleston (7509)|339|7509|Charleston|SC
+La Petite Academy of Ankeny|339|7262|Ankeny|IA
+Children's Courtyard of Fort Worth (3073)|6|3073|Fort Worth|TX
+La Petite Academy of Ocoee|339|7381|Ocoee|FL
+La Petite Academy of Port Orange|339|7500|Port Orange|FL
+La Petite Academy of Virginia Beach (7143)|339|7143|Virginia Beach|VA
+La Petite Academy of Mobile (LCG 7368)|339|7368|Mobile|AL
+Children's Courtyard of Bellevue|6|3236|Bellevue|WA
+La Petite Academy of Folsom|339|7214|Folsom|CA
+La Petite Academy of Concord (7224)|339|7224|Concord|CA
+La Petite Academy of Lehi (7713)|339|7713|Lehi|UT
+La Petite of Centerville|339|7082|Centerville|OH
+La Petite Academy of Arnold|339|7102|Arnold|MO
+La Petite Academy of Edmond (7619)|339|7619|Edmond|OK
+La Petite Academy of San Antonio (7638)|339|7638|San Antonio|TX
+La Petite Academy of Boynton Beach|339|7384|Boynton Beach|FL
+La Petite Academy of Garner (7480B)|339|7480B|Garner|NC
+La Petite Academy of Boca Raton|339|7385|Boca Raton|FL
+Children's Courtyard of Woodland Hills (3262A)|6|3262A|Woodland Hills|CA
+La Petite Academy of Lansdale|339|7098|Lansdale|PA
+La Petite Academy of Chesapeake (7136)|339|7136|Chesapeake|VA
+Children's Courtyard of West Aurora|6|3250|Aurora|IL
+La Petite Academy of Morrisville|339|7675|Morrisville|NC
+La Petite Academy of Kissimmee (7373)|339|7373|Kissimmee|FL
+La Petite Academy of Monticello|339|7888|Monticello|MN
+Children's Courtyard of Arlington (3009) (3009)|6|3009|Arlington|TX
+La Petite Academy of Snellville|339|7435|Snellville|GA
+La Petite Academy of Deerfield Beach|339|7517|Deerfield Beach|FL
+Children's Courtyard of Hurst (3016)|6|3016|Hurst|TX
+La Petite Academy of North Charleston|339|7508|North Charleston|SC
+La Petite Academy of San Antonio (7630)|339|7630|San Antonio|TX
+La Petite Academy of Huntington Beach|339|7203|Huntington Beach|CA
+Children's Courtyard of Grand Prairie (3018A)|6|3018A|Grand Prairie|TX
+La Petite Academy of Rocklin|339|7221|Rocklin|CA
+La Petite Academy of Saugus|339|7206|Saugus|CA
+La Petite Academy of Fresno|339|7215|Fresno|CA
+La Petite Academy of Vista|339|7241|Vista|CA
+La Petite Academy of Summerville (7514)|339|7514|Summerville|SC
+La Petite Academy of Henderson (7302)|339|7302|Henderson|NV
+La Petite Academy of Covington|339|7311|Covington|WA
+La Petite Academy of Schaumburg|339|7005|Schaumburg|IL
+La Petite Academy of Broomfield|339|7242|Broomfield|CO
+La Petite Academy of Indianapolis (7016)|339|7016|Indianapolis|IN
+La Petite Academy of St. Joseph|339|7038|St. Joseph|MO
+La Petite Academy of Blue Springs|339|7030|Blue Springs|MO
+Children's Courtyard of Aurora|6|3224|Aurora|IL
+La Petite Academy of Carrollton|339|7541|Carrollton|TX
+La Petite Academy of Topeka (7051)|339|7051|Topeka|KS
+La Petite Academy of Sherwood|339|7309|Sherwood|OR
+La Petite Academy of Frederick|339|7059|Frederick|MD
+La Petite Academy of Frederick (7060)|339|7060|Frederick|MD
+La Petite Academy of Bowie|339|7065|Bowie|MD
+La Petite Academy of Westerville|339|7071|Westerville|OH
+Children's Courtyard of Daybreak|6|3266|SOUTH JORDAN|UT
+La Petite Academy of Raleigh (7487)|339|7487|Raleigh|NC
+La Petite Academy of Hilliard|339|7072|Hilliard|OH
+La Petite Academy of Glen Carbon|339|7100|Glen Carbon|IL
+La Petite Academy of Glen Allen|339|7120|Glen Allen|VA
+La Petite Academy of Centreville (7127)|339|7127|Centreville|VA
+La Petite Academy of Chesapeake (7137)|339|7137|Chesapeake|VA
+La Petite Academy of Ashburn|339|7128|Ashburn|VA
+Children's Courtyard of Woodland Hills (3262B)|6|3262B|Woodland Hills|CA
+La Petite Academy of Waukesha|339|7146|Waukesha|WI
+La Petite Academy of Stoughton|339|7152|Stoughton|WI
+La Petite Academy at AtlantiCare|339|9905|Galloway|NJ
+La Petite Academy of Waukesha (7155)|339|7155|Waukesha|WI
+Children's Courtyard of Iowa Colony|6|3106|Iowa Colony|TX
+La Petite Academy of Madison (LCG 7161)|339|7161|Madison|WI
+La Petite Academy of Tucson (7183)|339|7183|Tucson|AZ
+La Petite Academy of Tucson (7184)|339|7184|Tucson|AZ
+La Petite Academy of Tucson (7185)|339|7185|Tuscon|AZ
+La Petite Academy of Tucson (7187)|339|7187|Tuscon|AZ
+La Petite Academy of Victorville|339|7200|Victorville|CA
+La Petite Academy of Antioch|339|7223|Antioch|CA
+La Petite Academy of Bonita|339|7235|Bonita|CA
+La Petite Academy of San Diego (7240)|339|7240|San Diego|CA
+La Petite Academy of Bernalillo|339|7280|Bernalillo|NM
+La Petite Academy of Las Vegas (7303)|339|7303|Las Vegas|NV
+La Petite Academy of Federal Way (7312)|339|7312|Federal Way|WA
+La Petite Academy of Decatur|339|7364|Decatur|AL
+La Petite Academy of Mill Creek|339|7322|Mill Creek|WA
+La Petite Academy of Madison (7367)|339|7367|Madison|AL
+La Petite Academy of Niceville|339|7371|Niceville|FL
+La Petite Academy of Pensacola|339|7372|Pensacola|FL
+La Petite Academy of Kissimmee (7374)|339|7374|Kissimmee|FL
+La Petite Academy of Orlando (7380)|339|7380|Orlando|FL
+La Petite Academy of Orlando (7383)|339|7383|Orlando|FL
+La Petite Academy of Palm Bay|339|7387|Palm Bay|FL
+La Petite Academy of Vero Beach|339|7394|Vero Beach|FL
+La Petite Academy of Bradenton (7396)|339|7396|Bradenton|FL
+La Petite Academy of New Pt. Richey|339|7403|New Pt Richey|FL
+La Petite Academy of Riverview|339|7405|Riverview|FL
+La Petite Academy of Tampa (7408)|339|7408|Tampa|FL
+La Petite Academy of Belleville (7014)|339|7014|Homer Glen|IL
+Children's Courtyard of Irving (3053)|6|3053|Irving|TX
+La Petite Academy of Aurora (7254)|339|7254|Aurora|CO
+La Petite Academy of Greensboro|339|7482|Greensboro|NC
+La Petite Academy of Oklahoma City (7611)|339|7611|Oklahoma City|OK
+La Petite Academy of Lincoln (7271)|339|7271|Lincoln|NE
+La Petite Academy of Converse|339|7639|Converse|TX
+Children's Courtyard of North Richland Hills (3027B)|6|3027B|N Richland Hills|TX
+Children's Courtyard of Arlington (3066B)|6|3066B|Arlington|TX
+La Petite Academy of Oklahoma City (7621)|339|7621|Oklahoma City|OK
+La Petite Academy of Yukon (7623)|339|7623|Yukon|OK
+La Petite Academy of Sandy (7321)|339|7321|Sandy|UT
+Children's Courtyard of Lawrenceville|6|3253|Lawrenceville|GA
+La Petite Academy of Kansas City (7037)|339|7037|Kansas City|MO
+La Petite Academy of Kansas City (7035)|339|7035|Kansas City|MO
+Children's Courtyard of Newbury Park|6|3239|Thousand Oaks|CA
+Children's Courtyard of Coppell (3070B)|6|3070B|Coppell|TX
+Children's Courtyard of Orlando|6|3251|Orlando|FL
+Children's Courtyard of Wilmington North|6|3244|Wilmington|NC
+Children's Courtyard of Allen|6|3242|Allen|TX
+La Petite Academy of Vance|339|9077|Vance|AL
+La Petite Academy of Gambrills|339|7055|Gambrills|MD
+La Petite Academy of Green Bay (7749)|339|7749|Green Bay|WI
+La Petite Academy of Overland Park (7046)|339|7046|Overland Park|KS
+La Petite Academy of Omaha (7276)|339|7276|Omaha|NE
+Children's Courtyard @ Pflugerville (Inactive)|6|3201|Pflugerville|TX
+La Petite Academy of Kingwood|339|7573|Kingwood|TX
+Children's Courtyard of Plainfield (3235)|6|3235|Plainfield|IL
+La Petite Academy of Fort Worth|339|7559|Fort Worth|TX
+Children's Courtyard of Agoura Hills|6|3237|Agoura Hills|CA
+La Petite Academy of Green Bay (7724)|339|7724|Green Bay|WI
+La Petite Academy of Aurora (7252)|339|7252|Aurora|CO
+La Petite Academy of Grand Prairie|339|7543|Grand Prairie|TX
+La Petite Academy of Virginia Beach (7141)|339|7141|Virginia Beach|VA
+La Petite Academy of Las Vegas (7296)|339|7296|Las Vegas|NV
+La Petite Academy of St. Paul|339|7269|St Paul|MN
+Children's Courtyard ~ Parkwood Hill (Inactive)|6|3202|Fort Worth|TX
+La Petite Academy of Cordova|339|7595|Cordova|TN
+La Petite Academy of Spring (7575)|339|7575|Spring|TX
+La Petite Academy of Verona|339|7162|Verona|WI
+La Petite Academy of Overland Park|339|7045|Overland Park|KS
+La Petite Academy of Greenville|339|7505|Greenville|SC
+La Petite Academy of San Antonio (7644)|339|7644|San Antonio|TX
+La Petite Academy of Avon|339|7015|Avon|IN
+Childrens Courtyard of Arlington (3006)|6|3006|Arlington|TX
+Childrens Courtyard of Douglasville|6|3211|Douglasville|GA
+La Petite Academy of Chandler (7659)|339|7659|Chandler|AZ
+Children's Courtyard of Keller (3028B)|6|3028B|Keller|TX
+La Petite Academy of Madison (7160)|339|7160|Madison|WI
+La Petite Academy of Gaithersburg|339|7064|Gaithersburg|MD
+La Petite Academy of Columbia (7502)|339|7502|Columbia|SC
+Children's Courtyard of Austin (3044 C)|6|3044 C|Austin|TX
+La Petite Academy of Nashville|339|7460|Nashville|TN
+La Petite Academy of Frederick (7061)|339|7061|Frederick|MD
+La Petite Academy of Miamisburg|339|7086|Miamisburg|OH
+La Petite Academy of Monona (7148)|339|7148|Monona|WI
+La Petite Academy of South Bend|339|7026|South Bend|IN
+La Petite Academy of Houston (7568)|339|7568|Houston|TX
+La Petite Academy of Lehi (7714)|339|7714|Lehi|UT
+La Petite Academy of New Lenox|339|7662|New Lenox|IL
+Children's Courtyard of Plainfield (3225)|6|3225|Plainfield|IL
+La Petite Academy of Las Vegas (7297)|339|7297|Las Vegas|NV
+Children's Courtyard of Plano|6|3058|Plano|TX
+Children's Courtyard of Arlington (3009B)|6|3009B|Arlington|TX
+Children's Courtyard of Bedford (3011A)|6|3011|Bedford|TX
+Children's Courtyard of Mansfield|6|3020|Mansfield|TX
+Children's Courtyard of Lewisville (3024B)|6|3024B|Lewisville|TX
+La Petite Academy of Cypress|339|7580|Cypress|TX
+La Petite Academy of Pleasanton (LCG 7226)|339|7226|Pleasanton|CA
+La Petite Academy of Orlando (7382)|339|7382|Orlando|FL
+La Petite Academy of Tampa (7409)|339|7409|Tampa|FL
+La Petite Academy of Norcross|339|7432|Norcross|GA
+La Petite Academy of Albuquerque (7278)|339|7278|Albuquerque|NM
+La Petite Academy of Hillsboro (7733)|339|7733|Hillsboro|OR
+La Petite Academy of Middleburg|339|7444|Middleburg|FL
+Children's Courtyard of Lewisville (3034)|6|3034|Lewisville|TX
+La Petite Academy of Englewood|339|7087|Englewood|OH
+Children's Courtyard of Fort Worth (3025B)|6|3025B|Fort Worth|TX
+Children's Courtyard @ Bedford|6|3033|Bedford|TX
+La Petite Academy of Olive Branch|339|7593|Olive Branch|MS
+La Petite Academy of Knoxville (7451)|339|7451|Knoxville|TN
+La Petite Academy of Chula Vista|339|7234|Chula Vista|CA
+La Petite Academy of Palmdale|339|7193|Palmdale|CA
+La Petite Academy of Waunakee|339|7164|Waunakee|WI
+Children's Courtyard of Round Rock (3080)|6|3080|Round Rock|TX
+La Petite Academy of Salt Lake City|339|7318|Salt Lake City|UT
+La Petite Academy of Windhorst|339|7400|Brandon|FL
+La Petite Academy of Kent|339|7313|Kent|WA
+La Petite Academy of Indianapolis (7023)|339|7023|Indianapolis|IN
+Children's Courtyard of Arlington (3066)|6|3066|Arlington|TX
+The Children's Courtyard International|6|3203|Arlington|TX
+La Petite Academy of Beavercreek|339|7081|Beavercreek|OH
+La Petite Academy of Wichita|339|7602|Wichita|KS
+Children's Courtyard of Lewisville (3034C)|6|3034C|Lewisville|TX
+La Petite Academy of San Diego (7238)|339|7238|San Diego|CA
+La Petite Academy of Pembroke Pines (7516)|339|7516|Pembroke Pines|FL
+La Petite Academy of Edmond (7620)|339|7620|Edmond|OK
+Children’s Courtyard of Commerce City|6|4858|Commerce City|CO
+La Petite Academy of Oklahoma City (7615)|339|7615|Oklahoma City|OK
+Children's Courtyard of Austin (3030A)|6|3030A|Austin|TX
+Children's Courtyard of Fort Worth|6|3103|Forth Worth|TX
+La Petite Academy of Midwest City (7608)|339|7608|Midwest City|OK
+La Petite Academy of Fort Worth (7561)|339|7561|Fort Worth|TX
+La Petite Academy of Charlotte (7469)|339|7469|Charlotte|NC
+La Petite Academy of Fairview|339|7308|Fairview|OR
+La Petite Academy of San Antonio (7629)|339|7629|San Antonio|TX
+Children's Courtyard of The Woodlands (3054)|6|3054|The Woodlands|TX
+La Petite Academy of Voorhees|339|7093|Voorhees|NJ
+Children's Courtyard of Cedar Park (3089)|6|3089|Cedar Park|TX
+La Petite Academy of St. Augustine|339|7445|St. Augustine|FL
+La Petite Academy of Avondale|339|7165|Avondale|AZ
+La Petite Academy of Hillsboro (7734)|339|7734|Hillsboro|OR
+La Petite Academy of Richmond 7227|339|7227|Richmond|CA
+La Petite Academy of Ballwin|339|7108|Ballwin|MO
+Children's Courtyard of Grapevine (3014)|6|3014|Grapevine|TX
+La Petite Academy of Richmond|339|7115|Richmond|VA
+La Petite Academy of Omaha (7274)|339|7274|Omaha|NE
+Children's Courtyard of Flower Mound (3036B)|6|3036B|Flower Mound|TX
+La Petite Academy of O' Fallon|339|7101|O'Fallon|IL
+La Petite Academy of Gladstone|339|7032|Gladstone|MO
+La Petite Academy of Bellevue (7270)|339|7270|Bellevue|NE
+La Petite Academy of Indianapolis (7024)|339|7024|Indianapolis|IN
+La Petite Academy of Goose Creek|339|7512|Goose Creek|SC
+La Petite Academy of Broken Arrow|339|7618|Broken Arrow|OK
+La Petite Academy of Knoxville (7454)|339|7454|Knoxville|TN
+Children's Courtyard of Hunter's Creek|6|3230|New Braunfels|TX
+La Petite Academy of Fairfax Station|339|7126|Fairfax Station|VA
+Children's Courtyard of The Woodlands|6|3054B|The Woodlands|TX
+Children's Courtyard of Grand Prairie (3007)|6|3007|Grand Prairie|TX
+Children's Courtyard of Houston|6|3052C|Houston|TX
+La Petite Academy of Miami (7525)|339|7525|Miami|FL
+La Petite Academy of Papillion|339|7663|Papillion|NE
+La Petite Academy of Fort Worth (7556)|339|7556|Fort Worth|TX
+La Petite Academy of Riverdale|339|7421|Riverdale|GA
+Children's Courtyard of Spring (3049B)|6|3049B|Spring|TX
+La Petite Academy of Greenwood Village|339|7259|Greenwood Village|CO
+La Petite Academy of Tucson (7186)|339|7186|Tuscon|AZ
+La Petite Academy of Midlothian|339|7118|Midlothian|VA
+Children's Courtyard of Raeford|6|3248|Raeford|NC
+Children's Courtyard of Flower Mound (3017)|6|3017|Flower Mound|TX
+La Petite Academy of Winston- Salem|339|7474|Winston - Salem|NC
+La Petite Academy of New Albany|339|7729|New Albany|OH
+La Petite Academy of Jacksonville (7441)|339|7441|Jacksonville|FL
+La Petite Academy of Sacramento|339|7712|Sacramento|CA
+La Petite Academy of Windsor (7233)|339|7233|Windsor|CA
+La Petite Academy of Tyrone|339|7673|Tyrone|GA
+Children's Courtyard of Arlington (3003 A)|6|3003 A|Arlington|TX
+Children's Courtyard of Fort Worth (3057)|6|3057|Fort Worth|TX
+Children's Courtyard of Flower Mound (3036)|6|3036|Flower Mound|TX
+La Petite Academy of Tucson (7188)|339|7188|Tucson|AZ
+La Petite Academy of Lodi|339|7216|Lodi|CA
+Children's Courtyard of Austin (3041)|6|3041|Austin|TX
+Children's Courtyard of Cumming|6|3215|Cumming|GA
+Children's Courtyard of Suwanee (3214B)|6|3214B|Suwanee|GA
+Children's Courtyard of Prosper|6|3071|Prosper|TX
+La Petite Academy of New Hope (7268)|339|7268|New Hope|MN
+La Petite Academy of Rio Rancho (7290)|339|7290|Rio Rancho|NM
+La Petite Academy of Lorton|339|7723|Lorton|VA
+La Petite Academy of Albuquerque (7288)|339|7288|Albuquerque|NM
+La Petite Academy of Merriam|339|7043|Merriam|KS
+La Petite Academy of Melbourne (7393)|339|7393|Melbourne|FL
+La Petite Academy of Rockledge|339|7391|Rockledge|FL
+La Petite Academy of Elk Grove|339|7711|Elk Grove|CA
+La Petite Academy of Fort Wayne (7020)|339|7020|Fort Wayne|IN
+Children's Courtyard of Grapevine (3014B)|6|3014B|Grapevine|TX
+La Petite Academy of Humble|339|7571|Humble|TX
+La Petite Academy of Kansas City (7033)|339|7033|Kansas City|MO
+La Petite Academy of Skokie|339|7702|Skokie|IL
+La Petite Academy of Lawrence (7041)|339|7041|Lawrence|KS
+La Petite Academy of Liberty|339|7719|Liberty|MO
+La Petite Academy of Gainesville|339|7437|Gainesville|FL
+Children's Courtyard of Arlington (3003 C)|6|3003 C|Arlington|TX
+La Petite Academy of Norcross (7433)|339|7433|Norcross|GA
+La Petite Academy of Cedar Park (7532)|339|7532|Cedar Park|TX
+La Petite Academy of Lexington (7078)|339|7078|Lexington|KY
+Children's Courtyard of North Richland Hills (3027)|6|3027|N Richland Hills|TX
+Children's Courtyard of Flower Mound|6|3043B|Flower Mound|TX
+La Petite Academy of Colorado Springs (7257)|339|7257|Colorado Springs|CO
+Children's Courtyard of Southlake - School Age Building|6|3040B|Southlake|TX
+La Petite Academy of Pflugerville|339|7534|Pflugerville|TX
+La Petite Academy of Scottsdale|339|7177|Scottsdale|AZ
+La Petite Academy of Madison (7159)|339|7159|Madison|WI
+La Petite Academy of Lithia Springs|339|7415|Lithia Springs|GA
+La Petite Academy of Miramar|339|7522|Miramar|FL
+La Petite Academy of Hampton|339|7138|Hampton|VA
+Children's Courtyard of Lewisville (3034A)|6|3034A|Lewisville|TX
+La Petite Academy of Jonesboro|339|7417|Jonesboro|GA
+La Petite Academy of Sioux Falls (7692)|339|7692|Sioux Falls|SD
+La Petite Academy of Memphis (7600)|339|7600|Memphis|TN
+Children's Courtyard of Hurst (3016B)|6|3016B|Hurst|TX
+Children's Courtyard of Flower Mound (3043)|6|3043|Flower Mound|TX
+La Petite Academy of Mt. Juliet|339|7456|Mt. Juliet|TN
+La Petite Academy of Miami (7524)|339|7524|Miami|FL
+La Petite Academy of Garner (7480A)|339|7480A|Garner|NC
+La Petite Academy of Las Vegas (7300)|339|7300|Las Vegas|NV
+La Petite Academy of Raleigh (7488)|339|7488|Raleigh|NC
+La Petite Academy of Owasso|339|7722|Owasso|OK
+La Petite Academy of Santa Rosa|339|7231|Santa Rosa|CA
+La Petite Academy of Concord (7466)|339|7466|Concord|NC
+La Petite Academy of Tampa (7407)|339|7407|Tampa|FL
+La Petite Academy of Indianapolis (7022)|339|7022|Indianapolis|IN
+La Petite Academy of Sioux Falls (7693)|339|7693|Sioux Falls|SD
+Children's Courtyard of Fontana|6|3243|Fontana|CA
+La Petite Academy of Mishawaka|339|7025|Mishawaka|IN
+La Petite Academy of Taylors|339|7507|Taylors|SC
+La Petite Academy of Dublin|339|7069|Dublin|OH
+Children's Courtyard of Frederick|6|3216|Frederick|CO
+La Petite Academy of Jacksonville (7440)|339|7440|Jacksonville|FL
+La Petite Academy of Williamsburg (7144)|339|7144|Williamsburg|VA
+La Petite Academy of Hudson|339|7402|Hudson|FL
+La Petite Academy of Gold River|339|7219|Gold River|CA
+La Petite Academy of Simi Valley|339|7207|Simi Valley|CA
+La Petite Academy of Albuquerque (7285)|339|7285|Albuquerque|NM
+La Petite Academy of Louisville|339|7248|Louisville|CO
+La Petite Academy of Littleton (7245)|339|7245|Littleton|CO
+Children's Courtyard of Austin (3042B)|6|3042B|Austin|TX
+La Petite Academy of Kansas City (7034)|339|7034|Kansas City|MO
+La Petite Academy of Orlando (7498)|339|7498|Orlando|FL
+Children's Courtyard of Harrisburg (3212)|6|3212|Harrisburg|NC
+La Petite Academy of St. Louis|339|7107|St. Louis|MO
+La Petite Academy of Euless (LCG 7555)|339|7555|Euless|TX
+La Petite Academy of Riverside|339|7196|Riverside|CA
+La Petite Academy of Cedar Rapids|339|7261|Cedar Rapids|IA
+La Petite Academy of Knoxville (7453)|339|7453|Knoxville|TN
+La Petite Academy of Brandon|339|7395|Brandon|FL
+La Petite Academy of Orlando (7497)|339|7497|Orlando|FL
+La Petite Academy of Springfield|339|7106|Springfield|MO
+La Petite Academy of Omaha (7277)|339|7277|Omaha|NE
+La Petite Academy of Olathe (7028)|339|7028|Olathe|KS
+La Petite Academy of Germantown|339|7062|Germantown|MD
+Children's Courtyard of Wilmington West|6|3245|Wilmington|NC
+La Petite Academy of Edmond (7624)|339|7624|Edmond|OK
+La Petite Academy of Lincoln (7272)|339|7272|Lincoln|NE
+La Petite Academy of Los Angeles|339|7204|Los Angeles|CA
+La Petite Academy of Crystal Lake|339|7002|Crystal Lake|IL
+Children's Courtyard of Round Rock|6|3105|Round Rock|TX
+La Petite Academy of Thornton|339|7249|Thornton|CO
+La Petite Academy of San Antonio (7671)|339|7671|San Antonio|TX
+La Petite Academy of Rio Rancho (7291)|339|7291|Rio Rancho|NM
+La Petite Academy of Oklahoma City (7622)|339|7622|Oklahoma City|OK
+La Petite Academy of Cleveland|339|7448|Cleveland|TN
+Children's Courtyard of Indianapolis|6|3228|Indianapolis|IN
+La Petite Academy of Belleville (7156)|339|7156|Belleville|WI
+La Petite Academy of Marietta (7419)|339|7419|Marietta|GA
+La Petite Academy of Madison (7158)|339|7158|Madison|WI
+La Petite Academy of Oklahoma City (7613)|339|7613|Oklahoma City|OK
+La Petite Academy of Houston (7579)|339|7579|Houston|TX
+La Petite Academy at Pittsburgh International Airport|339|9708|Pittsburgh|PA
+La Petite Academy of Madison (7149)|339|7149|Madison|WI
+Children's Courtyard of Cedar Park (3104)|6|3104|Cedar Park|TX
+La Petite Academy of Roseville|339|7695|Roseville|CA
+La Petite Academy of Shelby|339|7473|Shelby|NC
+La Petite Academy of Bakersfield|339|7189|Bakersfield|CA
+La Petite Academy of Sammamish|339|7328|Sammamish|WA
+La Petite Academy of Washington DC|339|7122|Washington DC|DC
+La Petite Academy of Joplin|339|7104|Joplin|MO
+La Petite Academy of Albuquerque (7282)|339|7282|Albuquerque|NM
+Children's Courtyard of Concord (3213)|6|3213|Concord|NC
+La Petite Academy of Sterling (7124)|339|7124|Sterling|VA
+La Petite Academy of San Antonio (7633)|339|7633|San Antonio|TX
+La Petite Academy of Merritt Island|339|7386|Merritt Island|FL
+Children's Courtyard of Fort Worth (3025A)|6|3025|Fort Worth|TX
+Childrens Courtyard of Arlington (3006B)|6|3006B|Arlington|TX
+Children's Courtyard of Arlington (3009) (3009C)|6|3009C|Arlington|TX
+La Petite Academy of Yukon (7627)|339|7627|Yukon|OK
+La Petite Academy of Centreville (7123)|339|7123|Centreville|VA
+Children's Courtyard of Cameron|6|3246|Cameron|NC
+La Petite Academy of Kernersville|339|7483|Kernersville|NC
+Children's Courtyard of Brownsburg|6|3227|Brownsburg|IN
+La Petite Academy of Tulsa|339|7625|Tulsa|OK
+La Petite Academy of Knoxville (7452)|339|7452|Knoxville|TN
+The Children's Courtyard ~ Crystal Falls|6|3204|Leander|TX
+`.trim().split("\n");
+
+/* One deterministic pass over the roster: camera count, how many are sick,
+   who pays and whether parents can watch all come from the same seeded
+   stream, so every reload of the prototype tells the same story.
+
+   The defect distribution is the one a real fleet would recognise — roughly
+   three centers in four completely healthy, a long tail with one or two
+   cameras out, and about 1.5% completely dark. A whole site going dark is
+   seeded as its own event rather than as the tail of the per-camera
+   distribution: when it happens it is one cause — power, network, the
+   recorder — not eleven separate faults, and a per-camera roll would never
+   reach every camera at once, leaving the red state undemonstrable.
+
+   `target` is the dev-only fleet switch and takes a prefix of the roster.
+   The file arrives mixed across brands and states, so any prefix of it is a
+   fair subset rather than one brand in one corner of the country. */
+function seeds(target = ROSTER.length){
   seed = 771103;
   const out = [];
-  let store = 101;
-  [...US, ...CA].forEach((geo, gi) => {
-    // Every state gets a center; every third gets a second one.
-    const many = geo.country === "US" && gi % 3 === 0;
-    geo.cities.slice(0, many ? 2 : 1).forEach((city, ci) => {
-      const brand = BRANDS[(gi*3 + ci) % BRANDS.length];
-      const n = 8 + Math.floor(rnd()*19);            // 8–26 cameras
-      const roll = rnd();
-      // A whole site going dark is rare, and when it happens it is one cause
-      // — power, network, the recorder — not eleven separate faults. So it is
-      // seeded as its own event rather than as the tail of the per-camera
-      // distribution, which would otherwise never reach every camera at once
-      // and would leave the red state in the legend undemonstrable.
-      const dark = roll < .085;
-      const off = dark ? n : roll < .26 ? 1 + Math.floor(rnd()*4) : 0;
-      const deg = off ? (rnd() < .35 ? 1 + Math.floor(rnd()*2) : 0)
-                      : (roll < .40 ? 1 + Math.floor(rnd()*2) : 0);
-      out.push({ name:`${brand} — ${city}`, brand, city,
-        st:geo.code, stateName:geo.state,
-        countryName:geo.country==="CA"?"Canada":"United States", country:geo.country, tz:geo.tz,
-        store:String(store += 3), n, off:Math.min(off,n), deg:Math.min(deg, n-off),
-        pay: rnd() < .58 ? "parent" : "center",
-        pub: rnd() < .78 });
-    });
-  });
-  /* Everything above is the original assignment, generated in the original
-     order so 73 centers stay byte-for-byte what they always were. Anything
-     past it exists only for the scale test, and uses a defect distribution a
-     real fleet would recognise: roughly three centers in four completely
-     healthy, a long tail with one or two cameras out, and a handful — about
-     1.5% — completely dark. The 73-center seed deliberately over-faults, which
-     is fine for a demo and useless for judging whether a band survives 4,000. */
-  const GEOS = [...US, ...CA];
-  let k = 0;
-  while (out.length < target){
-    const gi = k % GEOS.length, geo = GEOS[gi];
-    const slot = Math.floor(k / GEOS.length);
-    const city = geo.cities[slot % geo.cities.length];
-    const q = QUAL[Math.floor(slot / geo.cities.length) % QUAL.length];
-    const brand = BRANDS[(gi * 3 + slot) % BRANDS.length];
-    const cams = 8 + Math.floor(rnd() * 13);          // 8–20 cameras
+  for (const line of ROSTER){
+    if (out.length >= target) break;
+    const [name, pfx, store, city, st] = line.split("|");
+    const geo = GEO[st] || GEO.TX;
+    const n = 8 + Math.floor(rnd()*19);               // 8–26 cameras
     const roll = rnd();
     const dark = roll < .015;
-    const off = dark ? cams : roll < .13 ? 1 + Math.floor(rnd() * 3) : 0;
-    const deg = off ? (rnd() < .3 ? 1 + Math.floor(rnd() * 2) : 0)
-                    : (roll < .27 ? 1 + Math.floor(rnd() * 2) : 0);
-    out.push({ name: brand + " — " + (q ? city + " " + q : city), brand, city: q ? city + " " + q : city,
-      st:geo.code, stateName:geo.state,
-      countryName:geo.country==="CA"?"Canada":"United States", country:geo.country, tz:geo.tz,
-      store:String(store += 3), n:cams, off:Math.min(off,cams), deg:Math.min(deg, cams-off),
+    const off = dark ? n : roll < .13 ? 1 + Math.floor(rnd()*3) : 0;
+    const deg = off ? (rnd() < .3 ? 1 + Math.floor(rnd()*2) : 0)
+                    : (roll < .27 ? 1 + Math.floor(rnd()*2) : 0);
+    out.push({ name, brand: BRAND_BY_PREFIX[+pfx] || OTHER_BRAND, city,
+      st, stateName: geo.state,
+      countryName: geo.country === "CA" ? "Canada" : "United States",
+      country: geo.country, tz: geo.tz, store,
+      n, off: Math.min(off, n), deg: Math.min(deg, n - off),
       pay: rnd() < .58 ? "parent" : "center",
       pub: rnd() < .78 });
-    k++;
   }
-  /* Not every center trades under one of the chains. Roughly one in twelve is
-     an independent site whose brand field is simply empty — which is the case
-     a grouped overview has to be built for, because a grouping that silently
-     drops a twelfth of the assignment is worse than no grouping at all.
-     Chosen by index, so the choice is stable across fleet sizes and costs the
-     seeded stream nothing. */
-  out.forEach((c, i) => {
-    if (i % 12 !== 5) return;
-    c.brand = "";
-    c.name = INDIE[Math.floor(i / 12) % INDIE.length] + " — " + c.city;
-  });
   return out;
 }
 let SEEDS = seeds();
@@ -1626,8 +2942,8 @@ function build(){
 let DATA = build();
 
 /* ---------- derived helpers ---------- */
-/* Memoised per read. At 73 centers the four array walks per center cost
-   nothing; at 4,000 the sort alone asks for tens of thousands of tallies per
+/* Memoised per read. At sixty centers the four array walks per center cost
+   nothing; at 1,231 the sort alone asks for tens of thousands of tallies per
    repaint. GEN is bumped once per mutation, so the cache can never outlive
    the data it summarises. */
 let GEN = 1;
@@ -1647,6 +2963,10 @@ const tally = c => {
   return c._t;
 };
 const pct = r => Math.round(r*100) + "%";
+/* The roster is 1,231 centers and 20,710 cameras. Every headline figure on
+   this page now runs into four or five digits, and an unseparated 20710 is a
+   number the eye has to count rather than read. */
+const num = n => n.toLocaleString();
 const dur = m => {
   if (m < 60) return m + "m";
   if (m < 1440) return Math.floor(m/60) + "h " + String(m%60).padStart(2,"0") + "m";
@@ -1690,16 +3010,17 @@ const S = {
   dropOpen:false,       // the header picker's dropdown
   q:"", qDraft:"",
   // one key per facet, each an array of chosen values; empty = not filtering
-  stale:[], status:[], brand:[], pay:[], access:[],
+  stale:[], cstatus:[], cams:[], brand:[], pay:[], access:[],
   country:[], state:[], city:[],
-  facet:"status", fsearch:"",          // which facet's options are open, and its search box
+  facet:"cstatus", fsearch:"",         // which facet's options are open, and its search box
   sort:"rate", dir:"desc", page:1, per:25,
   paused:false, tick:30, loading:false, error:false,
   age:0,                // seconds since the last successful read
   sel:null,             // {ci, idx}
   timeMode:"elapsed",   // the camera modal's clock: "elapsed" | "clock"
   centerPick:null,      // center id searched for from the "Your centers" band
-  wellPick:false,       // the "all reporting" badge is switched on
+  // No keyPick / groupPick: a key reads as pressed straight off S.cstatus, and
+  // a drill-down reads off its own facet. Nothing to keep in step.
   // the band: what a cell means, whether healthy centers are folded away,
   // and whether the collapsed strip is showing
   bandDimPick:null, bandHover:false, miniOn:false,
@@ -1724,7 +3045,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 /* Order matters: this is the order of the rail in the filter panel. "stale"
    leads because a reading being out of date outranks what the reading says —
    everything below it is a claim about the past. */
-const FKEYS = ["stale","status","brand","pay","access","country","state","city"];
+const FKEYS = ["stale","cstatus","cams","brand","pay","access","country","state","city"];
 
 /* Every facet holds an array of chosen values. Empty means "not filtering
    on this"; two or more are ORed together, which is how people actually
@@ -1740,8 +3061,8 @@ const facet = (label, all, one, options, extra={}) => ({
 /* Every option in a facet's list is counted against the same set — the centers
    that pass all the *other* facets — so that set is built once and reused.
 
-   It used to be rebuilt per option, inside facetCount. At 73 centers nobody
-   could tell; at 4,000 with the State facet open it was 56 options x 4,000
+   It used to be rebuilt per option, inside facetCount. At sixty centers nobody
+   could tell; at 1,231 with the State facet open it was 41 options x 1,231
    centers x 9 facet tests on every repaint, which measured 111ms of a 190ms
    refresh spent recomputing one set fifty-six times.
 
@@ -1778,19 +3099,33 @@ const F = {
      camera states it read as one more state. Now it is a switch above them. */
   stale: facet("Out-of-date readings", "Any reading age", c=>staleCount(c) > 0,
     ()=>[["stale","Has out-of-date readings"]], {bool:true}),
-  status: facet("Camera health", "Any camera health",
-    (c,v)=>{ const t=tally(c);
-      return v==="issues" ? !!(t.off||t.deg)
-        : v==="off"   ? !!t.off
-        : v==="deg"   ? !!t.deg
-        : !(t.off||t.deg); },
-    // "Has any issue" and "All cameras healthy" are the exact complement of
-    // each other — between them they are the green square's rule stated as a
-    // filter, which is what keeps the squares, this list and the first KPI
-    // agreeing.
-    ()=>[["issues","Has any issue"],["off","Has offline cameras"],
-         ["deg","Has degraded cameras"],
-         ["clean","All cameras healthy"]]),
+  /* The band draws three states and the filter panel could not name two of
+     them. "Has offline cameras" is not "every camera offline", so a red square
+     and an amber one could not be asked for separately — the one thing anyone
+     looking at the band actually wants. Splitting the old category fixes the
+     vocabulary before anything is wired to it.
+
+     Center status is the square's own verdict, read straight off centerStatus(),
+     so the filter and the mark cannot disagree. Its three values are mutually
+     exclusive and exhaustive over the assignment: their counts always sum to
+     the whole, which is what makes the legend able to carry them as three keys.
+
+     "Has any issue" is gone as a named option, because it was Fully down +
+     Needs attention wearing a different name — and a list that offers both the
+     parts and the whole invites someone to pick all three and wonder why the
+     count did not move. It is still one click: that pair is what the first KPI
+     selects, which is also what keeps the one-number rule true. */
+  cstatus: facet("Center status", "Any center status",
+    (c,v)=>centerStatus(c) === v,
+    ()=>[["off","Fully down"],["deg","Needs attention"],["ok","All reporting"]]),
+  /* A different question, and deliberately not exclusive with the one above: a
+     center needing attention can hold both an offline camera and a degraded one,
+     and either might be the thing you are hunting. */
+  cams: facet("Cameras inside", "Any cameras", (c,v)=>{
+      const t = tally(c);
+      return v === "off" ? !!t.off : !!t.deg;
+    },
+    ()=>[["off","Has offline cameras"],["deg","Has degraded cameras"]]),
   brand: facet("Brand", "All brands", (c,v)=>c.brand===v,
     // "No brand" is not a brand whose name happens to start with N — it is the
     // absence of one, so it sits at the end of the list rather than inside it.
@@ -1800,8 +3135,11 @@ const F = {
     ()=>[["parent","Parent-pay"],["center","Center-pay"]]),
   access: facet("Parent access", "Any parent access", (c,v)=>v==="parent"?c.pub:!c.pub,
     ()=>[["parent","Parent-facing"],["internal","Internal only"]]),
-  country: facet("Country", "US and Canada", (c,v)=>c.country===v,
-    ()=>[["US","United States"],["CA","Canada"]]),
+  // Derived rather than declared: the roster is entirely US today, and an
+  // option for a country nobody operates in is a greyed-out row asking to be
+  // clicked. It comes back on its own the day a Canadian site is added.
+  country: facet("Country", "Any country", (c,v)=>c.country===v,
+    ()=>uniqOpts(c=>c.country,"country").map(([v])=>[v, v==="CA"?"Canada":"United States"])),
   // Grouped, not gated. A state name is unambiguous on its own — there is
   // exactly one Alberta and exactly one Alabama — so requiring a country
   // first would charge everyone two clicks to fix something the eye fixes
@@ -1819,6 +3157,22 @@ const F = {
     ()=>uniqOpts(c=>c.city,"city"), {search:true, needs:"state"}),
 };
 const optLabel = (k, v) => (F[k].options().find(o=>o[0]===v) || [v, String(v)])[1];
+
+/* A category with one value in it cannot narrow anything: picking the only
+   option leaves the board exactly as it was, so it is a row in the panel that
+   spends a click to do nothing. Country is the live case — the roster is
+   entirely US, so "Country: United States" is a statement, not a choice.
+
+   Derived rather than remembered, so it heals itself: add a Canadian site and
+   Country comes back on the next render without anyone editing a list. A
+   category the reader has already chosen in stays put whatever its length,
+   because pulling a control out from under an active selection is worse than
+   showing a short one. Gated categories are exempt: City is empty until a
+   state is picked, and that emptiness is the gate doing its job, not a
+   shortage of cities. */
+const facetUseful = k => S[k].length > 0
+  || (F[k].needs && !S[F[k].needs].length)
+  || F[k].options().length > 1;
 const facetSummary = k => S[k].length === 1 ? optLabel(k, S[k][0])
   : `${optLabel(k, S[k][0])} +${S[k].length-1}`;
 
@@ -1907,12 +3261,33 @@ function sorted(list){
    burying the sort inside a panel called "Filters" made the current sort
    invisible. The sort trigger now states the active sort on its face.
    ===================================================================== */
+/* Still one chip per facet, never one per value — eight facets times several
+   values each would bury the toolbar. What changed is what the one chip says.
+
+   It used to print the bare value when there was one ("Needs attention") and a
+   count when there were more ("Center status: 2"). Both lose something. A bare
+   value is a word from somewhere: fine while you are still holding the click
+   that made it, useless ten minutes later, and ambiguous the moment two
+   categories share a word. A count is worse — it names the category and then
+   withholds the only part the reader wanted, so the panel has to be opened to
+   find out which two.
+
+   So: category, then the values, always. Capped at three so a fifty-six-state
+   selection stays a chip rather than a paragraph; the remainder is counted, and
+   the full list is in the title either way. A yes/no category has exactly one
+   value whose name restates the category, so it shows the category alone rather
+   than "Out-of-date readings: Has out-of-date readings". */
+const CHIP_VALUES = 3;
+const chipNames = k => S[k].map(v => optLabel(k, v));
+const chipTitle = k => F[k].label + ": " + chipNames(k).join(", ");
+function chipLabel(k){
+  if (F[k].bool) return F[k].label;
+  const names = chipNames(k), extra = names.length - CHIP_VALUES;
+  return F[k].label + ": " + names.slice(0, CHIP_VALUES).join(", ")
+    + (extra > 0 ? " +" + extra + " more" : "");
+}
 const activeFilters = () => FKEYS.filter(k=>S[k].length).map(k=>({
-  k,
-  // One chip per facet, not per value: eight facets times several values
-  // each would bury the toolbar in chips.
-  label: S[k].length === 1 ? optLabel(k, S[k][0]) : `${F[k].label}: ${S[k].length}`,
-  title: S[k].map(v=>optLabel(k,v)).join(", ")
+  k, label: chipLabel(k), title: chipTitle(k)
 }));
 // The search box shows its own text, so it gets no chip — but it still
 // narrows the set, so it counts toward the KPI scope line.
@@ -1971,12 +3346,16 @@ function renderTools(){
       <span class="ol">${esc(label)}</span>${extra}</button>`;
 
   const chips = activeFilters().map(f => `
-    <span class="fchip" title="${esc(f.title)}">${esc(f.label)}
+    <span class="fchip" title="${esc(f.title)}"><span class="t">${esc(f.label)}</span>
       <button class="x" data-clear-filter="${f.k}" aria-label="Remove ${esc(F[f.k].label)} filter">
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 5l14 14M19 5L5 19"/></svg>
       </button></span>`).join("");
   const n = activeFilters().length;
 
+  /* The open tab can be a category that has just gone single-valued — picking
+     a state with one city in it does exactly that — and its row is no longer
+     in the rail to click away from. Fall back to the first one that is. */
+  if (!facetUseful(S.facet)) S.facet = FKEYS.find(k=>!F[k].bool && facetUseful(k)) || S.facet;
   const fk = S.facet, fdef = F[fk];
   const gated = fdef.needs && !S[fdef.needs].length;
   /* renderTools runs on every repaint, including every live refresh, and the
@@ -2020,7 +3399,7 @@ function renderTools(){
             }).join("")}
             <div class="frailsep"></div>
             <div class="frailtabs" role="tablist" aria-label="Filter by">
-              ${FKEYS.filter(k=>!F[k].bool).map(k=>{
+              ${FKEYS.filter(k=>!F[k].bool && facetUseful(k)).map(k=>{
                 const on = S[k].length > 0;
                 const dim = F[k].needs && !S[F[k].needs].length;
                 return `<button class="frow${S.facet===k?" on":""}${dim?" dim":""}" data-facet="${k}"
@@ -2080,9 +3459,12 @@ function persistSavedViews(views){
   try { localStorage.setItem(VIEWS_KEY, JSON.stringify(views)); } catch(e){ /* storage unavailable */ }
 }
 function viewSummary(v){
+  // The same shape as a chip with nothing held back: this is only ever a title,
+  // so there is no width to protect.
   const bits = FKEYS.filter(k=>Array.isArray(v[k]) ? v[k].length : (v[k] && v[k]!=="all"))
     .map(k=>{ const s=v[k]; const arr = Array.isArray(s)?s:[s];
-      return arr.length===1 ? optLabel(k,arr[0]) : `${F[k].label}: ${arr.length}`; });
+      return F[k].bool ? F[k].label
+        : `${F[k].label}: ${arr.map(x=>optLabel(k,x)).join(", ")}`; });
   if (v.q) bits.push(`"${v.q}"`);
   bits.push(dirLabel(v.sort, v.dir || "desc"));
   return bits.join(" · ");
@@ -2092,6 +3474,9 @@ function commitSaveView(){
   const name = (inp ? inp.value : "").trim();
   if (!name){ inp && inp.focus(); return; }
   const existing = S.savedViews.find(v=>v.name.toLowerCase()===name.toLowerCase());
+  /* Nothing here records where a filter came from any more. A key and the same
+     value chosen in the Filters panel do the same thing, so the facet arrays
+     below are the whole state and the view restores exactly. */
   const payload = { id: existing?existing.id:"v"+Math.random().toString(36).slice(2,10),
     name, sort:S.sort, dir:S.dir, q:S.q };
   FKEYS.forEach(k=>payload[k]=[...S[k]]);
@@ -2106,10 +3491,16 @@ function applyView(id){
   // Views saved before categories went multi hold a single string.
   FKEYS.forEach(k=>{ const s=v[k];
     S[k] = Array.isArray(s) ? [...s] : (s && s!=="all" ? [s] : []); });
-  // ...and views saved while staleness lived inside Status carry it there.
-  if (S.status.includes("stale")){
-    S.status = S.status.filter(x=>x!=="stale");
-    S.stale  = ["stale"];
+  /* Two migrations, both from views saved under an older vocabulary: staleness
+     used to live inside the status category, and that category used to be one
+     list mixing a center verdict with a question about the cameras inside. */
+  const old = Array.isArray(v.status) ? v.status : (v.status ? [v.status] : []);
+  if (old.length){
+    if (old.includes("stale")) S.stale = ["stale"];
+    if (old.includes("issues")) S.cstatus = ["off","deg"];
+    if (old.includes("clean"))  S.cstatus = [...new Set([...S.cstatus, "ok"])];
+    const cams = old.filter(x=>x==="off"||x==="deg");
+    if (cams.length) S.cams = cams;
   }
   S.sort=v.sort; S.dir=v.dir || sortRow(v.sort).def;
   S.q=v.q; S.qDraft=v.q; $("q").value=v.q; S.centerPick=null;
@@ -2187,15 +3578,20 @@ const centerStatus = c => {
 /* The rule, in words, in one place: every caption that describes a center's
    condition comes through here, so the legend, the hover card and the screen
    reader cannot drift apart from each other or from the color. */
+const STATE_NAME = {off:"Fully down", deg:"Needs attention", ok:"All reporting"};
+
 function centerStateWords(c){
   const t = tally(c), st = centerStatus(c);
-  // The middle bucket is one colour but several situations, so the words
-  // carry the split the square deliberately doesn't.
-  const base = st === "off" ? `All ${t.total} cameras offline`
-    : st === "ok"           ? `All ${t.total} cameras healthy`
-    : t.off && t.deg        ? `${t.off} of ${t.total} cameras offline, ${t.deg} degraded`
-    : t.off                 ? `${t.off} of ${t.total} cameras offline`
-    :                         `${t.deg} of ${t.total} cameras degraded`;
+  // The state is named first and the detail follows it, so the word on the
+  // legend, the word in the filter and the word a screen reader hears are the
+  // same word. The middle bucket is one mark but several situations, so the
+  // detail carries the split the mark deliberately doesn't.
+  const base = STATE_NAME[st] + " — " + (
+      st === "off" ? `all ${t.total} cameras offline`
+    : st === "ok"  ? `${t.total} cameras, none offline or degraded`
+    : t.off && t.deg ? `${t.off} of ${t.total} cameras offline, ${t.deg} degraded`
+    : t.off          ? `${t.off} of ${t.total} cameras offline`
+    :                  `${t.deg} of ${t.total} cameras degraded`);
   // Deliberately silent about staleness. A center block answers one question —
   // how much of this site is working — and reading age is a camera-level fact
   // that belongs beside the cameras, not folded into the overview's summary.
@@ -2205,9 +3601,10 @@ function centerStateWords(c){
 /* =====================================================================
    The band.
 
-   One cell = one center was never a contract; it is a zoom level. At 73
-   centers a cell is a center. At 4,000 it is a state, because four thousand
-   squares at a size anyone can read is eleven rows of nothing.
+   One cell = one center was never a contract; it is a zoom level. For a few
+   hundred centers a cell is a center. Across the whole roster it is a state,
+   because twelve hundred squares at a size anyone can read is eleven rows of
+   nothing.
 
    What does *not* change with the zoom is the vocabulary. A center is red,
    orange or green by exactly the rule the rest of the product uses — red only
@@ -2291,52 +3688,44 @@ function buildCells(dim, scope){
   return out;
 }
 
-/* The one filter this component does not apply to itself.
+/* Every filter reaches this component, center status included. The search box
+   is the one exception, and it is the only one: clicking a cell writes a center
+   name into the search field, and letting that narrow the band would leave one
+   square on screen the instant anyone used it.
 
-   The "N centers all reporting" badge is part of the band, and a control does
-   not get to blind the component it sits in — the same reason the search box is
-   left out of the band's scope. Switching it on would otherwise re-scope the
-   band to the healthy centers and take the badge with it, which is a strange
-   way for a control to answer a click. So while the badge is on, the band
-   ignores the status it set and keeps drawing the whole assignment; the list
-   below is where the answer shows up.
+   A legend key used to be excepted too, on the argument that a control should
+   not blind the component it sits in. The argument was sound and the conclusion
+   was not: a filter that visibly empties the list and leaves the thing above it
+   untouched reads as a control that half worked. What the argument actually
+   protects is the *control*, not the band — so the keys keep their counts on the
+   full scope (see bandKeyScope) and stay switchable, while the cells beneath
+   them filter like every other cell on the page. */
+const bandPass = c => matchesFilters(c, {ignoreQ:true});
 
-   The badge being "on" is re-derived from the filters every render rather than
-   remembered, so touching any other filter turns it off and the band goes back
-   to honouring everything. Nothing has to remember to clear the flag. */
-const wellActive = () => S.wellPick
-  && S.status.length === 1 && S.status[0] === "clean";
-const bandPass = c => wellActive()
-  ? FKEYS.every(k => k === "status" || F[k].test(c, S[k]))
-  : matchesFilters(c, {ignoreQ:true});
+/* What the legend counts: everything the filters leave except center status
+   itself. Counting the drawn cells instead would let one key disable the other
+   two the moment it was pressed — the control eating itself, which is the real
+   form of "a control does not blind the component it sits in". */
+const bandKeyScope = () => DATA.filter(c =>
+  FKEYS.every(k => k === "cstatus" || F[k].test(c, S[k])));
 
-/* "Your centers" holds one pick at a time.
+/* One pick at a time, down to the one pair that can still contradict itself.
 
-   The component offers two ways to point at something: a center square, which
-   is a search, and the "all reporting" badge, which is a filter. The rest of
-   the board is glad to combine a search with a filter, and should keep doing
-   that. This component is the exception, because inside it the two are not
-   ingredients — they are alternatives, and combining them is never what the
-   click meant.
+   The rule was written for a band that ignored its own status filter. With the
+   band honouring it, most of the rule has nothing left to prevent: a cell you
+   can see is a cell that passes, so a key can no longer filter away the very
+   square being clicked, and a key alongside a brand is an ordinary two-facet
+   AND of the kind the whole tool is built on. Keeping the drops would now do
+   harm rather than prevent it — clearing the key under a click would rebuild
+   the band with the cell still under the pointer, which is the one thing this
+   component is careful never to do.
 
-   Left combining, each one broke the other. With the badge on, clicking a red
-   center did nothing at all: the badge's own filter excluded the very center
-   being clicked, and pickCenter bailed on its guard without a word. The other
-   way round, clicking the badge left the picked center's name sitting in the
-   search box, so the list was asked for one named center AND every healthy
-   center, and returned nothing. Two ways of asking for one thing, ANDed into
-   zero.
-
-   So each pick drops the other. Note what these two do *not* touch: any filter
-   the user set from the Filters panel, and any query they typed themselves —
-   those still combine exactly as before. The component only ever withdraws its
-   own pick. */
-function dropWellPick(){
-  if (!wellActive()) return false;
-  S.status = []; S.wellPick = false;
-  bandSig = "";
-  return true;
-}
+   What survives is the pair that can still be asked two ways at once. The band
+   deliberately ignores the search box, so a center name sitting in that field
+   is invisible here while contradicting the key: "Frisco" AND "all reporting"
+   is an empty list with nothing on screen explaining why. So a key still
+   withdraws the search this component wrote — and only that one. A query the
+   reader typed is theirs. */
 function dropCenterPick(){
   // Only the search this component wrote. A query the user typed is theirs.
   if (!S.centerPick) return false;
@@ -2427,7 +3816,7 @@ function renderStrip(){
     empty.innerHTML = 'No centers match these filters. <b>All '
       + DATA.length.toLocaleString() + '</b> are filtered out.'
       + '<button id="bandClear">Clear the filters</button>';
-    renderBandBar({healthy:0, over:0});
+    renderBandBar({over:0});
     renderBandHead(); renderBandLegend(); renderMini();
     return;
   }
@@ -2442,10 +3831,6 @@ function renderStrip(){
 
   const withIssues = cells.filter(x=>x.a.attention > 0);
   const drawn  = withIssues.length ? withIssues : cells;
-  // What the badge offers: every center in view with nothing wrong, whatever
-  // the cells happen to be right now.
-  let healthy = 0;
-  for (const c of scope) if (!tally(c).bad) healthy++;
   bandPlan = planFor(dim, drawn.length, width);
 
   /* Churn under the pointer causes mis-clicks, so while the band is being used
@@ -2479,7 +3864,6 @@ function renderStrip(){
   }
   el.style.setProperty("--cgap", CGAP + "px");
   el.style.setProperty("--bleed", BAND_BLEED + "px");
-  el.classList.toggle("tiny", bandPlan.mode === "sq" && bandPlan.size < 16);
 
   // Rebuild only when the set of cells or their size actually changed; patch
   // otherwise. These nodes are focusable and hoverable, and replacing one
@@ -2499,7 +3883,7 @@ function renderStrip(){
     bandSig = sig;
   }
   patchStrip();
-  renderBandBar({healthy, over});
+  renderBandBar({over});
   renderBandHead();
   renderBandLegend();
   renderMini();
@@ -2511,7 +3895,7 @@ function cellWords(x){
     return c.name + ". " + centerStateWords(c) + ".";
   }
   const a = x.a, bits = [];
-  if (a.red)   bits.push(plural(a.red, "center") + " with every camera offline");
+  if (a.red)   bits.push(plural(a.red, "center") + " fully down");
   if (a.amber) bits.push(a.amber + " partly affected");
   bits.push(a.green + " all healthy");
   return x.name + ". " + plural(a.n, "center") + ": " + bits.join(", ") + ".";
@@ -2610,59 +3994,103 @@ function renderBandBar(info){
      below already knows how to show a lot of centers.
 
      It counts centers at every zoom, never cells. Counting cells read fine at
-     the center zoom and then vanished at the one where it matters most — at
-     4,000 centers no single *state* is entirely healthy, so a cell count said
-     nothing while 2,975 centers sat behind it. Centers are also what the filter
-     it applies acts on, so the number and the result are the same number. */
-  const on = wellActive();
-  const fold = info.healthy
-    ? '<button class="bandchip fold" id="foldChip" aria-pressed="' + on + '"'
-      + ' title="' + (on ? "Stop showing these below" : "Show these in the list below") + '">'
-      + '<span class="sw ok"></span>' + info.healthy.toLocaleString()
-      + (info.healthy === 1 ? " center" : " centers") + " all reporting</button>"
-    : "";
+     the center zoom and then vanished at the one where it matters most — across
+     the whole roster barely a state is entirely healthy, so a cell count said
+     nothing while three hundred centers sat behind it. Centers are also what the
+     filter it applies acts on, so the number and the result are the same number. */
+  // The green badge that used to sit here is gone: it was one of three states
+  // wearing a control the other two did not have. All three are keys on the
+  // legend now, which is the same control with three values instead of one.
+  /* What is on screen, not what is missing from it. "+866 below the fold" made
+     the band report its own shortfall — a number the reader can do nothing with,
+     phrased as though something had gone wrong. The band is three rows by
+     design, and the cells it drops are the least urgent ones by design, so the
+     honest line is how far down the order it got. The reason lives in the title,
+     available once and not in the way afterwards. */
+  const shown = CELLS.length;
+  const held  = shown + info.over;
+  const unit  = DIMS[bandDimNow].label.toLowerCase() + "s";
   const over = info.over
-    ? '<span class="bandchip flat" title="Cells are sorted worst first, so these are the least urgent.">'
-      + "+" + info.over.toLocaleString() + " below the fold</span>"
+    ? '<span class="bandchip flat" title="The band is three rows tall, and cells are ordered'
+      + ' worst first — so these are the most urgent ' + shown.toLocaleString()
+      + ' of the ' + held.toLocaleString() + ' it holds.">'
+      + "Showing " + shown.toLocaleString() + " of " + held.toLocaleString()
+      + " " + unit + "</span>"
     : "";
   const outn = bandScopeAll ? 0 : DATA.length - bandScopeN;
   const filteredOut = outn
     ? '<span class="bandchip flat">' + outn.toLocaleString() + ' filtered out</span>' : "";
   $("bandBar").innerHTML = '<span class="dimsel" role="group" aria-label="What one cell is">' + dims + '</span>'
-    + crumbHtml + fold + over + filteredOut;
+    + crumbHtml + over + filteredOut;
 }
 
 function renderBandHead(){
   const cams = bandScopeAll
     ? DATA.reduce((s,c)=>s+c.cams.length, 0)
     : DATA.filter(bandPass).reduce((s,c)=>s+c.cams.length, 0);
+  // The info button used to sit here, beside the count. It explains the three
+  // states, so it now sits beside them — see renderBandLegend.
   $("bandHeadSlot").innerHTML = '<span class="lg num">' + bandScopeN.toLocaleString() + ' centers · '
-    + cams.toLocaleString() + ' cameras</span>'
-    + '<button class="lginfo" id="colorInfo" aria-label="How this band is read">'
-    + '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">'
-    + '<path d="M12 11v6" stroke-linecap="round"/><circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg></button>';
+    + cams.toLocaleString() + ' cameras</span>';
 }
 
 /* The legend names what is on screen and nothing that isn't: the tile bar and
    the filtered-out dot only appear once something is wearing them. */
+/* Counts for the keys come from the band's scope, which — while a key is on —
+   is the scope with center status taken back out. So the three numbers hold
+   still while one of them is switched on, which is what a reader expects of a
+   control they are looking at and the reason the key does not re-scope the band
+   in the first place. */
+const KEY_WORDS = {
+  off: n => "fully down",
+  deg: n => n === 1 ? "needs attention" : "need attention",
+  ok:  n => n === 1 ? "reporting" : "all reporting",
+};
 function renderBandLegend(){
   const group = bandDimNow !== "center";
-  const three = '<span class="lg"><span class="sw off"></span>All cameras offline</span>'
-    + '<span class="lg"><span class="sw deg"></span>Some offline or degraded</span>'
-    + '<span class="lg"><span class="sw ok"></span>All cameras healthy</span>';
+  // One value selected means one key is on — whether it was pressed here or
+  // chosen in the Filters panel. Both do the same thing now, so both light up.
+  const live  = S.cstatus.length === 1 ? S.cstatus[0] : null;
+  const keyBtn = (v, swc, n) => {
+    const on = live === v, words = KEY_WORDS[v](n);
+    return '<button class="bkey k-' + v + '" data-key="' + v + '"'
+      + ' aria-pressed="' + on + '"' + (n ? "" : " disabled")
+      + ' aria-label="' + n.toLocaleString() + ' ' + words + '. '
+      + (on ? "Selected; the list below holds these centers."
+            : n ? "Not selected." : "None in view.") + '">'
+      + '<span class="sw ' + swc + '"></span><b class="num">' + n.toLocaleString()
+      + '</b> ' + words + '</button>';
+  };
   const bar = group
     ? '<span class="lg"><span class="lgs split"><i style="flex:1;background:var(--off)"></i>'
-      + '<i style="flex:2;background:var(--deg)"></i><i style="flex:5;background:var(--ok)"></i></span>'
+      + '<i style="flex:2;background:var(--attn)"></i><i style="flex:5;background:var(--ok)"></i></span>'
       + 'how a group splits across the three</span>' : "";
-  $("bandLegend").innerHTML = three + bar;
 
-  // One sentence for a screen reader, not two hundred announced cells.
   const scope = bandScopeAll ? DATA : DATA.filter(bandPass);
   const a = aggregate(scope);
+  // The keys count what center status has not yet been applied to; the summary
+  // under them describes what is actually drawn. Two different questions.
+  const k = aggregate(bandKeyScope());
+  const info = '<button class="lginfo" id="colorInfo" aria-label="How the three states are decided">'
+    + '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8">'
+    + '<path d="M12 11v6" stroke-linecap="round"/>'
+    + '<circle cx="12" cy="6.6" r="1.3" fill="currentColor" stroke="none"/></svg></button>';
+  $("bandLegend").innerHTML = keyBtn("off","off",k.red) + keyBtn("deg","attn",k.amber)
+    + keyBtn("ok","ok",k.green) + info + bar;
+  /* The button the pointer is on was just replaced, and mouseout never fires
+     for a node that is gone — so the card it opened would sit there until
+     something else cleared it. Re-anchor to the button that took its place
+     rather than stranding it. The card is static, so this is invisible. */
+  if (tip.classList.contains("states") && tip.classList.contains("show")){
+    const again = $("colorInfo");
+    if (again) showStatesTip(again); else tip.classList.remove("show","states");
+  }
+
+  // One sentence for a screen reader, not two hundred announced cells.
   const unit = group ? DIMS[bandDimNow].label.toLowerCase() + " cells" : "center cells";
   const txt = "Band showing " + CELLS.length.toLocaleString() + " " + unit + ". "
     + a.attention.toLocaleString() + " of " + a.n.toLocaleString()
-    + " centers need attention, " + a.red.toLocaleString() + " with every camera offline.";
+    + " centers need attention, " + a.red.toLocaleString() + " fully down.";
   const sum = $("bandSum");
   if (sum.textContent !== txt) sum.textContent = txt;
 }
@@ -2673,7 +4101,7 @@ function renderMini(){
   if (S.loading || !S.miniOn){ m.hidden = true; return; }
   const scope = bandScopeAll ? DATA : DATA.filter(bandPass);
   const a = aggregate(scope), tot = a.n || 1;
-  const seg = [["var(--off)", a.red], ["var(--deg)", a.amber], ["var(--ok)", a.green]]
+  const seg = [["var(--off)", a.red], ["var(--attn)", a.amber], ["var(--ok)", a.green]]
     .filter(x=>x[1])
     .map(x=>'<i style="flex:' + x[1] + ';min-width:4px;background:' + x[0] + '"></i>').join("");
   const crumbs = bandCrumb().map(c=>c.label);
@@ -2681,7 +4109,13 @@ function renderMini(){
   m.hidden = false;
   m.innerHTML = '<div class="mini">'
     + '<span class="sevbar" role="img" aria-label="Severity across ' + plural(tot,"center") + '">' + seg + '</span>'
-    + '<span class="mtxt num">' + (a.attention
+    /* Once a filter has narrowed the band, every center in it is one the filter
+       kept, so "27 of 27 need attention" says nothing — the same tautology the
+       group tiles already sidestep. Narrowed, the useful number is simply how
+       many are in view. */
+    + '<span class="mtxt num">' + (!bandScopeAll
+        ? plural(tot, "center") + ' in view'
+        : a.attention
         ? a.attention.toLocaleString() + ' of ' + tot.toLocaleString() + ' centers need attention'
         : 'all ' + tot.toLocaleString() + ' centers reporting')
       + (a.red ? ' · ' + plural(a.red, "center") + ' fully down' : "") + '</span>'
@@ -2698,6 +4132,8 @@ function renderMini(){
 function drillDim(x, additive){
   const fk = DIMS[x.dim].facet; if (!fk) return;
   const cur = S[fk];
+  // A brand and a center status are two facets, ANDed the way any two facets
+  // are: "DoodleBugs that need attention" is a question, not a collision.
   if (additive) S[fk] = cur.includes(x.k) ? cur.filter(v=>v !== x.k) : [...cur, x.k];
   else          S[fk] = (cur.length === 1 && cur[0] === x.k) ? [] : [x.k];
   reconcileFilters();
@@ -2722,24 +4158,25 @@ function drillDim(x, additive){
 const _mutate = mutate;
 mutate = function(){ _mutate(); GEN++; };
 
-/* ---------- the dev-only fleet switch ----------
-   Not part of the design. 73 is the real assignment; 600 and 4,000 exist so
-   the band can be judged at the scale it claims to survive. */
-let FLEET = 73;
+/* ---------- the dev-only assignment switch ----------
+   Not part of the design. The whole roster is 1,231 centers, which is what a
+   regional director sees; 60 and 400 are prefixes of it, so the band can be
+   judged at the altitudes a smaller assignment puts it in. 0 means all. */
+let FLEET = 0;
 function setFleet(size){
   FLEET = size;
-  SEEDS = seeds(size);
+  SEEDS = seeds(size || ROSTER.length);
   DATA = build();
   GEN++;
   FKEYS.forEach(k => S[k] = []);
   S.q = ""; S.qDraft = ""; S.kpi = null; S.centerPick = null; S.page = 1;
-  S.sel = null; S.fsearch = ""; S.bandDimPick = null; S.wellPick = false;
+  S.sel = null; S.fsearch = ""; S.bandDimPick = null;
   S.center = (DATA.find(c=>tally(c).off) || DATA[0]).id;
   bandSig = ""; bandOrder = null;
   $("q").value = ""; $("qField").classList.remove("linked");
   $("noticeN").textContent = DATA.length.toLocaleString();
   render(); renderDashboard();
-  $("announce").textContent = "Synthetic fleet set to " + DATA.length.toLocaleString() + " centers.";
+  $("announce").textContent = "Assignment set to " + DATA.length.toLocaleString() + " centers.";
 }
 
 /* Clicking a center is a promise that the list below will show it, so drop
@@ -2748,10 +4185,8 @@ function setFleet(size){
 function pickCenter(id){
   const c = DATA.find(x=>x.id===id); if (!c) return;
   if (S.centerPick === id) return clearCenterPick();
-  // One pick at a time: this click supersedes the badge, if the badge was on.
-  // It has to happen before the guard below, or the badge's own filter is what
-  // makes the guard refuse.
-  dropWellPick();
+  // No need to withdraw a legend key here any more: the band honours it, so a
+  // square that is on screen is a square that passes it.
   // Every cell drawn here already passes the filters, so this is a backstop
   // rather than a branch anyone reaches.
   if (!matchesFilters(c, {ignoreQ:true})) return;
@@ -2978,17 +4413,17 @@ function renderKpis(){
   const cams = t.reduce((s,x)=>s+x.total,0);
   const tiles = [
     {k:"issues", cls:unhealthy?"t-n":"calm", l: isFiltered?"Centers in view":"Centers with unhealthy cameras",
-     v: isFiltered ? p.length : `${unhealthy} of ${p.length}`,
+     v: isFiltered ? num(p.length) : `${num(unhealthy)} of ${num(p.length)}`,
      // Don't claim they're sorted to the top unless they actually are.
-     s: isFiltered ? `of ${DATA.length} assigned`
+     s: isFiltered ? `of ${num(DATA.length)} assigned`
        : !unhealthy ? "everything healthy right now"
        : ((S.sort==="rate"||S.sort==="count") && S.dir==="desc") ? "worst first" : "across your assignment",
      t:"Show only centers with an offline or degraded camera"},
     // A zero in a bad-news metric is good news: it goes calm rather than
     // staying alert-red/orange, and the sub-label states the good news.
-    {k:"off", cls: off?"t-off":"calm", l:"Cameras offline", v:off, s: off?`of ${cams} cameras`:"none right now",
+    {k:"off", cls: off?"t-off":"calm", l:"Cameras offline", v:num(off), s: off?`of ${num(cams)} cameras`:"none right now",
      t:"Show only centers with offline cameras"},
-    {k:"deg", cls: deg?"t-deg":"calm", l:"Cameras degraded", v:deg, s: deg?"reporting, but impaired":"all at full quality",
+    {k:"deg", cls: deg?"t-deg":"calm", l:"Cameras degraded", v:num(deg), s: deg?"reporting, but impaired":"all at full quality",
      t:"Show only centers with degraded cameras"},
     {k:"longest", cls:"t-n", l:"Longest outage", v: worst? dur(worst) : "—", s: worst? "still down now" : "no active outages",
      t:"Sort by outage time, longest first"}
@@ -3018,7 +4453,8 @@ function centerHtml(c, absIndex){
   // the other two numbers might be wrong.
   const stale = staleCount(c);
   const staleStat = stale
-    ? `<span class="stat stale"><span class="sw stale"></span><b class="num">${stale}</b> out of date</span>`
+    ? `<span class="stat stale"><span><b class="num">${stale}</b> out of date</span>`
+      + ` <span>· oldest <b class="num">${dur(oldestStale(c))}</b></span></span>`
     : "";
   const sick = t.off || t.deg;
   const stats = (sick
@@ -3062,7 +4498,7 @@ function skeleton(){
 }
 
 /* One button per page is fine at three pages and a wall at a hundred and sixty.
-   At 4,000 centers the row ran off the end of the card, took the per-page
+   At full roster the row ran off the end of the card, took the per-page
    control with it and gave the whole page a horizontal scrollbar. Window it:
    both ends, a couple either side of where you are, and a gap standing in for
    the rest. */
@@ -3119,7 +4555,7 @@ function renderList(){
   // pagination — hidden when there is nothing to page through
   $("pagerWrap").innerHTML = pages === 1 ? "" : `
     <div class="pager">
-      <span class="pgtxt num">Showing ${all.length?start+1:0}–${Math.min(start+S.per, all.length)} of ${all.length}</span>
+      <span class="pgtxt num">Showing ${num(all.length?start+1:0)}–${num(Math.min(start+S.per, all.length))} of ${num(all.length)}</span>
       <div class="pgroup">
         <button class="pg" data-pg="prev" ${S.page===1?"disabled":""} aria-label="Previous page">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 6l-6 6 6 6"/></svg></button>
@@ -3143,8 +4579,8 @@ function renderList(){
   // One element per side: the row is a flex container, so loose text nodes
   // would each become a flex item and get spread across the whole width.
   const count = hasAnyFilter()
-    ? `<span><span class="num">${all.length}</span> of <span class="num">${DATA.length}</span> centers ·
-       <span class="num">${cams}</span> cameras in view</span>`
+    ? `<span><span class="num">${num(all.length)}</span> of <span class="num">${num(DATA.length)}</span> centers ·
+       <span class="num">${num(cams)}</span> cameras in view</span>`
     : "";
   $("count").innerHTML = count;
   $("count").hidden = !count;
@@ -3166,8 +4602,18 @@ function renderLive(){
   $("liveState").textContent = S.paused ? "Paused" : S.error ? "Retrying" : "Live";
   $("liveSub").textContent = S.paused ? "showing a frozen view" : `next refresh in ${S.tick}s`;
   // Never let the page imply it is current when it isn't.
-  $("asof").textContent = "Every camera's most recent heartbeat · read "
-    + (S.age < 5 ? "just now" : S.age < 60 ? S.age + "s ago" : dur(Math.round(S.age/60)) + " ago");
+  /* One clause, inline, on the line that already says how fresh the page is —
+     not a banner. The count is of the whole assignment rather than the filtered
+     view, because this sentence describes the read itself, the way "read just
+     now" beside it does; the KPI row below is where the filtered numbers live.
+     It appears only when something is actually out of date and it does not
+     dismiss, because it is not an alert, it is a qualification on everything
+     underneath it. */
+  const nstale = fleetStale();
+  $("asof").innerHTML = "Every camera's most recent heartbeat · read "
+    + (S.age < 5 ? "just now" : S.age < 60 ? S.age + "s ago" : dur(Math.round(S.age/60)) + " ago")
+    + (nstale ? ' · <span class="staleclause">' + nstale.toLocaleString()
+        + (nstale === 1 ? " reading" : " readings") + " over an hour old</span>" : "");
   prog.setAttribute("stroke-dashoffset", String(C - C * (S.tick/30)));
   $("pauseBtn").setAttribute("aria-pressed", String(S.paused));
   $("pauseBtn").title = S.paused ? "Resume auto-refresh" : "Pause auto-refresh";
@@ -3365,7 +4811,7 @@ function refresh({silent=false}={}){
   const off = t.reduce((s,x)=>s+x.off,0), deg = t.reduce((s,x)=>s+x.deg,0);
   const unhealthy = t.filter(x=>x.off||x.deg).length;
   if (!silent) $("announce").textContent = (off || deg)
-    ? `Updated. ${unhealthy} of ${t.length} centers have unhealthy cameras. ${off} offline, ${deg} degraded.`
+    ? `Updated. ${num(unhealthy)} of ${num(t.length)} centers have unhealthy cameras. ${num(off)} offline, ${num(deg)} degraded.`
     : `Updated. All cameras reporting normally.`;
 }
 
@@ -3457,7 +4903,7 @@ function showCenterTip(b){
   tip.innerHTML = '<b>' + esc(x.name) + '</b>'
     + '<em class="num">' + DIMS[x.dim].label + ' · ' + plural(a.n, "center")
       + ' · ' + a.total.toLocaleString() + ' cameras</em>'
-    + row("off", a.red,   a.red === 1 ? "center with every camera offline" : "centers with every camera offline")
+    + row("off", a.red,   a.red === 1 ? "center fully down" : "centers fully down")
     + row("deg", a.amber, a.amber === 1 ? "center partly affected" : "centers partly affected")
     + row("ok",  a.green, a.green === 1 ? "center all healthy" : "centers all healthy")
     + (a.outage ? '<em class="num">Longest outage ' + dur(a.outage) + '</em>' : "")
@@ -3465,6 +4911,27 @@ function showCenterTip(b){
       + "Click to filter to this group · ⌘/Ctrl-click to add" + '</em>';
   placeTip(b);
 }
+/* The three rules, on hover, in the same card every other hover on this page
+   uses. The button still opens the full notes on click; this is the answer to
+   the question that does not need the notes — what decides the colour. Each
+   state gets its rule and one sentence, and nothing else: a tooltip long enough
+   to need scanning is a tooltip nobody finishes. */
+function showStatesTip(b){
+  if (S.sel){ tip.classList.remove("show","states"); return; }   // the modal owns the screen
+  tip.classList.add("states");
+  const row = (cls, name, rule, text) =>
+    '<span class="row"><span class="sw ' + cls + '" style="width:11px;height:11px"></span>'
+    + name + ' <code>' + rule + '</code></span><em>' + text + '</em>';
+  tip.innerHTML = '<b>What decides a center\u2019s colour</b>'
+    + row("off", "Fully down", "offline = total",
+        "Every camera at the site is dark \u2014 almost always one cause, not a list of faults.")
+    + row("attn", "Needs attention", "offline + degraded &gt; 0",
+        "Something is wrong but not everything. Ungraded on purpose; the row below carries how much.")
+    + row("ok", "All reporting", "offline = 0, degraded = 0",
+        "Nothing offline and nothing impaired.");
+  placeTip(b);
+}
+
 /* Which camera block the pointer is on, so a re-render can put the
    tooltip back where it was instead of orphaning it. */
 let hoverBlk = null;
@@ -3555,25 +5022,39 @@ $("bandBar").addEventListener("click", e=>{
     $("announce").textContent = "Back to all " + DATA.length.toLocaleString() + " centers.";
     return;
   }
-  if (e.target.closest("#foldChip")){
-    // Exactly the filter the badge describes.
-    const on = wellActive();
-    S.status   = on ? [] : ["clean"];
-    S.wellPick = !on;
-    dropCenterPick();          // one pick at a time: this supersedes a center
-    S.kpi = null; S.page = 1;
-    S.filtersOpen = S.sortOpen = S.savingOpen = false;
-    bandSig = ""; bandOrder = null; render();
-    $("announce").textContent = on
-      ? "Filter cleared. Showing every center again."
-      : "Showing the centers with all cameras healthy. "
-        + plural(filtered().length, "center") + " in the list.";
-  }
+});
+/* A legend key applies exactly the filter it describes, and nothing else moves:
+   the band keeps drawing the whole scope, because a control does not get to
+   blind the component it sits in. The list below is where the answer appears. */
+$("bandLegend").addEventListener("mouseover", e=>{
+  const i = e.target.closest("#colorInfo"); if (i) showStatesTip(i);
+});
+$("bandLegend").addEventListener("focusin", e=>{
+  const i = e.target.closest("#colorInfo"); if (i) showStatesTip(i);
+});
+$("bandLegend").addEventListener("mouseout", e=>{
+  if (e.target.closest("#colorInfo")) tip.classList.remove("show","states");
+});
+$("bandLegend").addEventListener("focusout", e=>{
+  if (e.target.closest("#colorInfo")) tip.classList.remove("show","states");
+});
+$("bandLegend").addEventListener("click", e=>{
+  const i = e.target.closest("#colorInfo");
+  if (i){ tip.classList.remove("show","states"); openInfo("infoColors", i); return; }
+  const b = e.target.closest("[data-key]"); if (!b || b.disabled) return;
+  const v = b.dataset.key;
+  const on = S.cstatus.length === 1 && S.cstatus[0] === v;
+  dropCenterPick();            // the one pick a key can still contradict
+  S.cstatus = on ? [] : [v];
+  S.kpi = null; S.page = 1;
+  S.filtersOpen = S.sortOpen = S.savingOpen = false;
+  bandSig = ""; bandOrder = null; render();
+  $("announce").textContent = on
+    ? "Center status filter cleared. " + plural(filtered().length, "center") + " in the list."
+    : STATE_NAME[v] + ". " + plural(filtered().length, "center") + " in the list.";
 });
 $("bandEmpty").addEventListener("click", e=>{ if (e.target.closest("#bandClear")) clearAll(); });
-$("bandHeadSlot").addEventListener("click", e=>{
-  const b = e.target.closest("#colorInfo"); if (b) openInfo("infoColors", b);
-});
+
 
 /* The collapsed strip. It costs the page no layout — a zero-height sticky
    box with the bar absolutely positioned inside it — so it can appear and
@@ -3660,13 +5141,18 @@ function clearAll(){
 $("kpis").addEventListener("click", e=>{
   const b = e.target.closest("[data-kpi]"); if (!b) return;
   const k = b.dataset.kpi;
-  if (S.kpi === k){ S.kpi=null; S.status=[]; S.sort="rate"; S.dir="desc"; }
+  if (S.kpi === k){ S.kpi=null; S.cstatus=[]; S.cams=[]; S.sort="rate"; S.dir="desc"; }
   else {
     S.kpi = k;
-    if (k==="issues"){ S.status=["issues"]; }
-    if (k==="off"){ S.status=["off"]; }
-    if (k==="deg"){ S.status=["deg"]; }
-    if (k==="longest"){ S.status=["off"]; S.sort="outage"; S.dir="desc"; }
+    S.cstatus = []; S.cams = [];
+    // The first tile counts centers with anything offline or impaired, which is
+    // every non-green square — so it selects exactly those two states. This is
+    // the one-number rule expressed as a click: the tile, the squares it matches
+    // and the set the filter leaves are all the same set.
+    if (k==="issues"){ S.cstatus=["off","deg"]; }
+    if (k==="off"){ S.cams=["off"]; }
+    if (k==="deg"){ S.cams=["deg"]; }
+    if (k==="longest"){ S.cams=["off"]; S.sort="outage"; S.dir="desc"; }
   }
   S.page=1; render();
 });
@@ -3718,7 +5204,7 @@ document.addEventListener("click", e=>{
     } else {
       S[f] = v;
     }
-    if (f === "status") S.kpi = null;
+    if (f === "cstatus" || f === "cams") S.kpi = null;
     // A field's natural direction comes with it: nobody picks "Defect Rate"
     // wanting the healthiest centers first, or "Center Name" wanting Z–A.
     if (f === "sort") S.dir = sortRow(S.sort).def;
@@ -3730,7 +5216,7 @@ document.addEventListener("click", e=>{
   if (cf){
     const k = cf.dataset.clearFilter;
     S[k]=[];
-    if (k === "status") S.kpi=null;
+    if (k === "cstatus" || k === "cams") S.kpi=null;
     reconcileFilters(); S.page=1; render(); return;
   }
 
@@ -3763,8 +5249,8 @@ function renderSearchScope(){
   // kind of duplication this board keeps being pruned of.
   $("q").placeholder = "Search by center or store number";
   $("q").setAttribute("aria-label", narrowed
-    ? `Search by name or store number within the ${scope} centers your filters left, of ${DATA.length} assigned`
-    : `Search all ${DATA.length} centers by name or store number`);
+    ? `Search by name or store number within the ${scope} centers your filters left, of ${num(DATA.length)} assigned`
+    : `Search all ${num(DATA.length)} centers by name or store number`);
 }
 
 /* The toolbar sits low enough on a laptop that a panel dropping from it
@@ -3929,7 +5415,7 @@ document.querySelector(".proto").addEventListener("click", e=>{
    the contrast only lands if you arrive from it rather than start there. */
 (function init(){
   S.savedViews = loadSavedViews();
-  $("noticeN").textContent = DATA.length;
+  $("noticeN").textContent = num(DATA.length);
   // An earlier build persisted the dismissal; clear that key so anyone who
   // dismissed it back then isn't stuck without the notice forever.
   try { localStorage.removeItem("wmg.cameraHealth.noticeSeen.v1"); } catch(e){}
@@ -3940,11 +5426,5 @@ document.querySelector(".proto").addEventListener("click", e=>{
   setTimeout(()=>{ S.loading = false; render(); }, 900);
 })();
 </script>
-<nav class="vsw" aria-label="Prototype version">
-  <b>Version</b>
-  <a href="index.html" aria-current="page">Tone</a>
-  <a href="shape.html">Shape</a>
-  <a class="doc" href="rationale.html">Design notes</a>
-</nav>
 </body>
 </html>
