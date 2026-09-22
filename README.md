@@ -26,7 +26,7 @@ centers are invented — see *What these are and aren't* below.
 ## What it does
 
 - **"Your centers"** — an always-visible overview of the whole assignment, above the list.
-  One cell is a center while that fits and a **brand or a state once it doesn't**, so the
+  One cell is a center while that fits and a **state or a brand once it doesn't**, so the
   overview stays three rows tall whether you manage sixty centers or the whole 1,231.
   The `Cell` control makes that zoom explicit; `AUTO` picks the finest one that still
   draws legibly. Click a center to search it, click a group to filter to it, and the

@@ -1304,7 +1304,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               <b>All cameras healthy</b> status filter and the first KPI, so the squares, the filter and the
               headline count never disagree.</dd></div>
             <div class="irow"><dt>One cell is a zoom level, not a center</dt><dd>
-              The <b>Center / Brand / State</b> control above the cells switches between them, and <b>AUTO</b> picks the
+              The <b>Center / State / Brand</b> control above the cells switches between them, and <b>AUTO</b> picks the
               finest one that still draws at a readable size inside three rows: a square per center for a
               few hundred, a tile per state across the whole 1,231.
               <span class="d">Twelve hundred squares at a size anyone can read is eleven rows of nothing.
@@ -3691,10 +3691,16 @@ const TILE_SIZES = [                        // one group per cell
    left this control with it. */
 const DIMS = {
   center: {label:"Center", key:c=>c.id,        name:c=>c.name,      short:c=>c.name,     facet:null},
-  brand:  {label:"Brand",  key:c=>c.brand,     name:c=>brandOf(c),  short:c=>brandOf(c), facet:"brand"},
   state:  {label:"State",  key:c=>c.stateName, name:c=>c.stateName, short:c=>c.state,    facet:"state"},
+  brand:  {label:"Brand",  key:c=>c.brand,     name:c=>brandOf(c),  short:c=>brandOf(c), facet:"brand"},
 };
-const DIMKEYS = ["center","brand","state"];
+/* Presentation order, and the tabs are drawn straight off it: one site, then
+   the place it is in, then the chain it belongs to — widening containers rather
+   than an arbitrary list. It is not the order AUTO tries them in; autoDim sorts
+   this by how many distinct values each produces, so reordering here changes
+   nothing but the tabs. It does decide ties, and a tie between State and Brand
+   now resolves to State, which is the same hierarchy. */
+const DIMKEYS = ["center","state","brand"];
 
 /* A group in the same three states its centers are in — counted, not averaged.
    Averaging is what breaks at scale: every state's camera defect rate lands
