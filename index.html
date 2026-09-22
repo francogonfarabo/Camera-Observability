@@ -163,7 +163,6 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:2px}
 h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-height:1.15;color:var(--ink);text-wrap:balance}
 .subtitle{font-size:12.5px;color:var(--ink-3);margin-top:2px}
-.subtitle .staleclause{color:#8a5a06;font-weight:700}
 
 /* live refresh control */
 .live{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:7px 10px 7px 8px;box-shadow:var(--shadow-card)}
@@ -1144,7 +1143,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 
           <div class="notice" id="notice">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg>
-            <p>You're seeing <b>all <span class="num" id="noticeN">52</span> centers assigned to you</b>. Camera health covers your whole assignment, so the center picker up top is off here.<span id="noticeHeld"></span></p>
+            <p>You're seeing <b>all <span class="num" id="noticeN">52</span> centers assigned to you</b>.</p>
             <button class="x" id="noticeX" aria-label="Dismiss"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
           </div>
 
@@ -1299,7 +1298,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               among healthy ones, half the site down, nine of ten offline with the tenth impaired.
               <span class="d">Deliberately ungraded. The square answers <em>does this center need looking
               at</em>; the row underneath answers how much, in numbers.</span></dd></div>
-            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All reporting</dt><dd>
+            <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> All healthy</dt><dd>
               <code>offline = 0</code> and <code>degraded = 0</code>. Exactly the same rule as the
               <b>All cameras healthy</b> status filter and the first KPI, so the squares, the filter and the
               headline count never disagree.</dd></div>
@@ -1321,7 +1320,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               <span class="d">Click a tile to filter the board to that group; ⌘ or Ctrl-click adds a second.
               The breadcrumb above shows where you are and takes you back.</span></dd></div>
             <div class="irow"><dt><span class="sw ok" style="vertical-align:-1px"></span> Folded away</dt><dd>
-              Centers with nothing wrong collapse into one chip — <code>541 centers all reporting</code> —
+              Centers with nothing wrong collapse into one chip — <code>541 centers all healthy</code> —
               which expands on click. Cells are sorted worst-first, so if more remain than three rows will
               hold, what is hidden is always the least urgent and a chip says how many.</dd></div>
             <div class="irow"><dt>What a filter does to the band</dt><dd>
@@ -1369,7 +1368,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
         <section>
           <h3>Filtering</h3>
           <dl class="ilist">
-            <div class="irow"><dt>Out-of-date readings</dt><dd>A switch, not a list — the only category on
+            <div class="irow"><dt>Stale camera data</dt><dd>A switch, not a list — the only category on
               this panel that is a yes/no. On, it keeps the centers holding at least one camera whose
               assessment has gone stale.
               <span class="d">It sits above the others because it outranks them: a reading being out of
@@ -1377,7 +1376,7 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               rest of the panel filters on is a claim about the past for those centers. It used to be one
               option inside Status, where it read as a status.</span></dd></div>
             <div class="irow"><dt>Center status</dt><dd>The square's own verdict, as a filter:
-              <b>Fully down</b>, <b>Needs attention</b>, <b>All reporting</b>. The three are mutually
+              <b>Fully down</b>, <b>Needs attention</b>, <b>All healthy</b>. The three are mutually
               exclusive and their counts sum to the whole assignment.
               <span class="d">It is read straight off the same rule that colours the square, so the filter
               and the mark cannot disagree. There is no <em>Has any issue</em> option: that is
@@ -1394,11 +1393,8 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               brand rather than one more of them — and they get their own group in <em>Your centers</em>
               for the same reason. "No brand" and not "Independent": the record says the field is empty,
               which is not the same claim.</span></dd></div>
-            <div class="irow"><dt>Payment model</dt><dd>Who pays for the camera service —
-              <b>parent-pay</b> (families subscribe) or <b>center-pay</b> (the center covers it).</dd></div>
             <div class="irow"><dt>Parent access</dt><dd>Whether parents can watch this center's cameras
-              (<b>parent-facing</b>) or the feeds are staff-only (<b>internal</b>). Independent of who
-              pays.</dd></div>
+              (<b>parent-facing</b>) or the feeds are staff-only (<b>internal</b>).</dd></div>
             <div class="irow"><dt>Country</dt><dd>United States or Canada. It's the outermost scope: changing
               it drops any state, city or brand it leaves with nothing to match.</dd></div>
             <div class="irow"><dt>State / Province</dt><dd>Where the center sits. The list is grouped under
@@ -3095,7 +3091,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 /* Order matters: this is the order of the rail in the filter panel. "stale"
    leads because a reading being out of date outranks what the reading says —
    everything below it is a claim about the past. */
-const FKEYS = ["stale","cstatus","cams","brand","pay","access","country","state","city"];
+const FKEYS = ["stale","cstatus","cams","brand","access","country","state","city"];
 
 /* Every facet holds an array of chosen values. Empty means "not filtering
    on this"; two or more are ORed together, which is how people actually
@@ -3147,8 +3143,8 @@ const F = {
      reading is not a fourth thing a camera can be. It is a statement about the
      reading, orthogonal to what the reading says, and sitting inside a list of
      camera states it read as one more state. Now it is a switch above them. */
-  stale: facet("Out-of-date readings", "Any reading age", c=>staleCount(c) > 0,
-    ()=>[["stale","Has out-of-date readings"]], {bool:true}),
+  stale: facet("Stale camera data", "Any data age", c=>staleCount(c) > 0,
+    ()=>[["stale","Has stale camera data"]], {bool:true}),
   /* The band draws three states and the filter panel could not name two of
      them. "Has offline cameras" is not "every camera offline", so a red square
      and an amber one could not be asked for separately — the one thing anyone
@@ -3167,7 +3163,7 @@ const F = {
      selects, which is also what keeps the one-number rule true. */
   cstatus: facet("Center status", "Any center status",
     (c,v)=>centerStatus(c) === v,
-    ()=>[["off","Fully down"],["deg","Needs attention"],["ok","All reporting"]]),
+    ()=>[["off","Fully down"],["deg","Needs attention"],["ok","All healthy"]]),
   /* A different question, and deliberately not exclusive with the one above: a
      center needing attention can hold both an offline camera and a degraded one,
      and either might be the thing you are hunting. */
@@ -3181,8 +3177,10 @@ const F = {
     // absence of one, so it sits at the end of the list rather than inside it.
     ()=>uniqOpts(c=>c.brand,"brand").map(([v])=>[v, v || NO_BRAND])
       .sort((a,b)=> (a[0]?0:1) - (b[0]?0:1) || a[1].localeCompare(b[1]))),
-  pay: facet("Payment model", "Any payment model", (c,v)=>c.pay===v,
-    ()=>[["parent","Parent-pay"],["center","Center-pay"]]),
+  /* Payment model was here and is not any more (22 Sep). Who pays for the
+     service does not change whether a camera is up, so it narrowed the board
+     along an axis nobody triaging by was thinking in. `c.pay` is still on the
+     record — putting the facet back is two lines and a key in FKEYS. */
   access: facet("Parent access", "Any parent access", (c,v)=>v==="parent"?c.pub:!c.pub,
     ()=>[["parent","Parent-facing"],["internal","Internal only"]]),
   // Derived rather than declared: the roster is entirely US today, and an
@@ -3326,7 +3324,7 @@ function sorted(list){
    selection stays a chip rather than a paragraph; the remainder is counted, and
    the full list is in the title either way. A yes/no category has exactly one
    value whose name restates the category, so it shows the category alone rather
-   than "Out-of-date readings: Has out-of-date readings". */
+   than "Stale camera data: Has stale camera data". */
 const CHIP_VALUES = 3;
 const chipNames = k => S[k].map(v => optLabel(k, v));
 const chipTitle = k => F[k].label + ": " + chipNames(k).join(", ");
@@ -3628,7 +3626,12 @@ const centerStatus = c => {
 /* The rule, in words, in one place: every caption that describes a center's
    condition comes through here, so the legend, the hover card and the screen
    reader cannot drift apart from each other or from the color. */
-const STATE_NAME = {off:"Fully down", deg:"Needs attention", ok:"All reporting"};
+/* "All reporting" was almost right and quietly wrong: a degraded camera is
+   reporting, it is just reporting badly, so the name described the one thing
+   the state does not turn on. "All healthy" names the rule — nothing offline,
+   nothing impaired — and pairs with the first KPI, which counts the centers
+   that are not. */
+const STATE_NAME = {off:"Fully down", deg:"Needs attention", ok:"All healthy"};
 
 function centerStateWords(c){
   const t = tally(c), st = centerStatus(c);
@@ -3778,7 +3781,7 @@ const bandKeyScope = () => DATA.filter(c =>
 
    What survives is the pair that can still be asked two ways at once. The band
    deliberately ignores the search box, so a center name sitting in that field
-   is invisible here while contradicting the key: "Frisco" AND "all reporting"
+   is invisible here while contradicting the key: "Frisco" AND "all healthy"
    is an empty list with nothing on screen explaining why. So a key still
    withdraws the search this component wrote — and only that one. A query the
    reader typed is theirs. */
@@ -4100,7 +4103,7 @@ function renderBandHead(){
 const KEY_WORDS = {
   off: n => "fully down",
   deg: n => n === 1 ? "needs attention" : "need attention",
-  ok:  n => n === 1 ? "reporting" : "all reporting",
+  ok:  n => n === 1 ? "healthy" : "all healthy",
 };
 function renderBandLegend(){
   const group = bandDimNow !== "center";
@@ -4545,12 +4548,14 @@ function centerHtml(c, absIndex){
     S.sort === "store"  ? `Store <b class="num">#${c.store}</b>` :
     S.sort === "outage" ? (t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : `<b>Nothing offline</b>`) :
     t.outage ? `Offline <b class="num">${dur(t.outage)}</b>` : "";
-  // Out-of-date readings get their own line rather than being folded into
-  // either count: they are not a fourth kind of fault, they are the reason
-  // the other two numbers might be wrong.
+  // Stale readings get their own line rather than being folded into either
+  // count: they are not a fourth kind of fault, they are the reason the other
+  // two numbers might be wrong. One word, matching the filter category that
+  // finds them — "out of date" here and "stale" in the panel made the reader
+  // hold two names for one idea.
   const stale = staleCount(c);
   const staleStat = stale
-    ? `<span class="stat stale"><span><b class="num">${stale}</b> out of date</span>`
+    ? `<span class="stat stale"><span><b class="num">${stale}</b> stale</span>`
       + ` <span>· oldest <b class="num">${dur(oldestStale(c))}</b></span></span>`
     : "";
   const sick = t.off || t.deg;
@@ -4706,11 +4711,13 @@ function renderLive(){
      It appears only when something is actually out of date and it does not
      dismiss, because it is not an alert, it is a qualification on everything
      underneath it. */
-  const nstale = fleetStale();
+  /* The fleet-wide stale count used to hang off this line in gold. It is gone:
+     a number nobody can act on, sitting in an alert colour, at the top of every
+     screen whether or not it mattered to what you came for. Staleness is still
+     said where it is actionable — the pill on the row it affects, the note in
+     the camera drawer, and the filter category that finds them. */
   $("asof").innerHTML = "Every camera's most recent heartbeat · read "
-    + (S.age < 5 ? "just now" : S.age < 60 ? S.age + "s ago" : dur(Math.round(S.age/60)) + " ago")
-    + (nstale ? ' · <span class="staleclause">' + nstale.toLocaleString()
-        + (nstale === 1 ? " reading" : " readings") + " over an hour old</span>" : "");
+    + (S.age < 5 ? "just now" : S.age < 60 ? S.age + "s ago" : dur(Math.round(S.age/60)) + " ago");
   prog.setAttribute("stroke-dashoffset", String(C - C * (S.tick/30)));
   $("pauseBtn").setAttribute("aria-pressed", String(S.paused));
   $("pauseBtn").title = S.paused ? "Resume auto-refresh" : "Pause auto-refresh";
@@ -4724,11 +4731,11 @@ function render(){
   renderKpis(); renderTools(); renderSavedViews(); renderStrip();
   renderBanner(); renderList(); renderLive(); renderDrawer(); renderSearchScope();
   $("qClear").hidden = !$("q").value;
-  // The notice names the center left behind on the Dashboard, so the
-  // change of altitude is stated in terms of what just happened.
-  const held = S.center && centerById(S.center);
-  $("noticeHeld").innerHTML = held
-    ? ` <b>${esc(held.name)}</b> stays selected on the Dashboard.` : "";
+  /* The notice used to go on to explain that the center picker is locked and
+     to name the center left behind on the Dashboard. Both are said better by
+     the things themselves — the picker greys out and carries a padlock with
+     that sentence as its tooltip — and a banner that has to be read to the end
+     before it can be dismissed is a banner nobody reads. One sentence. */
 }
 
 /* =====================================================================
@@ -4796,7 +4803,7 @@ function renderDrawer(){
   const staleNote = isStale(cam)
     ? `<div class="dstale">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7.2V12l3.2 1.9"/></svg>
-        <div><b class="t">Reading out of date</b>
+        <div><b class="t">Stale reading</b>
         <p>This camera has not been assessed for <b>${dur(cam.checked)}</b>, and the assessor runs every
         ${ASSESS.heartbeatMin} minutes. Everything below is the last reading on record — it may no longer
         be true.</p></div>
@@ -5024,7 +5031,7 @@ function showStatesTip(b){
         "Every camera at the site is dark \u2014 almost always one cause, not a list of faults.")
     + row("attn", "Needs attention", "offline + degraded &gt; 0",
         "Something is wrong but not everything. Ungraded on purpose; the row below carries how much.")
-    + row("ok", "All reporting", "offline = 0, degraded = 0",
+    + row("ok", "All healthy", "offline = 0, degraded = 0",
         "Nothing offline and nothing impaired.");
   placeTip(b);
 }

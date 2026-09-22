@@ -37,12 +37,12 @@ centers are invented — see *What these are and aren't* below.
 - **Four numbers** across the top — centers needing attention, cameras offline, cameras
   degraded, longest outage. Each doubles as a one-click filter, and each goes calm rather
   than alert-red when it reads zero.
-- **Filters and sort as two separate controls** — nine facets (out-of-date readings, center
-  status, camera health, brand, payment model, parent access, country, state, city),
+- **Filters and sort as two separate controls** — eight facets (stale camera data, center
+  status, camera health, brand, parent access, country, state, city),
   multi-select within a category and ANDed across them, with live counts computed from the
   centers passing your *other* choices. A category that has only one value left in it is
   dropped from the rail rather than offered: Country is the live case, since the roster is
-  entirely US. It reappears on its own the day a second country does. Out-of-date readings is a switch rather than a list and leads the rail: a
+  entirely US. It reappears on its own the day a second country does. Stale camera data is a switch rather than a list and leads the rail: a
   reading being stale is a statement about the reading, not a fourth thing a camera can be.
   Five sort fields, each naming a field and never an order.
 - **Saved views** — name the current filter/sort/search combination and reapply it.
@@ -50,7 +50,7 @@ centers are invented — see *What these are and aren't* below.
 - **Auto-refresh** on a visible 30s cycle with pause and refresh-now. It stops on its own
   when the tab is hidden, a camera is open, or you are typing — and it never reorders the
   list or the overview under your cursor.
-- **Out-of-date readings** — a camera whose assessment has gone stale keeps its last known
+- **Stale camera data** — a camera whose assessment has gone stale keeps its last known
   status, loses its saturation and gains a dashed ring. The board never claims to know
   more than it does.
 
