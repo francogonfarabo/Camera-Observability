@@ -2885,13 +2885,21 @@ The Children's Courtyard ~ Crystal Falls|6|3204|Leander|TX
    who pays and whether parents can watch all come from the same seeded
    stream, so every reload of the prototype tells the same story.
 
-   The defect distribution is the one a real fleet would recognise — roughly
-   three centers in four completely healthy, a long tail with one or two
-   cameras out, and about 1.5% completely dark. A whole site going dark is
-   seeded as its own event rather than as the tail of the per-camera
-   distribution: when it happens it is one cause — power, network, the
-   recorder — not eleven separate faults, and a per-camera roll would never
-   reach every camera at once, leaving the red state undemonstrable.
+   The defect distribution is the one a real fleet would recognise — about
+   five centers in six completely healthy, a long tail with one or two cameras
+   out, and about 1% completely dark. That works out at 2.5% of cameras in
+   trouble and 17% of centers holding one, which is the shape of a fleet that
+   is being looked after rather than one in crisis. It was a third higher
+   until 22 Sep; a board where a quarter of every screen is orange teaches the
+   reader to stop seeing orange, which is the opposite of what it is for.
+
+   A whole site going dark is seeded as its own event rather than as the tail
+   of the per-camera distribution: when it happens it is one cause — power,
+   network, the recorder — not eleven separate faults, and a per-camera roll
+   would never reach every camera at once, leaving the red state
+   undemonstrable. Keep DARK high enough that the whole roster still holds a
+   handful; at 1% it holds nine, and below that the red state stops appearing
+   on the board it exists to explain.
 
    `brands` is the dev-only assignment switch: null for the whole roster, or a
    Set of brand names. Every row is drawn for whether or not it is kept, so a
@@ -2900,39 +2908,53 @@ The Children's Courtyard ~ Crystal Falls|6|3204|Leander|TX
 function seeds(brands = null){
   seed = 771103;
   const out = [];
-  for (const line of ROSTER){
+  ROSTER.forEach((line, ri) => {
     const [name, pfx, store, city, st] = line.split("|");
     const geo = GEO[st] || GEO.TX;
     const n = 8 + Math.floor(rnd()*19);               // 8–26 cameras
     const roll = rnd();
-    const dark = roll < .015;
-    const off = dark ? n : roll < .13 ? 1 + Math.floor(rnd()*3) : 0;
-    const deg = off ? (rnd() < .3 ? 1 + Math.floor(rnd()*2) : 0)
-                    : (roll < .27 ? 1 + Math.floor(rnd()*2) : 0);
+    /* One roll decides which band a center falls in, so the three are nested
+       thresholds on the same number rather than three independent draws that
+       could contradict each other. Lower them together. */
+    const dark = roll < .010;                        // every camera out
+    const off  = dark ? n : roll < .090 ? 1 + Math.floor(rnd()*3) : 0;
+    const deg  = off ? (rnd() < .3 ? 1 + Math.floor(rnd()*2) : 0)
+                     : (roll < .190 ? 1 + Math.floor(rnd()*2) : 0);
+    /* Drawn before the row is kept or dropped, not inside the push. Leaving
+       these two inside it meant a skipped row skipped its draws, which shifted
+       the stream for every row after it — so the same center came out with a
+       different camera count in a narrower assignment. Every row now costs the
+       stream the same, whoever is asking. */
+    const pay = rnd() < .58 ? "parent" : "center";
+    const pub = rnd() < .78;
     const brand = BRAND_BY_PREFIX[+pfx] || OTHER_BRAND;
-    if (brands && !brands.has(brand)) continue;   // drawn for, then dropped
-    out.push({ name, brand, city,
+    if (brands && !brands.has(brand)) return;     // drawn for, then dropped
+    out.push({ ri, name, brand, city,
       st, stateName: geo.state,
       countryName: geo.country === "CA" ? "Canada" : "United States",
       country: geo.country, tz: geo.tz, store,
-      n, off: Math.min(off, n), deg: Math.min(deg, n - off),
-      pay: rnd() < .58 ? "parent" : "center",
-      pub: rnd() < .78 });
-  }
+      n, off: Math.min(off, n), deg: Math.min(deg, n - off), pay, pub });
+  });
   return out;
 }
 let SEEDS = seeds();
 
 function build(){
-  seed = 20260820;
-  return SEEDS.map((s, ci) => {
+  return SEEDS.map(s => {
+    /* One stream per center, seeded from its seat in the roster rather than
+       from its position in this assignment. A single shared stream made a
+       center's cameras depend on who else was in the list beside it, so the
+       same site had different rooms dark under a different assignment. Two
+       draws are discarded because an LCG's first output after a seed is close
+       to the seed, and consecutive seats would otherwise rhyme. */
+    seed = (20260820 + s.ri * 2654435761) >>> 0; rnd(); rnd();
     // Staleness clusters: the assessor runs per site, so a silent site is the
     // common case and a lone silent camera is the rare one — seeding it the
     // other way round would make the all-or-nothing center rule look arbitrary.
-    // Chosen by index rather than rolled, because this LCG's low tail is lumpy
+    // Chosen by seat rather than rolled, because this LCG's low tail is lumpy
     // enough that any probability here yields either one silent site or ten,
     // and a prototype needs a number that reads as an exception.
-    const silentSite = ci % 26 === 7;
+    const silentSite = s.ri % 26 === 7;
     const rooms = []; for (let i=0;i<s.n;i++) rooms.push(ROOMS[i % ROOMS.length]);
     const marks = new Array(s.n).fill("ok");
     const slots = [...Array(s.n).keys()];
@@ -2940,7 +2962,7 @@ function build(){
     slots.slice(0, s.off).forEach(i => marks[i]="off");
     slots.slice(s.off, s.off+s.deg).forEach(i => marks[i]="deg");
     return {
-      id:"c"+ci, name:s.name, brand:s.brand, state:s.st, stateName:s.stateName, city:s.city,
+      id:"c"+s.ri, name:s.name, brand:s.brand, state:s.st, stateName:s.stateName, city:s.city,
       country:s.country, countryName:s.countryName, tz:s.tz,
       store:s.store, pay:s.pay, pub:s.pub,
       cams: marks.map((status, i) => {

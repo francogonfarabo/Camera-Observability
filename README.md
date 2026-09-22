@@ -68,7 +68,9 @@ missing or duplicated store number were given the next free code in their brand'
 
 The **cameras are invented**. How many a site has, which are dark or impaired, how long they have
 been that way and when each was last assessed all come from one fixed seed, and mutate on each
-refresh so the live behaviour can be judged. 20,710 cameras across the roster.
+refresh so the live behaviour can be judged. 20,744 cameras across the roster, of which about 2.5%
+are offline or impaired at any moment — leaving 9 centers fully down, 203 needing attention and
+1,019 all reporting.
 
 The dashed strip at the bottom of the page forces first-load, refresh-failure and all-healthy
 states, and switches the assignment between three sets of brands — **6 brands / 57 centers**,
