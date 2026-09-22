@@ -133,8 +133,12 @@ button{background:none;border:none;cursor:pointer;outline:none}
 .db{font-size:11px;color:var(--ink-3)}
 .dfoot{width:100%;padding:11px 14px;text-align:center;font-size:11.5px;font-weight:700;letter-spacing:.06em;
   text-transform:uppercase;color:var(--ink-3);background:var(--fill-2);border-top:1px solid var(--line-2)}
-.dfoot:hover{background:var(--fill);color:var(--ink-2)}
+
 .dempty{padding:14px;font-size:13px;color:var(--ink-3);text-align:center}
+/* Says what the rows below it are. Without it a short list reads as a long one
+   that has been cut off, which is the opposite of what it is. */
+.dhead{font-family:'Titillium Web',sans-serif;font-size:10px;font-weight:700;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-3);padding:9px 14px 5px;background:var(--surface)}
 
 .shellbody{display:flex;flex:1;min-height:0;overflow:hidden}
 .rail{width:76px;flex-shrink:0;background:var(--rail);display:flex;flex-direction:column;align-items:center;padding:20px 7px;gap:3px;overflow-y:auto}
@@ -4232,7 +4236,7 @@ function goTo(screen){
   if (screen === "health"){ render(); $("page").scrollTop = 0; }
   else { renderDashboard(); $("dashPage").scrollTop = 0; }
   $("announce").textContent = screen === "health"
-    ? `Camera health. Showing all ${DATA.length} centers assigned to you; the center picker is off here.`
+    ? `Camera health. Showing all ${num(DATA.length)} centers assigned to you; the center picker is off here.`
     : `Dashboard.${S.center ? " " + centerById(S.center).name + " selected." : " No center selected."}`;
 }
 const centerById = id => DATA.find(c=>c.id===id);
@@ -4254,6 +4258,30 @@ function renderShell(){
    on a phone it takes over the whole top bar), and locked in Monitoring,
    where it also empties. An emptied, greyed field is the clearest
    possible statement that the page stopped being about one center. */
+/* What the picker rests on before anyone types.
+
+   It used to be the first eight centers in roster order, which is file order —
+   arbitrary, and worse, indistinguishable from "all of them, truncated". With
+   1,231 centers that is a list nobody can use and a promise the panel cannot
+   keep. A header picker in a product this size rests on the handful you have
+   been in and reaches the rest by typing, so that is what this does.
+
+   The real list would come from visit history, which a prototype does not
+   have. This stands in for one: the first center of each distinct brand, in
+   roster order, so the six are stable across reloads and spread across the
+   fleet rather than being six La Petites in a row. The selected center is
+   pinned above them by renderPicker and is skipped here rather than repeated. */
+const RECENT_N = 6;
+function recentCenters(exclude){
+  const out = [], seen = new Set();
+  for (const c of DATA){
+    if (out.length >= RECENT_N) break;
+    if (c.id === exclude || seen.has(c.brand)) continue;
+    seen.add(c.brand); out.push(c);
+  }
+  return out;
+}
+
 function renderPicker(){
   const bar = $("sbar"), inp = $("cq"), d = $("drop"), lbl = $("selLabel");
   const live = S.screen === "dashboard";
@@ -4272,16 +4300,34 @@ function renderPicker(){
 
   if (!S.dropOpen){ d.hidden = true; return; }
   const q = inp.value.trim().toLowerCase();
-  const hits = DATA.filter(x => !q || x.name.toLowerCase().includes(q) || x.store.includes(q)).slice(0, 8);
+  /* Resting: a short stable list. Typing: the whole roster, capped at ten rows
+     because a scrolling panel of four hundred Childtimes is not an answer —
+     the count in the foot says how many there were, which is the cue to type
+     more rather than to scroll. */
+  const SHOW = 10;
+  const all = q ? DATA.filter(x => x.name.toLowerCase().includes(q) || x.store.toLowerCase().includes(q))
+                : recentCenters(S.center);
+  const hits = all.slice(0, SHOW);
+  const head = q ? "" : `<div class="dhead">Recent</div>`;
+  /* The foot used to say "Search all centers" and close the panel — a button
+     offering the thing the field above it already does. It carries the count
+     instead: at rest, how many there are to reach; while typing, how many
+     matched and how many of those are on screen. */
+  const foot = !q ? `Type to search all ${num(DATA.length)} centers`
+    : !all.length ? ""
+    : all.length > hits.length
+      ? `Showing ${num(hits.length)} of ${num(all.length)} matches — keep typing`
+      : `${num(all.length)} ${all.length === 1 ? "match" : "matches"}`;
   d.hidden = false;
   d.innerHTML =
     (c ? `<div class="dropsel"><b>${esc(c.name)}</b><em>${esc(brandOf(c))}</em></div>` : "")
+    + head
     + `<div class="dscroll">${hits.length
       ? hits.map(x=>`<button class="drow" role="option" data-pickc="${x.id}"
           aria-selected="${x.id===S.center}">
           <span class="dn">${esc(x.name)}</span><span class="db">${esc(brandOf(x))} · Store #${esc(x.store)}</span></button>`).join("")
-      : `<div class="dempty">No center matches "${esc(inp.value)}"</div>`}</div>`
-    + `<button class="dfoot">Search all centers</button>`;
+      : `<div class="dempty">No center matches “${esc(inp.value)}”</div>`}</div>`
+    + (foot ? `<div class="dfoot" role="status">${esc(foot)}</div>` : "");
 }
 function openPicker(){
   if (S.screen !== "dashboard") return;
@@ -4370,8 +4416,8 @@ function renderDashboard(){
             <p>Unable to load requested cameras.</p></div>`}
         </div>
         <div class="dmore"><button id="dGoHealth">
-          ${c && t.off ? `${plural(t.off,"camera")} down here — see camera health for all ${DATA.length} centers`
-                       : `See camera health for all ${DATA.length} centers`}
+          ${c && t.off ? `${plural(t.off,"camera")} down here — see camera health for all ${num(DATA.length)} centers`
+                       : `See camera health for all ${num(DATA.length)} centers`}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h13M13 6l6 6-6 6"/></svg></button></div>
       </div>
 
@@ -4391,7 +4437,7 @@ function renderDashboard(){
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg>
       <span>This screen stands in for the existing product — it isn't part of the design work. It's here so the
       change of state is visible: one center at a time here, and in Monitoring the picker above empties and
-      camera health opens on all ${DATA.length} centers at once.</span></p>`;
+      camera health opens on all ${num(DATA.length)} centers at once.</span></p>`;
 }
 
 /* =====================================================================
@@ -4540,7 +4586,7 @@ function renderList(){
     list.innerHTML = `<div class="empty">
       <span class="ic"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></span>
       <b>No centers match these filters</b>
-      <p>Nothing in the ${DATA.length} centers you can see matches. Try widening the filters, or clear them to start over.</p>
+      <p>Nothing in the ${num(DATA.length)} centers you can see matches. Try widening the filters, or clear them to start over.</p>
       <button class="btn primary" id="emptyClear">Clear all filters</button></div>`;
   } else {
     const ranked = ["rate","count","outage"].includes(S.sort) && S.dir === "desc";
@@ -5243,7 +5289,7 @@ function renderSearchScope(){
   const scope = DATA.filter(c=>matchesFilters(c, {ignoreQ:true})).length;
   $("qScope").hidden = !narrowed;
   $("qScope").textContent = `within ${plural(scope, "center")}`;
-  $("qScope").title = `Searching only the ${scope} ${scope===1?"center":"centers"} your filters left. Clear the filters to search all ${DATA.length}.`;
+  $("qScope").title = `Searching only the ${scope} ${scope===1?"center":"centers"} your filters left. Clear the filters to search all ${num(DATA.length)}.`;
   // One placeholder, always. How wide the search reaches is the badge's job
   // on the right edge; saying it twice, in two different phrasings, was the
   // kind of duplication this board keeps being pruned of.
@@ -5333,7 +5379,9 @@ $("cq").addEventListener("keydown", e=>{
   if (e.key === "Escape"){ closePicker(); e.target.blur(); }
 });
 $("drop").addEventListener("click", e=>{
-  if (e.target.closest(".dfoot")) return closePicker();
+  // The foot is a caption now, not a control. Clicking it should not close the
+  // panel the way the button it replaced did.
+  if (e.target.closest(".dfoot")) return;
   const row = e.target.closest("[data-pickc]"); if (!row) return;
   S.center = row.dataset.pickc; S.dropOpen = false;
   $("cq").value = ""; $("cq").blur();
