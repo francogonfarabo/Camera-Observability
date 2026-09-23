@@ -5010,9 +5010,16 @@ function showCenterTip(b){
     + row("off", a.red,   a.red === 1 ? "center fully down" : "centers fully down")
     + row("deg", a.amber, a.amber === 1 ? "center partly affected" : "centers partly affected")
     + row("ok",  a.green, a.green === 1 ? "center all healthy" : "centers all healthy")
-    + (a.outage ? '<em class="num">Longest outage ' + dur(a.outage) + '</em>' : "")
-    + '<em style="margin-top:5px;font-weight:700;color:var(--blue-ink)">'
-      + "Click to filter to this group · ⌘/Ctrl-click to add" + '</em>';
+    /* No instruction line. A tile that lifts and shows a pointer has already
+       said it is clickable, and a card that ends by telling you what to do next
+       is read once and then in the way every time after. What it is worth
+       reading for is the split — how many of this group are down, affected and
+       healthy — so that is all it carries now.
+
+       The screen-reader equivalent in cellAction() stays. A pointer cue is not
+       available there, so removing it would take the affordance away rather
+       than just the sentence. */
+    + (a.outage ? '<em class="num">Longest outage ' + dur(a.outage) + '</em>' : "");
   placeTip(b);
 }
 /* The three rules, on hover, in the same card every other hover on this page
