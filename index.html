@@ -248,6 +248,16 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .dimsel button{font-size:12.5px;font-weight:600;color:var(--ink-3);padding:3px 9px;border-radius:6px;white-space:nowrap}
 .dimsel button:hover{color:var(--ink-2);background:var(--surface)}
 .dimsel button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-card)}
+/* A zoom Auto chose and a zoom you pinned are both "what one cell is", but they
+   are not the same promise: the first will move when the window or the filters
+   do, the second will not. They used to look identical, which made pressing
+   Auto off change nothing on screen — a toggle whose visible result is that
+   nothing happened reads as a dead button, and gets pressed again.
+
+   So Auto's pick sits flat and slightly muted, and a pinned zoom keeps the
+   full lift and full-contrast label. Subtle on purpose: it is a difference in
+   how settled the choice is, not a difference in what is on screen. */
+.dimsel button[aria-pressed="true"].prov{color:var(--ink-2);box-shadow:none}
 /* Auto is a mode, the other three are values, and they used to sit in one
    undivided row of four — which reads as four values, one of them oddly named.
    The rule separates the switch from the thing it switches, so two pressed
@@ -2897,10 +2907,15 @@ function renderBandBar(info){
   const autoBtn = '<button class="autobtn" data-auto="1" aria-pressed="' + auto + '"'
     + ' aria-label="' + esc((auto ? "Automatic zoom, on. " : "Automatic zoom, off. ") + why) + '">'
     + '<span class="lamp"></span>Auto</button><span class="sep" aria-hidden="true"></span>';
+  /* Two different promises wear the same pressed state, so the one Auto made
+     is marked provisional and says so on hover. */
+  const PROV_T = " title=\"Auto chose this, and will move it if the board changes shape. Press to hold the board here.\">";
+  const HELD_T = " title=\"Held here. Press Auto to let the board choose again.\">";
   const dims = autoBtn + DIMKEYS.map(d=>{
     const on = d === bandDimNow;
-    return '<button data-dim="' + d + '" aria-pressed="' + on + '"'
-      + (on && auto ? ' title="Auto chose this. Press it to hold the board here.">' : '>')
+    return '<button data-dim="' + d + '"' + (on && auto ? ' class="prov"' : '')
+      + ' aria-pressed="' + on + '"'
+      + (!on ? ">" : auto ? PROV_T : HELD_T)
       + DIMS[d].label + '</button>';
   }).join("");
   const crumbs = bandCrumb();
@@ -3074,13 +3089,20 @@ function drillDim(x, additive){
     $("q").value = ""; $("qField").classList.remove("linked");
   }
   S.kpi = null; S.page = 1;
-  S.bandDimPick = null;          // the zoom you drilled from is rarely the one you want inside
+  /* The zoom you drilled from is rarely the one you want inside — hold Brand,
+     drill into a brand, and one cell would be the one brand left. So this
+     resets to automatic even when the reader switched automatic off. That is
+     the right call and it is still someone's setting being undone, so it is
+     said out loud rather than done quietly. */
+  const wasHeld = !!S.bandDimPick;
+  S.bandDimPick = null;
   bandSig = ""; bandOrder = null;
   S.filtersOpen = S.sortOpen = S.savingOpen = false;
   render();
   const on = S[fk].includes(x.k);
   $("announce").textContent = (on ? "Filtered to " + x.name + ". " : x.name + " removed. ")
-    + plural(filtered().length, "center") + " in view.";
+    + plural(filtered().length, "center") + " in view."
+    + (wasHeld ? " Zoom back to automatic." : "");
 }
 
 /* Every mutation invalidates the tally cache. Wrapping mutate rather than
@@ -3957,7 +3979,7 @@ function showAutoTip(b){
     + 'three rows deep.</em>'
     + body
     + '<em class="foot">' + (on
-        ? "Press Center, State or Brand to hold the board there."
+        ? "Press Auto to freeze it here, or a zoom to hold that one."
         : "Held at one cell per " + DIMS[bandDimNow].label.toLowerCase()
           + ". Press Auto to hand the choice back.") + '</em>';
   placeTip(b);
@@ -4039,10 +4061,20 @@ $("bandBar").addEventListener("mouseout",  e=>{ if (autoBtnIn(e)) tip.classList.
 $("bandBar").addEventListener("focusout",  e=>{ if (autoBtnIn(e)) tip.classList.remove("show","autotip"); });
 $("bandBar").addEventListener("click", e=>{
   if (e.target.closest("[data-auto]")){
-    S.bandDimPick = null;
+    /* Off does not mean "no zoom" — the band always has to draw something, and
+       "what is one cell" always has an answer. Off means "hold the one Auto is
+       showing", so switching it off pins whatever is on screen. Nothing moves,
+       which is the point: it is a freeze, not a change of view. The zoom
+       segment losing its provisional look is what says so. */
+    const off = !S.bandDimPick;
+    S.bandDimPick = off ? bandDimNow : null;
     bandSig = ""; bandOrder = null; renderStrip();
-    $("announce").textContent = "Zoom back to automatic — one cell per "
-      + DIMS[bandDimNow].label.toLowerCase() + ". " + plural(CELLS.length, "cell") + " shown.";
+    const noun = DIMS[bandDimNow].label.toLowerCase();
+    $("announce").textContent = off
+      ? "Automatic zoom off. Held at one cell per " + noun
+        + "; the board will stay here. Press Auto to let it choose again."
+      : "Zoom back to automatic — one cell per " + noun + ". "
+        + plural(CELLS.length, "cell") + " shown.";
     return;
   }
   const d = e.target.closest("[data-dim]");
