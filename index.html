@@ -248,7 +248,18 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .dimsel button{font-size:12.5px;font-weight:600;color:var(--ink-3);padding:3px 9px;border-radius:6px;white-space:nowrap}
 .dimsel button:hover{color:var(--ink-2);background:var(--surface)}
 .dimsel button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-card)}
-.dimsel button .auto{font-size:10px;font-weight:700;color:var(--ink-4);margin-left:5px;letter-spacing:.05em}
+/* Auto is a mode, the other three are values, and they used to sit in one
+   undivided row of four — which reads as four values, one of them oddly named.
+   The rule separates the switch from the thing it switches, so two pressed
+   segments at once say "automatic, currently state" rather than "two picked". */
+.dimsel .sep{width:1px;align-self:stretch;margin:3px 4px;background:var(--line);flex-shrink:0}
+.dimsel .autobtn{display:inline-flex;align-items:center;gap:6px}
+/* A lamp, because the pressed background alone is a comparison — you have to
+   look at the other segments to know this one is on. The lamp is on or off by
+   itself. */
+.dimsel .autobtn .lamp{width:6px;height:6px;border-radius:50%;background:var(--ink-4);
+  box-shadow:none;transition:background .15s}
+.dimsel .autobtn[aria-pressed="true"] .lamp{background:var(--blue-ink);box-shadow:0 0 0 3px var(--blue-tint)}
 
 .crumb{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;color:var(--ink-3);
   flex-wrap:wrap;min-width:0}
@@ -1303,9 +1314,11 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
               <b>All cameras healthy</b> status filter and the first KPI, so the squares, the filter and the
               headline count never disagree.</dd></div>
             <div class="irow"><dt>One cell is a zoom level, not a center</dt><dd>
-              The <b>Center / State / Brand</b> control above the cells switches between them, and <b>AUTO</b> picks the
-              finest one that still draws at a readable size inside three rows: a square per center for a
-              few hundred, a tile per state across the whole 1,231.
+              The <b>Center / State / Brand</b> control above the cells switches between them. <b>Auto</b>, the
+              segment to their left, picks the finest one that still draws at a readable size inside three
+              rows: a square per center for a few hundred, a tile per state across the whole 1,231. Its
+              tooltip names the zoom it chose and what it turned down to get there. Pressing a zoom holds
+              the board at it; pressing <b>Auto</b> hands the choice back.
               <span class="d">Twelve hundred squares at a size anyone can read is eleven rows of nothing.
               Squares stop shrinking at 13px, because below that the hatch is mud and the ✕ a smudge, and
               colour on its own is not an encoding.</span></dd></div>
@@ -3828,22 +3841,59 @@ function planFor(dim, count, width){
   return {mode:"tile", ...t, per, cap:per*BAND_ROWS};
 }
 
-/* The finest zoom that still draws at a size worth reading. */
+/* The finest zoom that still draws at a size worth reading.
+
+   It also carries out what it turned down on the way. A rule the reader cannot
+   see is a rule they assume is broken the first time it moves under them, and
+   "1,231 squares would be too small to read" is a sentence the control can say
+   for itself — see autoWhy. */
 function autoDim(scope, width){
   const counts = DIMKEYS.map(d=>{
     const set = new Set();
     for (const c of scope) set.add(DIMS[d].key(c));
     return {d, n:set.size};
   }).sort((a,b)=> b.n - a.n);
+  const passed = [];
   for (const c of counts){
     const cells = buildCells(c.d, scope);
     const drawn = drawnCount(cells);
     const p = planFor(c.d, drawn, width);
     const legible = c.d === "center" ? p.size >= 16 : p.w >= 54;
-    if (legible && drawn <= p.cap) return {dim:c.d, cells};
+    if (legible && drawn <= p.cap) return {dim:c.d, cells, passed};
+    // why it lost: too small to read, or readable but past three rows
+    passed.push({d:c.d, drawn, small: !legible});
   }
+  /* Nothing was legible — the coarsest zoom is drawn anyway, because an empty
+     band is worse than a small one. Saying so is the difference between a rule
+     that bent and a rule that failed. */
   const last = counts[counts.length-1];
-  return {dim:last.d, cells: buildCells(last.d, scope)};
+  return {dim:last.d, cells: buildCells(last.d, scope), passed, forced:true};
+}
+
+/* What Auto did, in one sentence, for the control's tooltip and its label.
+
+   It has to be true in both modes. While the board is held at a zoom the reader
+   picked, "right now that is one cell per state" is a plain lie about what is on
+   screen — so the off state says what Auto *would* do and what pressing it does,
+   which is the only question a switched-off switch is being asked. */
+let bandAuto = null;
+function autoWhy(on){
+  const a = bandAuto;
+  const noun = d => DIMS[d].label.toLowerCase();
+  const rule = "Auto picks the finest zoom that still draws at a size worth reading.";
+  if (!a) return rule;
+  const head = on
+    ? rule + " Right now that is one cell per " + noun(a.dim) + "."
+    : "The board is held at one cell per " + noun(bandDimNow) + ". " + rule
+      + " It would show one cell per " + noun(a.dim) + " here.";
+  const tail = on
+    ? " Pick a zoom yourself and the board holds it until you press Auto again."
+    : " Press to hand the choice back.";
+  if (a.forced) return head + " Nothing fits three rows at this width, so the coarsest is drawn anyway." + tail;
+  if (!a.passed.length) return head + " There is nothing finer to try." + tail;
+  const t = a.passed[0];
+  return head + " One per " + noun(t.d) + " would be " + t.drawn.toLocaleString()
+    + (t.small ? " cells, too small to read." : " cells, more than three rows hold.") + tail;
 }
 
 let bandSig   = "";       // DOM structure signature
@@ -3881,6 +3931,7 @@ function renderStrip(){
   }
 
   const a = autoDim(scope, width);
+  bandAuto = a;                 // the control explains itself out of this
   let dim = a.dim, cells = a.cells;
   if (S.bandDimPick && S.bandDimPick !== dim){
     dim = S.bandDimPick;
@@ -4037,10 +4088,28 @@ function bandCrumb(){
 const X_ICON = '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4"><path d="M5 5l14 14M19 5L5 19"/></svg>';
 
 function renderBandBar(info){
-  const dims = DIMKEYS.map(d=>{
+  /* AUTO used to be a grey tag hanging off whichever segment it had chosen.
+     Three things were wrong with that. It read as part of that segment's name
+     rather than as a mode. Turning it off was signalled only by the tag
+     disappearing — a message made of absence. And the way back was to click
+     the segment you had already selected, which nobody finds, so a reader who
+     pressed Brand once lived at Brand forever and watched the board stop
+     adapting for reasons they could not see.
+
+     It is a segment of its own now: named, pressed or not, and clickable at
+     any time. The zoom it chose stays pressed in the group beside it, because
+     that is still the honest answer to "what is one cell". */
+  const auto = !S.bandDimPick;
+  const why  = autoWhy(auto);
+  const autoBtn = '<button class="autobtn" data-auto="1" aria-pressed="' + auto + '"'
+    + ' title="' + esc(why) + '"'
+    + ' aria-label="' + esc((auto ? "Automatic zoom, on. " : "Automatic zoom, off. ") + why) + '">'
+    + '<span class="lamp"></span>Auto</button><span class="sep" aria-hidden="true"></span>';
+  const dims = autoBtn + DIMKEYS.map(d=>{
     const on = d === bandDimNow;
-    return '<button data-dim="' + d + '" aria-pressed="' + on + '">' + DIMS[d].label
-      + (on && !S.bandDimPick ? '<span class="auto">AUTO</span>' : '') + '</button>';
+    return '<button data-dim="' + d + '" aria-pressed="' + on + '"'
+      + (on && auto ? ' title="Auto chose this. Press it to hold the board here.">' : '>')
+      + DIMS[d].label + '</button>';
   }).join("");
   const crumbs = bandCrumb();
   const crumbHtml = crumbs.length
@@ -4079,7 +4148,7 @@ function renderBandBar(info){
   const outn = bandScopeAll ? 0 : DATA.length - bandScopeN;
   const filteredOut = outn
     ? '<span class="bandchip flat">' + outn.toLocaleString() + ' filtered out</span>' : "";
-  $("bandBar").innerHTML = '<span class="dimsel" role="group" aria-label="What one cell is">' + dims + '</span>'
+  $("bandBar").innerHTML = '<span class="dimsel" role="group" aria-label="Automatic zoom, and what one cell is">' + dims + '</span>'
     + crumbHtml + over + filteredOut;
 }
 
@@ -5113,12 +5182,23 @@ strip.addEventListener("keydown", e=>{
 
 // the control row: zoom, breadcrumb, fold
 $("bandBar").addEventListener("click", e=>{
+  if (e.target.closest("[data-auto]")){
+    S.bandDimPick = null;
+    bandSig = ""; bandOrder = null; renderStrip();
+    $("announce").textContent = "Zoom back to automatic — one cell per "
+      + DIMS[bandDimNow].label.toLowerCase() + ". " + plural(CELLS.length, "cell") + " shown.";
+    return;
+  }
   const d = e.target.closest("[data-dim]");
   if (d){
-    S.bandDimPick = S.bandDimPick === d.dataset.dim ? null : d.dataset.dim;
+    /* Pressing the live segment used to switch AUTO back on. That is a mode
+       change with no visible cause, fired by a click most readers make to
+       mean "stay here" — and now there is a segment that says it out loud. */
+    S.bandDimPick = d.dataset.dim;
     bandSig = ""; bandOrder = null; renderStrip();
-    $("announce").textContent = "Each cell is now one "
-      + DIMS[bandDimNow].label.toLowerCase() + ". " + plural(CELLS.length, "cell") + " shown.";
+    $("announce").textContent = "Zoom held at "
+      + DIMS[bandDimNow].label.toLowerCase() + ". " + plural(CELLS.length, "cell")
+      + " shown. Press Auto to let the board choose again.";
     return;
   }
   const cr = e.target.closest("[data-crumb]");
