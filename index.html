@@ -3684,8 +3684,13 @@ function renderDrawer(){
   // Nothing between the picture and the action: the title carries the room,
   // the status block carries how long and since when, and the camera ID that
   // used to sit here went with the ticketing flow that wanted it.
+  /* The button says what pressing it does, not where it lands. It read "View on
+     my.watchmegrow.com", which spent the widest, boldest line in the drawer on
+     a hostname — and the arrow already says it leaves this page. The line
+     underneath still names the destination, which is where naming it is worth
+     the words: there it is the reason, not the label. */
   $("dBody").innerHTML = `${staleNote}${state}${media}
-    <div><a class="btn primary" href="#" onclick="return false" style="justify-content:center;width:100%">View on my.watchmegrow.com
+    <div><a class="btn primary" href="#" onclick="return false" style="justify-content:center;width:100%">View live camera
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 4h6v6"/><path d="M20 4l-8 8"/><path d="M18 14v5H5V6h5"/></svg></a></div>
     <p class="pgtxt">Watching the feed on my.watchmegrow.com is the only way to confirm a camera is truly down — this page reports the heartbeat, not the picture.</p>`;
 
