@@ -19,18 +19,22 @@ Nothing links between them any more. The board carries no version bar; the notes
 reachable at their own address, and that is deliberate — a prototype handed to someone should open
 on the thing being judged, not on a menu of alternatives.
 
-It carries the **real roster**: 1,231 Learning Care Group centers as of 21 September 2026, with their
-brands, store numbers, cities and states. Thirteen brands, 41 states, 698 cities. The cameras on those
-centers are invented — see *What these are and aren't* below.
+Everything on it is **generated**: eight invented chains plus a twelfth of the fleet trading under no
+chain at all, spread across all 51 US jurisdictions and six Canadian provinces. The dashed strip at the
+bottom sizes the fleet — **74**, **600** or **4,000** centers — and 4,000 is the ceiling the board is
+designed against. See *What these are and aren't* below.
 
 ## What it does
 
 - **"Your centers"** — an always-visible overview of the whole assignment, above the list.
   One cell is a center while that fits and a **state or a brand once it doesn't**, so the
-  overview stays three rows tall whether you manage sixty centers or the whole 1,231.
-  The `Cell` control makes that zoom explicit; `AUTO` picks the finest one that still
-  draws legibly. Click a center to search it, click a group to filter to it, and the
-  overview collapses to a 32px sticky strip once you scroll past it.
+  overview stays three rows tall whether you manage seventy centers or four thousand.
+  The `Center / State / Brand` control makes that zoom explicit, and **`Auto`** — a segment of
+  its own, with a lamp — picks the finest one that still draws legibly. Hovering `Auto` shows
+  its working: every grouping it weighed, the cell count for each, and which one it took and
+  why. Press a zoom to hold the board there; press `Auto` to hand the choice back. Click a
+  center to search it, click a group to filter to it, and the overview collapses to a 32px
+  sticky strip once you scroll past it.
 - **Three center states, and only three** — red when *every* camera at a site is offline,
   green when nothing is offline and nothing impaired, orange for everything between. The
   same red/orange/green, by the same rule, at every zoom.
@@ -41,8 +45,8 @@ centers are invented — see *What these are and aren't* below.
   status, camera health, brand, parent access, country, state, city),
   multi-select within a category and ANDed across them, with live counts computed from the
   centers passing your *other* choices. A category that has only one value left in it is
-  dropped from the rail rather than offered: Country is the live case, since the roster is
-  entirely US. It reappears on its own the day a second country does. Stale camera data is a switch rather than a list and leads the rail: a
+  dropped from the rail rather than offered — filter down to one state and Country stops being a
+  choice and starts being a statement, so the row goes. It comes back on its own. Stale camera data is a switch rather than a list and leads the rail: a
   reading being stale is a statement about the reading, not a fourth thing a camera can be.
   Five sort fields, each naming a field and never an order.
 - **Saved views** — name the current filter/sort/search combination and reapply it.
@@ -58,26 +62,27 @@ centers are invented — see *What these are and aren't* below.
 
 A front-end prototype with **no API and no database**.
 
-The **centers are real**: names, brands, store numbers, cities and states come from the Learning
-Care Group roster of 21 September 2026. Brand is read from the centernumber prefix rather than the
-name, because thirty-three sites do not lead with their brand — thirty Montessori Unlimited
-locations named for a neighbourhood, a typo, and two La Petite sites inside a partner — and every
-one of them knows its prefix. Two edits were made and are visible in the source: sites with a
-missing or duplicated store number were given the next free code in their brand's block, and the
-235 sites sharing a name with another now carry their store number in brackets.
+**Every center is invented**, and so is every camera on it. The chains, the independent sites, the
+cities, the store numbers, how many cameras a site has, which are dark or impaired, how long they
+have been that way and when each was last assessed all come from one fixed seed, and mutate on each
+refresh so the live behaviour can be judged.
 
-The **cameras are invented**. How many a site has, which are dark or impaired, how long they have
-been that way and when each was last assessed all come from one fixed seed, and mutate on each
-refresh so the live behaviour can be judged. 20,744 cameras across the roster, of which about 2.5%
-are offline or impaired at any moment — leaving 9 centers fully down, 203 needing attention and
-1,019 all reporting.
+A real customer roster — 1,231 Learning Care Group sites — sat here between 21 and 28 September 2026
+and was taken back out. It belongs to the client build, which is a separate repo. Two reasons: a
+board that has to survive four thousand centers cannot be designed against a list that stops at
+twelve hundred, and real center names are not something to leave lying in a prototype that is not
+for that customer. It is in this repo's history if it is ever wanted again.
 
-The dashed strip at the bottom of the page forces first-load, refresh-failure and all-healthy
-states, and switches the assignment between three sets of brands — **6 brands / 57 centers**,
-**4 brands / 398**, and **all 13 / 1,231**. Brands rather than counts, because nobody is assigned
-"the first four hundred centers in the file"; you cover some chains and you get however many
-centers they have. It is scaffolding, not part of the design — it exists so the overview can be
-judged at the altitudes a smaller assignment puts it in.
+About **2.5% of cameras** are offline or impaired at any moment, which at 4,000 centers and 67,683
+cameras leaves 37 fully down, 708 needing attention and 3,255 all healthy. The rate is the same at
+every size, and the sizes **nest** — the first 74 centers of the 4,000 are the 74, camera for camera,
+so changing size changes who you can see and never what is wrong with them.
+
+The dashed strip at the bottom of the page forces first-load, refresh-failure and all-healthy states,
+and sizes the fleet: **74**, **600** or **4,000**. 74 is every state and DC once, every third one
+twice — the size at which a square per center is obviously the right cell. 600 is a region. 4,000 is
+the only one of the three that proves anything, because a band, a sort and a filter panel that all
+hold at 600 can fall over at four thousand. It is scaffolding, not part of the design.
 
 Not production code. These exist to settle the interaction design before anyone writes a
 query.
