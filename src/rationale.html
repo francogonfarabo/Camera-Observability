@@ -1,0 +1,503 @@
+<title>Camera Health Design Notes</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Titillium+Web:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#fbfbfc; --card:#ffffff; --ink:#111827; --ink-2:#374151; --ink-3:#6b7280;
+  --line:#e0e3e8; --line-2:#eceef1; --fill:#f4f5f7;
+  --blue:#159deb; --blue-ink:#0b6fa8; --blue-tint:#DBEEFB; --blue-deep:#0C4A6E;
+  --off:#dc2626; --deg:#f97316; --ok:#16a34a;
+  --amber-tint:#FFECB1; --amber-ink:#7c4a03;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#101317; --card:#171b21; --ink:#f2f4f7; --ink-2:#cbd2da; --ink-3:#94a0ad;
+    --line:#2a3038; --line-2:#232830; --fill:#1d2229;
+    --blue:#4db5f0; --blue-ink:#8ed0f7; --blue-tint:#12293a; --blue-deep:#bfe3f8;
+    --amber-tint:#3a2e12; --amber-ink:#f0cd83;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#101317; --card:#171b21; --ink:#f2f4f7; --ink-2:#cbd2da; --ink-3:#94a0ad;
+  --line:#2a3038; --line-2:#232830; --fill:#1d2229;
+  --blue:#4db5f0; --blue-ink:#8ed0f7; --blue-tint:#12293a; --blue-deep:#bfe3f8;
+  --amber-tint:#3a2e12; --amber-ink:#f0cd83;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink-2);
+  font-family:'DM Sans',system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:15.5px; line-height:1.62; -webkit-font-smoothing:antialiased;
+  padding:0 24px 90px;
+}
+.wrap{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:34px}
+.num{font-variant-numeric:tabular-nums}
+
+header{padding:52px 0 0;display:flex;flex-direction:column;gap:14px}
+.eyebrow{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-ink)}
+h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:clamp(28px,4.6vw,40px);line-height:1.1;color:var(--ink);letter-spacing:-.01em;text-wrap:balance}
+.lede{font-size:17px;color:var(--ink-3)}
+.meta{display:flex;gap:8px;flex-wrap:wrap;padding-top:6px}
+.tag{font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--card);border-radius:20px;padding:4px 11px;color:var(--ink-3)}
+hr{border:none;border-top:1px solid var(--line)}
+
+section{display:flex;flex-direction:column;gap:12px}
+h2{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);
+   padding-bottom:9px;border-bottom:2px solid var(--ink)}
+h3.sub{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink);margin-top:22px}
+a{color:var(--blue-ink);text-decoration-thickness:1px;text-underline-offset:2px}
+strong{color:var(--ink);font-weight:700}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em;background:var(--fill);border:1px solid var(--line-2);border-radius:5px;padding:1px 5px;color:var(--ink)}
+ul{display:flex;flex-direction:column;gap:7px;padding-left:20px}
+li::marker{color:var(--ink-3)}
+
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:480px;font-size:13.5px}
+th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--line-2);vertical-align:top}
+th{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);background:var(--fill);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--ink);font-weight:600}
+
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:6px}
+.card .k{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:14.5px;color:var(--ink)}
+.card p{font-size:14px;max-width:none}
+.card.dev{border-left:3px solid var(--blue)}
+
+.sw-row{display:flex;flex-wrap:wrap;gap:10px}
+.sw-item{display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 13px 8px 10px;font-size:13px}
+.sw{width:18px;height:18px;border-radius:5px;flex-shrink:0;background-repeat:no-repeat;background-position:center;background-size:100% 100%}
+.sw.ok{background-color:#16a34a;box-shadow:inset 0 0 0 1px rgba(0,0,0,.1)}
+.sw.deg{background-color:#f97316;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.9) 0 2px,transparent 2px 5px)}
+.sw.off{background-color:#dc2626;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 6l8 8M14 6l-8 8' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E")}
+.sw.stale{background:var(--fill);border:1.5px dashed var(--ink-3)}
+.sw-item b{color:var(--ink);font-weight:700}
+.sw-item span{color:var(--ink-3);font-size:12px}
+
+.q{display:flex;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px}
+.q .n{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:13px;color:var(--blue-ink);background:var(--blue-tint);border-radius:7px;width:25px;height:25px;display:grid;place-items:center;flex-shrink:0}
+.q p{font-size:14px;max-width:none}
+.q p+p{margin-top:4px;color:var(--ink-3);font-size:13px}
+
+footer{font-size:13px;color:var(--ink-3);border-top:1px solid var(--line);padding-top:16px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:560px){ body{padding:0 16px 60px} header{padding-top:34px} }
+</style>
+
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">WatchMeGrow · Cameras</span>
+  <h1>Camera health: two versions, and how they got here</h1>
+  <p class="lede">A live board that tells a center admin, a regional manager, or an exec which cameras are
+  down right now — built at two altitudes, and steered at each turn by specific calls rather than left to
+  default choices.</p>
+  <div class="meta">
+    <span class="tag">Visual language from <code>STYLE_GUIDE.md</code></span>
+    <span class="tag">Light theme only</span>
+    <span class="tag num">2 versions</span>
+    <span class="tag">Offline · Degraded · Online · Out of date</span>
+  </div>
+</header>
+
+<hr>
+
+<section>
+  <h2>How this took shape</h2>
+  <p>Twenty-odd rounds of review, told as the six moves they actually amounted to. Every decision below was
+  Franco's; this is where each one landed in the design.</p>
+  <div class="cards">
+
+    <div class="q"><span class="n num">1</span><div>
+      <p><strong>The frame was set before any layout existed.</strong> Light theme only — the dark mockup as
+      reference, not a target — a three-value legend, the scale to design for, and "a working prototype plus
+      these notes" as the deliverable, all settled by answers rather than defaults before a single row was
+      drawn. The feature was renamed from <em>Current Status</em> to <em>Camera health</em> in the same early
+      pass, ahead of the fork, so that neither version would carry the old name.</p>
+    </div></div>
+
+    <div class="q"><span class="n num">2</span><div>
+      <p><strong>Two versions were built to be compared, and then one was chosen.</strong> The second version
+      came with its own brief — no center selected until one is chosen, problems collapsed by default, no
+      streaming as a default state — and building both is what made the difference between them legible:
+      version A nests camera health under its own rail item, version B introduces an account-level scope the
+      product has never had. Several rounds then cut <em>both</em> of them back: the shared-recorder diagnosis
+      thread came out, the problems-first / all-centers switch came out, and every route into a single
+      center's camera page came out, on the grounds that a triage board should be an answer rather than a
+      menu. Everything B pioneered was ported back into A, A was chosen as the first ship, and B was
+      <em>hidden rather than deleted</em> — it still builds and deploys, it is simply no longer linked.</p>
+    </div></div>
+
+    <div class="q"><span class="n num">3</span><div>
+      <p><strong>Camera health got its own place in the product — and the prototype deliberately starts
+      somewhere else.</strong> <em>Monitoring</em> became a top-level rail item rather than a sub-tab of
+      Cameras, because "camera health across every center" is a different kind of question from anything a
+      center-scoped section answers. And the prototype opens on the Dashboard, since a new section can only be
+      judged by arriving at it: you watch the header's center picker empty and lock as you cross over, instead
+      of reading that it does. Later, screenshots of the real product turned that dashboard from a sketch into
+      the actual screen — welcome band, stat cells, quick tip, a camera panel rendering that center's real
+      statuses, and a phone bar where the search field takes over the entire top row.</p>
+    </div></div>
+
+    <div class="q"><span class="n num">4</span><div>
+      <p><strong>The board is about the whole assignment, and the centers strip is what says so.</strong>
+      Every assigned center as one block, in the same encoding the cameras use a level down, grouped by brand
+      so the hunt for one site is bounded — and sharing a single card with the search row, because clicking a
+      block writes that center into the field directly beneath it. Once the strip existed it made the
+      <em>This center / All centers</em> toggle redundant, and the toggle went. The assignment grew to a
+      regional manager's real list — 73 centers, eight brands, fifty states and six provinces — which is what
+      justifies the rest of the machinery: brand grouping, pagination, saved views, and a search box that
+      holds a draft until you submit it rather than querying on every keystroke.</p>
+    </div></div>
+
+    <div class="q"><span class="n num">5</span><div>
+      <p><strong>Sorting and filtering became real machinery, specified from how the work is described out
+      loud.</strong> Five sorts, each with a direction and a natural default; eight facets, including the
+      operational ones nobody asks for until they need them — payment model, parent access. Region and
+      timezone were both built and both later cut: a category has to earn a row in the rail by being how
+      someone actually names the set they want, and neither was. The
+      sequencing question — should the filters funnel — is answered <em>no, with one exception</em>
+      in <em>Filtering as a funnel</em> below: every facet's options are computed from the centers
+      passing your <em>other</em> choices, so the data does the funnelling instead of the user. Within a
+      category values are ORed, across categories ANDed. And an ⓘ in both panels opens one page stating every
+      formula, because a column called "Defect Rate" is worth nothing if two people read it differently.</p>
+    </div></div>
+
+  </div>
+
+  <h3 class="sub">Two habits did most of the work</h3>
+  <p><strong>Cut the second copy.</strong> Almost every round ended in a subtraction, and almost always
+  because something on screen already said it: the "N need attention" line beside the strip title (the first
+  KPI says it), the camera legend above the list (the strip's legend covers the same encoding), the arrow
+  from a picked block to the search field (the highlight and the filled field already say it), the coloured
+  left edge on rows (the counts and the squares state severity twice already), the comfortable/compact
+  switch, the density controls, the link icon beside every center name, the "all clear" banner, and the
+  <code>LIVE</code> / <code>IMPAIRED</code> badges on the camera modal — which also
+  promised a stream that panel never shows.</p>
+  <p><strong>Two of those subtractions came last, and both were larger than a line of text.</strong>
+  <em>Per-center annotations</em> — a scratch textbox, a presence filter, a sort on last-edited, a chip on
+  the row and a dot on the strip — came out whole. They were a well-built answer to a question this screen
+  was not being asked: camera health is a triage board read in seconds, and the moment it also stores
+  free text it owes someone a history, an author and a place to reply, none of which belong here. And the
+  <em>Overview toggle</em> went with it. A control whose only job is to hide the thing the page is named
+  after is a confession that the thing is too big; the honest fix is to make it fit, which is the whole
+  argument of the version that shipped. "Your centers" is now simply always there.</p>
+  <p><strong>One phrase, one meaning.</strong> The slower discipline, and the one that produced the last
+  round: a word used in two places has to mean the same thing in both, or the board quietly teaches people
+  two different products. Sort labels now name a field and never an order, because a label carrying a
+  direction is wrong in one of the two directions. "All cameras reporting" belongs to the green square and
+  nothing else — the stricter filter option had to be renamed to stop borrowing it. And the headline count,
+  the strip, the refresh announcement and the screen-reader labels all now answer "how many of my centers are
+  in trouble" with the same number, which they did not before the colour rule changed underneath them.</p>
+
+  <h3 class="sub">Scaling, without a second language</h3>
+  <p>An assignment is 73 centers in the demo and can be four thousand in the account. One square per center
+  is a promise that gets expensive to keep: at 600 it stands two full screens above the search box it
+  feeds, and the two red squares are somewhere in the fourth row of a green field.</p>
+  <p>Two fixes were built and run side by side for several rounds. The cheaper one kept a square per
+  center and just put them in a better order: <strong>worst-first inside each brand</strong>, with
+  <strong>the healthy tail collapsed into one square and a count</strong> — <em>57 reporting OK</em>.
+  Forty identical green blocks are "nothing to do here" said forty times; the number says it once and
+  leaves the room for the two that matter. That alone took 600 centers from 1,863px of overview to 625,
+  and it is still the right move — the shipped board does it too.</p>
+  <p>It is not enough on its own, though, and the second fix is the one that shipped. Its single idea is
+  that <strong>a cell is a zoom level, not a center</strong> — what the control changes is how high you
+  are flying over the assignment. A control says whether a cell is a center, a brand or a state, and it
+  starts on the finest one that still draws legibly in three rows: a square per center at 73 and 600, a
+  tile per state at 4,000. A zoom level has to be something the reader can also filter by, or the
+  drill-down lands nowhere — so the control holds exactly the groupings the filter panel holds. What deliberately does <em>not</em> change is the vocabulary —
+  the same red, orange and green, by the same rule, with the same ✕ and hatch. A board read by support
+  staff mid-phone-call cannot also be a board that teaches a second scale; an earlier build graded centers
+  on a five-step defect rate and came out for exactly that reason. The square-per-center version is kept
+  and still deployed, as the thing to compare against rather than as an option to choose.</p>
+  <p>A group is the interesting case, because a group is not <em>in</em> one of the three states — it is
+  some of each, and painting a mix one colour is a lie. So above the center zoom a cell stops being a
+  square and becomes a named tile: the place, how many of its centers need attention, and a bar inside the
+  bottom splitting them across the same three colours. Names matter more at that altitude than swatches do
+  — you are looking for Ohio, not decoding a square — and one dark site inside seventy never rounds away,
+  because that one site is the call you are about to get.</p>
+
+  <h3 class="sub">The last rounds, in full</h3>
+  <p>Mostly definitions rather than features. <strong>A center's colour became a verdict with two precise
+  ends</strong>: red only when every camera is dark, green only when nothing is offline <em>and</em> nothing
+  impaired, orange for everything else. It went through coverage-only first — green tolerating degraded
+  cameras — and came back, because a green square that could still hide a problem put the strip out of step
+  with the filter and the headline count. The rule is stated beside the legend it governs rather than left
+  to be inferred. <strong>Sort labels went neutral</strong> — "Longest Outage" became
+  <em>Outage Time</em> — with the direction saying which end you want. And <strong>the search field states its
+  job once</strong>, in a placeholder that no longer changes underneath the reader.</p>
+  <p>A review pass then closed four gaps. The <strong>State</strong> list was interleaving Alberta between
+  Alaska and Arizona; it is grouped under country headings now, and still not gated, because a state name is
+  unambiguous on its own where a city name is not — Springfield and Rochester are each two different centers
+  here, which is why City <em>is</em> gated and State is not. The <strong>camera modal</strong> gained a toggle
+  between how long a camera has been down and the wall-clock moment it went down — four hours sizes the
+  problem, 2:14 AM is what you match against a power cut — and lost the camera ID row. That clock later had
+  to learn to say <em>which</em> day: a camera that went down at 2:14 this morning and one that went down at
+  2:14 three mornings ago are not the same call, and a bare time cannot tell them apart. And the
+  <strong>KPI row</strong>
+  stopped repeating itself: its first tile and its second were running the same filter, so the first now
+  counts centers with anything wrong and the second stays on cameras offline.</p>
+  <p>Then the fourth camera state arrived — <strong>out of date</strong> — with the assessor's real rules
+  behind all four: an HLS playlist that does not exist, FFMPEG restarts past a critical or a warning
+  threshold, an HLS playlist or a JPG older than a hundred seconds, and (for the fourth) an assessment older
+  than an hour. Those rules now live on the reference page beside the center rules, because a board that
+  claims a camera is degraded owes the reader the definition it used. The state itself is drawn as a veil
+  rather than a colour, and filtered as a fifth <em>Status</em> value, <b>Has stale cameras</b>. That last
+  one was a reversal: freshness started in a category of its own, on the argument that ANDing it against a
+  status is a question worth being able to ask — "which centers have offline cameras <em>and</em> readings I
+  can't trust". One more category in the rail turned out to cost more than that query is worth, so the two
+  live together and combine with OR like every other pair inside a category. The complement that matters is
+  untouched: <b>Has any issue</b> and <b>All cameras healthy</b> still partition the strip exactly, and the
+  new value simply overlaps both.</p>
+</section>
+
+<section>
+  <h2>Two versions</h2>
+  <div class="cards">
+    <div class="card dev">
+      <span class="k">A · Nested — a sub-nav under its own rail item</span>
+      <p>Camera health as the only sub-tab of a dedicated <em>Monitoring</em> rail item — originally filed
+      under Cameras, and originally shown beside four placeholder sub-tabs that have since gone: a section
+      that holds one thing should say so rather than advertise a roadmap. Cheapest to ship of the two. It no
+      longer carries a scope toggle either: the page is always the whole assignment, the header's center picker
+      empties and greys out while you are in it, and a strip of all 73 centers makes the altitude self-evident.
+      The prototype opens on a center's Dashboard so that change of state is something you watch happen rather
+      than something you read about.</p>
+    </div>
+    <div class="card dev">
+      <span class="k">B · Toggle — a scope above center selection</span>
+      <p>Camera health as the one thing that exists at account altitude, reached by a toggle in the
+      header's search field. No center selected, center-scoped nav hidden. Resolves the seam honestly, at
+      the cost of a scope the app has never had before.</p>
+    </div>
+  </div>
+  <p>B is the right long-term model; A is the right first ship. If the toggle version is likely within two
+  quarters, build B now — retrofitting a scope later means re-teaching the navigation twice.</p>
+</section>
+
+<section>
+  <h2>Layout</h2>
+  <p>One row per center in both versions: identity, a fixed column of aligned status counts, then a
+  wrapping grid of camera squares. Status is colour plus texture, never colour alone — red and green is the
+  pair that fails for red-green colour blindness, and this board's whole meaning rides on exactly that pair.</p>
+  <div class="sw-row">
+    <span class="sw-item"><span class="sw off"></span><b>Offline</b><span>cross</span></span>
+    <span class="sw-item"><span class="sw deg"></span><b>Degraded</b><span>diagonal hatch</span></span>
+    <span class="sw-item"><span class="sw ok"></span><b>Online</b><span>flat fill</span></span>
+    <span class="sw-item"><span class="sw stale"></span><b>Out of date</b><span>faded, dashed ring</span></span>
+  </div>
+  <p><strong>The fourth one is not a fourth status.</strong> Offline, degraded and online are the assessor's
+  verdict on a camera and are stored with the reading. <em>Out of date</em> is this page's verdict on the
+  <em>reading</em> — <code>assessed_at</code> older than an hour, against an assessor that runs every thirty
+  minutes, so two consecutive runs produced nothing. It is computed in the browser and written nowhere.</p>
+  <p>That distinction decides how it draws. "This camera was offline, and we have not heard since" is two
+  facts, and a fourth flat colour can only show one of them — it would overwrite the last thing anyone
+  actually knew in order to say that we no longer know it, which is the wrong half to keep. So staleness is
+  a <em>veil</em>: the block keeps its colour and its shape, drops its saturation, and gains a dashed ring.
+  Both facts survive, and the shape encoding means offline and degraded stay distinguishable even when the
+  hue is almost gone.</p>
+  <p>The counts get their own column because sharing it with identity makes them wrap unpredictably; given
+  a column, ten rows becomes one scannable ladder of digits. Rows carry no coloured left edge: the counts
+  column and the squares already state the severity twice, and a third encoding of it was just stripes.</p>
+  <p>Above the list, version A adds a <strong>centers strip</strong>: the same three-way encoding applied one
+  level up, one block per center the account can see, grouped by brand so the hunt for a particular site is
+  bounded. It is not a separate card — it shares one card with the search and filter row, because its real job
+  is navigational: clicking a block writes that center's name into the field below it and the list narrows to
+  that center. Two rules keep that promise honest. <strong>Filters take centers out of it</strong>, exactly as they take
+  rows out of the list below, and the space comes back. That took two tries to get right: the first version
+  answered a click on a filtered-out block by silently dropping the filters that excluded it, which made a
+  greyed control behave like a reset button; the second locked the block and explained itself, which was
+  honest but left an overview two thirds full of grey ghosts of what you had just filtered away. A filter
+  means <em>show me less</em>. And <strong>the search text is the one exception</strong> — clicking a block
+  writes that center's name into the field below, and if the search narrowed this component too, using it
+  once would leave a single square on screen, which is the opposite of what an overview is for.</p>
+  <p>The three colours in the strip answer a different question from the three inside a center. A
+  <em>camera</em> is offline, degraded or normal — three states of one device. A <em>center</em> is a verdict
+  on the whole site, and only its two ends are precise: <strong>green</strong> means nothing offline and
+  nothing impaired, <strong>red</strong> means every camera dark, and <strong>orange</strong> is everything
+  in between. That middle bucket is deliberately ungraded. One soft camera among nineteen good ones and nine
+  dark cameras out of ten land on the same colour, because the square answers <em>does this need looking
+  at</em> and the row underneath answers how much — a hue asked to separate those two would be a number
+  pretending to be a colour. An ⓘ beside the legend states the rule where it applies.</p>
+  <p><strong>Staleness never reaches the center rule.</strong> It was briefly allowed to — a center faded
+  once every camera in it was out of date — and that turned out to be one idea too many in a component whose
+  entire job is to answer one question at a glance. A center square says how much of a site is working;
+  how old a reading is asks a different question of a different object, and the veil belongs where the
+  object is. So the strip stays a three-state overview, and out-of-date shows on the camera blocks inside a
+  center, on the count beside them, and in its own filter category. That category is the one yes/no on the
+  panel, and it sits above the rest: it lived inside <em>Status</em> for several rounds, where being one
+  option among <em>offline</em>, <em>degraded</em> and <em>healthy</em> made it read as a fourth thing a
+  camera could be. It is not. It is a statement about the reading, and everything below it on that panel is
+  a claim about the past for the centers it matches — which is also the order they now appear in. A banner
+  above the
+  board announcing the fleet-wide count went in and came straight back out: staleness is a caveat on a
+  reading, and a caveat does not earn a permanent alarm strip above the numbers it qualifies.</p>
+  <p>Keeping green strict is what makes the rest of the board agree with itself. Green is the exact
+  complement of the <em>Has any issue</em> filter, so the count of non-green squares, the first KPI, the
+  status filter and the refresh announcement are all one number rather than four readings of a similar
+  idea. An earlier version let green tolerate degraded cameras — coverage rather than health — and every one
+  of those four drifted apart from the others by the number of quality-only centers.</p>
+  <p>The prototype's user is assigned <strong>73 centers</strong> across eight brands. At that size the strip
+  becomes two rows of brand-labelled groups rather than an undifferentiated wall, which is why the grouping
+  exists at all: it bounds the hunt for one site to a handful of squares. Center rows sit at one density —
+  the comfortable one, with 20px squares — since a density switch is a preference the page can simply make
+  well once. The board fills the window's full width: the camera grids are what benefits from every pixel,
+  because a wider row is fewer wrapped rows per center.</p>
+</section>
+
+<section>
+  <h2>What's different between them</h2>
+  <p>Both versions now agree on more than they did: every center is always listed, saved views exist in both,
+  and neither one filters the page down to a single center. What remains different is how each one states its
+  altitude, and where the detail opens.</p>
+  <ul>
+    <li><strong>B states altitude with a control; A states it with the page.</strong> B's search field reads
+    "All my centers" with a filled blue chip while camera health is on. A dropped its scope toggle entirely —
+    the strip of every center, plus one dismissible line, does that job, and the header's center picker greys
+    out for as long as you are in Monitoring.</li>
+    <li><strong>B hides the center-scoped nav; A leaves it.</strong> In B, absent nav reads as a different
+    altitude. A keeps the rail intact and lets Dashboard lead it, since Dashboard is where a center actually
+    gets picked.</li>
+    <li><strong>Cameras in the rail looks normal but isn't a route</strong> — in both, every path to a camera
+    runs through camera health, so there's one door, not two.</li>
+    <li><strong>Both open camera detail in a centred modal</strong> — A tried a side drawer for a while and
+    went back: a camera you clicked into is a stop, not a sidebar.</li>
+    <li><strong>Every center is listed, always.</strong> No problems-first / all-centers switch and no
+    collapsed healthy row: the sort decides what floats to the top, so there is one list rather than a mode
+    to be in. Problem centers show their whole grid, not just the broken cameras — four red among twenty
+    green tells a different story than four red alone.</li>
+    <li><strong>The row holds at 100 cameras.</strong> A 100-camera site wraps to three tidy rows on desktop
+    and seven on a phone, with no overflow at any width and the keyboard grid still a single tab stop. Squares
+    stay one fixed size at every count on purpose: scaling them down for large sites would make a red square
+    mean something different from card to card, and comparing centers at a glance is the whole job.</li>
+    <li><strong>Both can save a view.</strong> Name the current filters, search and sort; reapply or delete it
+    from a chip row. Browser-local (<code>localStorage</code>), not an account setting. This began as B's alone
+    and was ported to A once A became the version to ship.</li>
+    <li><strong>Single-center users see none of this</strong> — nothing to aggregate, so no altitude to
+    state.</li>
+  </ul>
+  <p><strong>There is no center view.</strong> B has exactly two screens: the cold-start dashboard and camera
+  health. Center names are labels, not links; the camera modal offers my.watchmegrow.com and nothing else. This is the
+  sharper reading of "camera health is the only place to check cameras" — if drilling into a single center's
+  camera page were one click away, the board would be a menu rather than the answer.</p>
+</section>
+
+<section>
+  <h2>Filtering as a funnel</h2>
+  <p>The question was whether these filters should sequence — country, then state, then city, then the rest.
+  The answer here is <strong>no, with one exception</strong>, for two reasons.</p>
+  <p><strong>A funnel charges everyone for a narrowing nobody asked for.</strong> The assignment is already a
+  subset: these are the centers this person is responsible for. Making them choose a country and a state
+  before the board will show anything adds three clicks to reach the view they had on arrival. Filters should
+  subtract from a complete board, not assemble one.</p>
+  <p><strong>What genuinely depends on something else is the options, not the order.</strong> Every facet's
+  list is built from the centers that pass your <em>other</em> choices, and each option carries the count it
+  would leave. So choosing Texas reduces the city list to Texas cities without anyone walking a hierarchy,
+  and an option that would empty the board is greyed out rather than offered. The data does the funnelling.</p>
+  <p>The exception is <strong>City, which is gated on a State</strong> — ungated it lists every city in the
+  assignment, which is a wall rather than a filter. The rail says so in place of the value ("after state")
+  instead of hiding the row, so the dependency is discoverable rather than invisible. <strong>Country</strong>
+  is treated as the outermost scope in one respect only: changing it drops any state, city or brand it
+  leaves with nothing to match, since those combinations are guaranteed-empty rather than merely narrow.</p>
+  <p>Everything else is a flat facet on purpose. Brand, payment model and parent access all cut across
+  geography — a brand spans states — so nesting them under a place would be a lie about the data.</p>
+  <p><strong>Two facets were removed rather than kept because they worked.</strong> Region and Timezone both
+  filtered correctly and both drew a clean zoom level in the band; neither was how anyone named the set they
+  wanted. A region is an org chart, and this board is read by support staff who were handed a center name on
+  a phone call, not a district. A timezone is a scheduling question, and scheduling is not what this screen
+  is for — the one place a zone still earns its space is the camera modal, stating the moment a camera went
+  down in the center's wall clock rather than the reader's. A category that is defensible is not the same as
+  a category that is used, and eight rows of rail that all get used beat ten that mostly do not.</p>
+</section>
+
+<section>
+  <h2>The refresh contract</h2>
+  <ul>
+    <li><strong>The countdown is visible</strong> and the subtitle states data age — "read 12s ago".</li>
+    <li><strong>Pause is real and labeled:</strong> "showing a frozen view," not a stopped clock.</li>
+    <li><strong>It stops on its own</strong> when the tab is hidden, a detail view is open, or someone is
+    typing a filter.</li>
+    <li><strong>Ranking never changes under the cursor.</strong> A reorder waits, silently, until the pointer
+    and the keyboard have both left the list. It used to announce the wait with a pill; the pill turned out to
+    cost more attention than the wait it was explaining.</li>
+    <li><strong>Failure is stated, not hidden</strong> — an amber banner names the data's age and offers
+    retry; the board never goes blank.</li>
+    <li><strong>Nothing focused or hovered gets replaced.</strong> The centers strip is built once and then
+    patched attribute-by-attribute on every read, and a re-render that does replace a camera block re-anchors
+    the hover card to the block that took its place instead of stranding it on the page.</li>
+    <li><strong>Screen readers get one polite summary per read</strong>, not per-block noise.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Keyboard and access</h2>
+  <ul>
+    <li>Each center's grid is <strong>one</strong> tab stop with roving focus — arrows move between cameras,
+    not 20 separate stops per center.</li>
+    <li>Every square's accessible name includes the duration: "Camera 14, Nap room B, offline for 1h 05m".</li>
+    <li>The hover card also appears on focus. Informational text sits at 4.5:1 contrast or better.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Notes for engineering</h2>
+  <ul>
+    <li><strong>Don't query the assessment log directly per poll.</strong> Maintain a
+    <code>camera_current_status</code> projection — one row per camera — so sorting and paginating is an
+    indexed read, not a windowed scan.</li>
+    <li><strong>Compute counts in SQL</strong>, per page. Never ship thousands of camera rows to count
+    client-side.</li>
+    <li><strong>Distinguish "offline" from "we haven't heard."</strong> A camera past its heartbeat window
+    is unknown, not healthy — see question 2.</li>
+    <li><strong>Scope every query server-side</strong> by the user's access; the UI toggle is a
+    convenience, never the security boundary.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Open questions</h2>
+  <div class="cards">
+    <div class="q"><span class="n num">1</span><div>
+      <p>Should the Camera health toggle carry a count?</p>
+      <p>The concept spec called a badge the main discoverability driver on a good day; the reference
+      image had none, so it shipped without one. A middle option: show the number only when non-zero.</p>
+    </div></div>
+    <div class="q"><span class="n num">2</span><div>
+      <p>Should an out-of-date reading still count toward Defect Rate and Defect Count?</p>
+      <p>Today it does: a camera last assessed as offline five hours ago is still counted as offline, on the
+      grounds that it is the best information available. The alternative is to exclude stale rows from both
+      metrics, which makes the numbers honest but makes them move for a reason that has nothing to do with
+      the cameras. Worth deciding before either number is used as a target.</p>
+    </div></div>
+    <div class="q"><span class="n num">3</span><div>
+      <p>Where does someone go once camera health tells them a center is broken?</p>
+      <p>B deliberately has no route into a single center, so the next step happens outside this screen — on
+      my.watchmegrow.com, or by leaving camera health and picking the center the normal way. Worth confirming that matches
+      how the work actually continues, since it is the one thing the board stops short of.</p>
+    </div></div>
+    <div class="q"><span class="n num">4</span><div>
+      <p>Timestamps in the viewer's timezone, or the center's?</p>
+      <p>The modal answers <em>the center's</em>, and labels it — <em>Today · 2:14 AM CT</em>. That is the
+      only reading that is actionable when you are about to send someone to the building. It is a decision
+      taken inside the prototype rather than a confirmed one; a fleet spanning six zones may well want the
+      reader's clock as the second line rather than an alternative to it.</p>
+    </div></div>
+    <div class="q"><span class="n num">5</span><div>
+      <p>Is camera order within a center stable and meaningful?</p>
+      <p>If not, ordering by room would beat whatever order the log happens to return.</p>
+    </div></div>
+    <div class="q"><span class="n num">6</span><div>
+      <p>Does "degraded" carry a reason?</p>
+      <p>Low bitrate versus dropped frames versus a bad angle is the difference between calling the vendor
+      and nudging the camera.</p>
+    </div></div>
+  </div>
+</section>
+
+<footer>
+  History, saved-clip playback, and an admin display mode are out of scope for this pass. The sub-nav used to
+  reserve <em>Live</em>, <em>History</em>, <em>Saved Clips</em>, and <em>Admin Display</em> as decorative tabs;
+  they have been removed. Monitoring holds one section, and showing four it doesn't have reads as a roadmap
+  rather than a product — their eventual home can be invented when they exist.
+</footer>
+
+</div>
