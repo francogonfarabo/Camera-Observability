@@ -1984,7 +1984,23 @@ function facetPool(skip){
   if (sig !== poolSig){ poolSig = sig; poolSet = DATA.filter(c => passExcept(c, skip)); }
   return poolSet;
 }
-const uniqOpts = (get, key) => [...new Set(facetPool(key).map(get))]
+/* The list is built from the centers that pass every *other* facet, which is
+   what makes the geography cascade — pick Idaho and the brand list shrinks to
+   the brands Idaho has. What it must never do is drop a value the reader has
+   already chosen. Pick DoodleBugs and Kiddie Academy, then Idaho, where only a
+   DoodleBugs exists: Kiddie Academy used to vanish from its own list while
+   staying selected — still in the chip, still in the query, with no row left
+   to uncheck it from. The chip's label is looked up in this list too, so a
+   chosen "No brand" that fell out of it rendered as a blank.
+
+   So the selection is always unioned back in. Its count reads 0, which is the
+   truth — nothing matches it alongside the other choices — and the panel
+   already keeps a selected zero-count row enabled and checked, so it stays
+   one click from being undone. Not dropped automatically: within a category
+   values are ORed, so "DoodleBugs or Kiddie Academy, in Idaho" is a sound
+   query that happens to find only DoodleBugs, and clearing Idaho later should
+   bring Kiddie Academy straight back. */
+const uniqOpts = (get, key) => [...new Set([...facetPool(key).map(get), ...S[key]])]
   .sort((a,b)=>String(a).localeCompare(String(b))).map(v=>[v, String(v)]);
 
 /* State and province names are unique across both countries in this data, so
