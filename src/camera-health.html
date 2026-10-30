@@ -600,6 +600,11 @@ h1{font-family:'Titillium Web',sans-serif;font-weight:700;font-size:23px;line-he
 .fmulti{font-size:11.5px;color:var(--ink-4);margin-right:auto}
 .fscope{padding:8px 14px;font-size:12px;color:var(--blue-deep);background:var(--blue-tint);border-bottom:1px solid var(--line)}
 .fscope b{font-weight:700}
+/* Shown only once a panel is a full-screen sheet. On a wider screen the sort
+   popover closes on the choice itself, and a button repeating that would be a
+   second way to do the thing that just happened. Qualified, because the
+   .fpanel-foot rule below sets display at equal specificity and would win. */
+.fpanel-foot.sheetonly{display:none}
 .fpanel-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 13px;
   border-top:1px solid var(--line);background:var(--fill-2)}
 .fpanel-foot .clear{font-size:12.5px;font-weight:700;color:var(--ink-3);padding:6px 8px;border-radius:7px}
@@ -1027,13 +1032,32 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
      scrolls, where an ellipsis costs the half of the sentence that matters. */
   .fchip{white-space:normal;padding:4px 4px 4px 11px}
   .fchip .t{max-width:none;overflow:visible;text-overflow:clip}
-  /* A dropdown anchored to the toolbar opens past the bottom of the page
-     and, being absolutely positioned, can't be scrolled to. On a phone it
-     becomes a bottom sheet that owns its own scrolling instead. */
-  .fpanel,.fpanel.wide,.fpanel.narrow{position:fixed;left:0;right:0;bottom:0;top:auto;width:auto;
-    border-radius:14px 14px 0 0;border-left:none;border-right:none;border-bottom:none;
-    max-height:88dvh;display:flex;flex-direction:column;z-index:80}
-  .fhead{flex-shrink:0}
+  /* A dropdown anchored to the toolbar opens past the bottom of the page and,
+     being absolutely positioned, cannot be scrolled to. On a phone it takes the
+     whole screen instead.
+
+     It was a bottom sheet capped at 88dvh, which is a cap and not a height — so
+     each panel hugged its own content and sat in the lower third, with a long
+     option list scrolling inside 200px while most of the phone showed a board
+     nobody was looking at. Choosing filters is a task, not a glance: it gets the
+     screen, and gives it back on a confirm.
+
+     inset:0 rather than height:100dvh: a fixed element stretched by its own
+     offsets tracks the viewport through the URL bar collapsing, where a dvh is
+     resolved once per resize and can leave a strip of board under the footer. */
+  .fpanel,.fpanel.wide,.fpanel.narrow{position:fixed;inset:0;width:auto;max-height:none;
+    border:none;border-radius:0;display:flex;flex-direction:column;z-index:80;
+    box-shadow:none}
+  /* Title and the way into the notes share the top line; the hint drops under
+     them with the width to be one sentence instead of three fragments. */
+  .fhead{flex-shrink:0;padding:13px 14px 11px;flex-wrap:wrap;row-gap:4px}
+  .fhead b{font-size:16px}
+  .fmulti{order:3;flex:1 1 100%;white-space:normal}
+  .finfo{white-space:nowrap}
+  /* Nothing is behind a full-screen panel to tap, so the way out has to be
+     inside it. Both panels carry the footer here; on a wider screen the sort
+     popover keeps closing on the choice itself and does not show one. */
+  .fpanel-foot{flex-shrink:0;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
   /* the facet rail becomes a scrolling row of pills above the options */
   /* the sheet owns its own height here, so the desktop cap comes off */
   .ftwo{display:flex;flex-direction:column;flex:1;min-height:0;max-height:none}
@@ -1050,8 +1074,13 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
   .fbool[aria-pressed="true"]{background:var(--blue-tint);box-shadow:inset 0 0 0 1px #9fd0f0}
   .fbody{flex:1;min-height:0}
   .foptlist,.fsearch+.foptlist{max-height:none;flex:1}
-  .sortlist,.sortdir{flex-shrink:0}
-  .fpanel-foot{flex-shrink:0;padding-bottom:14px}
+  .fpanel-foot.sheetonly{display:flex}
+  /* The sort panel has little in it and a screen to fill: the two groups space
+     themselves out rather than stacking at the top of an empty sheet. */
+  .sortlist{flex:1;min-height:0;overflow-y:auto;padding:10px 8px}
+  .sortdir{flex-shrink:0;padding:10px 8px}
+  .sortlist .fopt,.sortdir .fopt{padding:11px 12px;font-size:14px}
+  .frail{padding:10px}
   .strip-head .legend{margin-left:0;width:100%;gap:12px;flex-wrap:wrap}
   /* On a phone the zooms can be wider than the screen. They scroll sideways
      inside their own control rather than dragging the page with them. */
@@ -2314,6 +2343,10 @@ function renderTools(){
           <h4>Order</h4>
           ${["desc","asc"].map(v=>opt("dir", v, dirLabel(S.sort,v), S.dir,
             `<span class="oa">${ARROW(v)}</span>`)).join("")}
+        </div>
+        <div class="fpanel-foot sheetonly">
+          <button class="clear" id="sortReset">Reset to default</button>
+          <button class="done" id="sortDone">Done</button>
         </div>
       </div>
     </div>`;
@@ -4263,6 +4296,12 @@ document.addEventListener("click", e=>{
   if (onSortTrigger){ S.sortOpen=!S.sortOpen; S.filtersOpen=false; S.savingOpen=false; render(); revealPanel("sortpanel"); return; }
   if (t.closest("#fDone")){ S.filtersOpen=false; render(); return; }
   if (t.closest("#fClear")){ clearAll(); return; }
+  if (t.closest("#sortDone")){ S.sortOpen=false; render(); return; }
+  if (t.closest("#sortReset")){
+    S.sort = "rate"; S.dir = sortRow("rate").def; S.page = 1; render();
+    $("announce").textContent = "Sort reset to defect rate, highest first.";
+    return;
+  }
   if (t.closest("[data-info]")){ openInfo(null, t.closest("[data-info]")); return; }
   // A yes/no category has no option list to open, so it toggles where it sits
   // and never becomes the selected facet.
@@ -4278,7 +4317,10 @@ document.addEventListener("click", e=>{
   if (fo){
     // Both panels stay open while you are still choosing — picking a sort
     // field rewrites the two order labels below it, which is worth seeing.
-    // Choosing the order is the terminal decision, so that closes it.
+    // Choosing the order is the terminal decision, so on a popover that closes
+    // it. Not on a phone: there the panel is the whole screen, so closing it out
+    // from under a tap is a jump rather than a dismissal, and the sheet has its
+    // own Done to leave by.
     const f = fo.dataset.f, v = fo.dataset.v;
     if (FKEYS.includes(f)){
       // Toggle within the category; the clear row empties it.
@@ -4290,7 +4332,7 @@ document.addEventListener("click", e=>{
     // A field's natural direction comes with it: nobody picks "Defect Rate"
     // wanting the healthiest centers first, or "Center Name" wanting Z–A.
     if (f === "sort") S.dir = sortRow(S.sort).def;
-    if (f === "dir") S.sortOpen = false;
+    if (f === "dir" && !asSheet()) S.sortOpen = false;
     if (FKEYS.includes(f)) reconcileFilters();
     S.page=1; render(); return;
   }
@@ -4338,7 +4380,14 @@ function renderSearchScope(){
 /* The toolbar sits low enough on a laptop that a panel dropping from it
    can open below the fold. Rather than flipping it upward — which moves a
    thing the user just aimed at — scroll it into view. */
+/* The one breakpoint JS has to know about, because a full-screen panel and a
+   popover want different things from the same click. Matches the 640px in the
+   stylesheet; change them together. */
+const asSheet = () => window.matchMedia("(max-width:640px)").matches;
+
 function revealPanel(id){
+  // A panel that fills the screen is already in view.
+  if (asSheet()) return;
   const el = $(id);
   if (!el || el.hidden) return;
   requestAnimationFrame(()=>{
