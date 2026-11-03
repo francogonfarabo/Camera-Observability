@@ -981,6 +981,10 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
 .tip.autotip .dot.yes{background:var(--blue-ink);border-color:var(--blue-ink);
   box-shadow:inset 0 0 0 2px var(--surface)}
 .tip.autotip .foot{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-weight:600}
+/* Filters' and sort's card. Above the panel it explains — on a phone that panel
+   is a full-screen sheet at z-index 80, and the card would open behind it. */
+.tip.hint{max-width:300px;z-index:90}
+.tip.hint em{margin-top:4px;line-height:1.45}
 .tip b{display:block;font-size:12.5px;font-weight:700}
 .tip em{font-style:normal;color:var(--ink-3);display:block;margin-top:1px}
 .tip .row{display:flex;align-items:center;gap:6px;margin-top:5px;font-weight:600}
@@ -1404,79 +1408,6 @@ select:focus{border-color:var(--blue);box-shadow:var(--focus)}
           rule.</b> A cell's colour is about how much of the fleet under it is working, and how old a reading
           is asks a different question of a different object — so the out-of-date treatment lives on
           the camera blocks inside each center, on the count beside them, and in its own filter.</p>
-        </section>
-        <section>
-          <h3>Sorting</h3>
-          <dl class="ilist">
-            <div class="irow"><dt>Defect Rate</dt><dd>
-              <code>(offline + degraded) ÷ total cameras</code>, per center, as a percentage.
-              Highest first by default.
-              <span class="d">Rate, not count: a center with 3 of 8 cameras down is in worse shape than one
-              with 4 of 40, and only the rate says so.</span></dd></div>
-            <div class="irow"><dt>Defect Count</dt><dd>
-              <code>offline + degraded</code> — the absolute number of cameras not fully healthy.
-              Highest first by default.
-              <span class="d">Count, not rate: this is the one that maps to how many visits or work orders
-              the day actually holds.</span></dd></div>
-            <div class="irow"><dt>Outage Time</dt><dd>
-              The oldest current outage in the center: <code>max(now − last healthy heartbeat)</code> across
-              its <em>offline</em> cameras. Longest first by default.
-              <span class="d">Degraded cameras are excluded — they are still reporting, so they have no
-              outage clock running. Centers with nothing offline sort last.</span></dd></div>
-            <div class="irow"><dt>Center Name</dt><dd>Alphabetical, A–Z by default.</dd></div>
-            <div class="irow"><dt>Store Number</dt><dd>Numeric on the store number, lowest first by default.</dd></div>
-          </dl>
-          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Ties fall back to center name A–Z, in
-          both directions. The card shows whichever number you sorted by, so the order is always checkable
-          against something on screen.</p>
-        </section>
-        <section>
-          <h3>Filtering</h3>
-          <dl class="ilist">
-            <div class="irow"><dt>Stale camera data</dt><dd>A switch, not a list — the only category on
-              this panel that is a yes/no. On, it keeps the centers holding at least one camera whose
-              assessment has gone stale.
-              <span class="d">It sits above the others because it outranks them: a reading being out of
-              date is a statement about the reading, not a fourth thing a camera can be, and everything the
-              rest of the panel filters on is a claim about the past for those centers. It used to be one
-              option inside Status, where it read as a status.</span></dd></div>
-            <div class="irow"><dt>Center status</dt><dd>The square's own verdict, as a filter:
-              <b>Fully down</b>, <b>Needs attention</b>, <b>All healthy</b>. The three are mutually
-              exclusive and their counts sum to the whole assignment.
-              <span class="d">It is read straight off the same rule that colours the square, so the filter
-              and the mark cannot disagree. There is no <em>Has any issue</em> option: that is
-              <b>Fully down</b> and <b>Needs attention</b> chosen together, which is what the first KPI
-              tile selects.</span></dd></div>
-            <div class="irow"><dt>Camera health</dt><dd>A different question from the one above —
-              <b>Has offline cameras</b>, <b>Has degraded cameras</b> — and deliberately not exclusive with
-              it, since a center needing attention can hold both.
-              <span class="d">Values inside a category are ORed, so choosing both asks for centers
-              matching <em>either</em>, not both.</span></dd></div>
-            <div class="irow"><dt>Brand</dt><dd>The operating brand the center trades under.
-              <span class="d">About one site in twelve belongs to no chain and has an empty brand field.
-              Those are offered as <b>No brand</b> — last in the list, because it is the absence of a
-              brand rather than one more of them — and they get their own group in <em>Your centers</em>
-              for the same reason. "No brand" and not "Independent": the record says the field is empty,
-              which is not the same claim.</span></dd></div>
-            <div class="irow"><dt>Parent access</dt><dd>Whether parents can watch this center's cameras
-              (<b>parent-facing</b>) or the feeds are staff-only (<b>internal</b>).</dd></div>
-            <div class="irow"><dt>Country</dt><dd>United States or Canada. It's the outermost scope: changing
-              it drops any state, city or brand it leaves with nothing to match.</dd></div>
-            <div class="irow"><dt>State / Province</dt><dd>Where the center sits. The list is grouped under
-              <b>United States</b> and <b>Canada</b> rather than gated behind Country: a state name is
-              unambiguous on its own, so a gate would cost every reader two clicks to fix what a heading
-              fixes for free. <span class="d">City is gated, because a city name is <em>not</em> unambiguous
-              — Springfield and Rochester are each two different centers in this assignment.</span></dd></div>
-            <div class="irow"><dt>City</dt><dd>Available once a state is chosen — an ungated city list is
-              every city you can see, which is a wall rather than a filter.</dd></div>
-          </dl>
-          <p style="font-size:12px;color:var(--ink-3);margin-top:8px">Filters don't have to be applied in
-          order. Each list is built from the centers that pass your <em>other</em> choices, and the number
-          beside an option is how many centers you'd be left with — so choosing a state narrows the city
-          list on its own, and an option that would empty the board is greyed out instead of offered.
-          <b>Within one category you can pick as many values as you like</b> and they're ORed together
-          (Texas <em>or</em> Oklahoma); separate categories are ANDed (Texas, and parent-pay). The counts
-          also respect whatever is in the search box.</p>
         </section>
       </div>
     </div>
@@ -2223,6 +2154,14 @@ const hasAnyFilter = () => activeFilters().length > 0 || !!S.q.trim();
 const ARROW = d => d === "asc"
   ? `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M6 11l6-6 6 6"/></svg>`
   : `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M6 13l6 6 6-6"/></svg>`;
+/* Kept to two lines on purpose: what a reader needs mid-task is how choices
+   combine and what a number means, not the reasoning behind each category. */
+const HINTS = {
+  filters: ["How filters combine",
+    "Choices in one category widen the list; across categories they narrow it. Numbers show how many centers you'd get."],
+  sort: ["How sorting works",
+    "Rate is the share of cameras offline or degraded; count is how many. Ties go by name, A–Z."],
+};
 const INFO_ICON = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.8v.4"/></svg>`;
 
 /* The open facet's options, with live counts. Kept separate from the panel
@@ -2304,7 +2243,7 @@ function renderTools(){
       <div class="fpanel wide" id="fpanel" ${S.filtersOpen?"":"hidden"} role="dialog" aria-label="Filters">
         <div class="fhead"><b>Filters</b>
           <span class="fmulti">Pick as many as you like in a category</span>
-          <button class="finfo" data-info="1">${INFO_ICON} How these work</button></div>
+          <button class="finfo" data-hint="filters" aria-label="${esc(HINTS.filters.join(" "))}">${INFO_ICON}</button></div>
         ${S.q.trim() ? `<div class="fscope">Counts and options are within the search
           <b>“${esc(S.q.trim())}”</b>.</div>` : ""}
         <div class="ftwo">
@@ -2360,7 +2299,7 @@ function renderTools(){
       </button>
       <div class="fpanel narrow" id="sortpanel" ${S.sortOpen?"":"hidden"} role="dialog" aria-label="Sort">
         <div class="fhead"><b>Sort by</b>
-          <button class="finfo" data-info="1">${INFO_ICON}</button></div>
+          <button class="finfo" data-hint="sort" aria-label="${esc(HINTS.sort.join(" "))}">${INFO_ICON}</button></div>
         <div class="sortlist">
           ${SORTS.map(s=>opt("sort", s.k, s.label, S.sort)).join("")}
         </div>
@@ -2375,6 +2314,12 @@ function renderTools(){
         </div>
       </div>
     </div>`;
+  // The button under the pointer was just replaced and mouseout never fires for
+  // a node that is gone. Re-anchor to its replacement, as the legend's card does.
+  if (tip.classList.contains("hint") && tip.classList.contains("show")){
+    const again = $("toolsSlot").querySelector(`[data-hint="${tip.dataset.hint}"]`);
+    if (again && again.offsetParent) showHint(again); else hideHint();
+  }
 }
 
 /* =====================================================================
@@ -4002,6 +3947,25 @@ function showStatesTip(b){
   placeTip(b);
 }
 
+/* Filters and sort, on hover — the same card as the centre colours. They used
+   to open the full notes, a page of rules for a question that has a two-line
+   answer: how choices combine, and what the numbers mean. Text lives in HINTS
+   (above the panels) so aria-label says exactly what the card says; #tip is
+   aria-hidden. A tap focuses the button on a phone, so focusin covers touch. */
+function showHint(b){
+  const [title, text] = HINTS[b.dataset.hint];
+  tip.classList.remove("states");
+  tip.classList.add("hint");
+  tip.dataset.hint = b.dataset.hint;
+  tip.innerHTML = "<b>" + title + "</b><em>" + text + "</em>";
+  placeTip(b);
+}
+function hideHint(){ tip.classList.remove("show","hint"); }
+$("toolsSlot").addEventListener("mouseover", e=>{ const b=e.target.closest("[data-hint]"); if (b) showHint(b); });
+$("toolsSlot").addEventListener("focusin",   e=>{ const b=e.target.closest("[data-hint]"); if (b) showHint(b); });
+$("toolsSlot").addEventListener("mouseout",  e=>{ if (e.target.closest("[data-hint]")) hideHint(); });
+$("toolsSlot").addEventListener("focusout",  e=>{ if (e.target.closest("[data-hint]")) hideHint(); });
+
 /* Auto, on hover, in the same card every other explanation on this page uses.
 
    It had a native `title` and that was the wrong container for it. A browser
@@ -4327,7 +4291,7 @@ document.addEventListener("click", e=>{
     $("announce").textContent = "Sort reset to defect rate, highest first.";
     return;
   }
-  if (t.closest("[data-info]")){ openInfo(null, t.closest("[data-info]")); return; }
+  if (t.closest("[data-hint]")){ showHint(t.closest("[data-hint]")); return; }
   // A yes/no category has no option list to open, so it toggles where it sits
   // and never becomes the selected facet.
   const bl = t.closest("[data-bool]");
@@ -4424,10 +4388,10 @@ function revealPanel(id){
 /* ---------- the "how these work" dialog ----------
    Three ways out, because being stuck in a reference panel is worse than
    never opening it: the close button, the scrim, and Escape. */
-/* One dialog, several doors. Whoever opened it gets focus back, and an
-   anchor scrolls to the part they asked about rather than making them hunt
-   for it — a second copy of the rules next to the legend would have been one
-   more thing to keep in sync. */
+/* Opened from the legend's info button. Whoever opened it gets focus back, and
+   an anchor scrolls to the part they asked about rather than making them hunt
+   for it. Filters and sort used to open it too; they explain themselves in a
+   hover card now (showHint). */
 let infoOpener = null;
 function openInfo(anchor, opener){
   // the opener is passed in where we know it: a click does not always leave
